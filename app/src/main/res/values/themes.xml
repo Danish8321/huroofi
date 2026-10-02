@@ -1,0 +1,5 @@
+<resources>
+    <style name="Theme.Huroofi" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/sky</item>
+    </style>
+</resources>
