@@ -1,0 +1,38 @@
+# Huroofi build plans
+
+Source of truth: `HANDOFF.md`. Plans follow its §9 build order. Each plan is one reviewable section; nothing is built until it is approved.
+
+| # | Plan | Handoff step | Status |
+|---|---|---|---|
+| 01 | [Project skeleton](01-skeleton.md) | 1 | draft |
+| 02 | [Theme and shared components](02-theme-components.md) | 1 | draft |
+| 03 | [Content layer, audio, progress](03-content-layer.md) | 2 | draft |
+| 04 | [Verification gates](04-gates.md) | all | draft |
+| 05 | [Toddler mode](05-toddler.md) | 3 | outline |
+| 06 | [Parent zone](06-parent-zone.md) | 4 | outline |
+| 07 | [Preschool / reader flow](07-preschool-reader.md) | 5 | outline |
+| 08 | [Tablet, immersive, a11y, Families check](08-polish.md) | 6 | outline |
+
+Plans 01–04 are detailed (the agreed scope: steps 1+2). Plans 05–08 are outlines, to be sharpened with `grill-with-docs` before their step starts.
+
+## Environment facts (checked 2026-10-02)
+
+- JDK 17.0.12, Android SDK with `platforms/android-37.0`, build-tools 36.0.0 and 37.0.0, cmdline-tools present.
+- No Gradle on PATH, no `ffmpeg`, **no emulator and no device known**. So instrumented tests and `e2e.sh` cannot run locally yet.
+- Repo: `github.com/Danish8321/huroofi`, branch `main`, handoff pack committed.
+
+## Open questions (need an answer before the plan that owns them)
+
+1. **compileSdk** (01): use 37 (the only installed platform, preview-style numbering) or install 36 via `sdkmanager`? Default: install 36, target 36.
+2. **Compose UI tests** (02, 04): no emulator. Options: (a) Robolectric as a dependency for JVM-run Compose tests, (b) install emulator + system image, (c) previews and pure-logic tests only. Needs your call: new dependency or new tooling. Default: (c) until you choose.
+3. **Silent audio placeholders** (03): no ffmpeg. Default: commit one hand-built minimal silent MP3 and copy it to each file name via a script.
+4. **Unit tests for Android types** (03): DataStore tests run on the JVM with a temp file, no extra dependency.
+5. **Toddler prompt audio names** (03, 05): HANDOFF lists the prompts but no file names. Default naming proposed in plan 03.
+
+## Decisions (2026-10-02, user)
+
+1. compileSdk/targetSdk = 36 (install platform 36 via sdkmanager).
+2. UI testing: previews and pure-logic tests only; no Robolectric. Visual behaviour reported as unverified.
+3. Prompt audio names in plan 03 accepted.
+4. Harakat default off.
+5. Plans 01-04 approved; scope of first build = HANDOFF steps 1+2.
