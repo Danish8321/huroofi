@@ -37,3 +37,10 @@ Plans 01–04 are detailed (the agreed scope: steps 1+2). Plans 05–08 are outl
 4. Harakat default off.
 5. Plans 01-04 approved; scope of first build = HANDOFF steps 1+2.
 6. Parent zone shows a static Offline mode row (plan 06 slice 5); no download logic.
+7. Device: emulator (to be installed locally: emulator + system image; unblocks test-full.sh/e2e.sh).
+8. Play Console / signing: last stage, after demo.
+9. App icon: build the best we can (design pass, user approves).
+10. Audio recordings: user supplies later; silent placeholders until then.
+11. Trace stroke paths: Claude authors, user reviews (plan 07 slice 3).
+12. Mode switch timing: answer "offline only" recorded; meaning unclear, to confirm.
+13. OPEN, needs broader discussion: vowelled words / harakat data (plan 06), letter shapes data (plan 07).
