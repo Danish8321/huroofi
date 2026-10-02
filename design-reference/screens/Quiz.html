@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Huroofi – Picture game</title>
+
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&amp;family=Noto+Naskh+Arabic:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F6FE0}a:hover{color:#1555B0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #E8F4FF; font-family: 'Baloo Bhaijaan 2', 'Noto Sans Arabic', system-ui, sans-serif; color: #13294B; display: flex; flex-direction: column; padding: 18px 20px 26px; overflow: hidden">
+
+  <div style="display: flex; align-items: center; gap: 12px">
+    <a href="Main.dc.html" aria-label="Leave game" style="width: 48px; height: 48px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 4px 0 #CFE2F7; display: flex; align-items: center; justify-content: center; color: #13294B; flex-shrink: 0">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </a>
+    <div style="flex-grow: 1; height: 20px; border-radius: 999px; background: #FFFFFF; overflow: hidden">
+      <div style="width: 60%; height: 100%; border-radius: 999px; background: #3BAA5C"></div>
+    </div>
+    <span style="font-size: 16px; font-weight: 800">3/5</span>
+  </div>
+
+  <div style="margin-top: 22px; display: flex; align-items: center; gap: 14px; background: #FFFFFF; border-radius: 28px; padding: 14px 16px; box-shadow: 0 6px 0 #CFE2F7">
+    <button type="button" aria-label="Hear the question" style="width: 60px; height: 60px; border-radius: 50%; border: none; background: #FFC93C; box-shadow: 0 5px 0 #E0A400; display: flex; align-items: center; justify-content: center; color: #13294B; cursor: pointer; flex-shrink: 0">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M16 9a4 4 0 0 1 0 6"></path><path d="M18.5 6.5a8 8 0 0 1 0 11"></path></svg>
+    </button>
+    <div style="flex-grow: 1; font-size: 22px; font-weight: 800; line-height: 1.2">Which one starts with</div>
+    <span dir="rtl" style="width: 64px; height: 64px; border-radius: 20px; background: #FFEDC4; display: flex; align-items: center; justify-content: center; font-family: 'Noto Naskh Arabic', serif; font-size: 46px; font-weight: 700; line-height: 1; padding-bottom: 8px; box-sizing: border-box; flex-shrink: 0">ب</span>
+  </div>
+
+  <div style="margin-top: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+    <sc-for list="{{tiles}}" as="t" hint-placeholder-count="4">
+      <button type="button" aria-label="{{t.label}}" onClick="{{t.pick}}" style="position: relative; height: 172px; box-sizing: border-box; border-radius: 30px; background: #FFFFFF; border: {{t.border}}; box-shadow: 0 6px 0 {{t.shadow}}; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; font-family: inherit">
+        <img src="{{t.img}}" alt="" style="width: 128px; height: 128px; object-fit: contain">
+        <sc-if value="{{t.showCheck}}" hint-placeholder-val="{{false}}">
+          <span style="position: absolute; top: -10px; right: -10px; width: 40px; height: 40px; border-radius: 50%; background: #158048; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+          </span>
+        </sc-if>
+        <sc-if value="{{t.showMiss}}" hint-placeholder-val="{{false}}">
+          <span style="position: absolute; top: -10px; right: -10px; width: 40px; height: 40px; border-radius: 50%; background: #C2410C; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </span>
+        </sc-if>
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="margin-top: auto">
+    <sc-if value="{{idle}}" hint-placeholder-val="{{true}}">
+      <div style="height: 64px; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #4A5D7A">Listen, then tap a picture</div>
+    </sc-if>
+    <sc-if value="{{wrong}}" hint-placeholder-val="{{false}}">
+      <div style="border-radius: 24px; background: #FFE4D6; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 22px; font-weight: 800; color: #9A3412">Almost! Try again</span>
+        <span dir="auto" style="font-size: 18px; font-weight: 600; color: #13294B">{{wrongHint}}</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{right}}" hint-placeholder-val="{{false}}">
+      <div style="border-radius: 26px; background: #D6F2C8; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <span style="font-size: 24px; font-weight: 800; color: #0F5F35">Great job!</span>
+          <span style="font-size: 18px; font-weight: 700"><span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-size: 24px; font-weight: 700"><span style="color: #A35400">ب</span>طة</span> starts with ب</span>
+        </div>
+        <a href="Reward.dc.html" style="height: 64px; border-radius: 22px; background: #158048; box-shadow: 0 6px 0 #0F5F35; color: #FFFFFF; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800">Continue</a>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const picked = (this.state && this.state.picked) || null;
+    const list = [
+      { id: 'thaa', img: '../../assets/illustrations/png/fox.png', label: 'Fox', word: 'ثعلب', first: 'ث' },
+      { id: 'baa', img: '../../assets/illustrations/png/duck.png', label: 'Duck', word: 'بطة', first: 'ب' },
+      { id: 'alif', img: '../../assets/illustrations/png/lion.png', label: 'Lion', word: 'أسد', first: 'أ' },
+      { id: 'taa', img: '../../assets/illustrations/png/apple.png', label: 'Apple', word: 'تفاح', first: 'ت' }
+    ];
+    const tiles = list.map((t) => {
+      const isPicked = picked === t.id;
+      const correct = t.id === 'baa';
+      return {
+        ...t,
+        border: isPicked ? (correct ? '5px solid #158048' : '5px solid #C2410C') : '5px solid #FFFFFF',
+        shadow: isPicked ? (correct ? '#9FD58A' : '#F5B99A') : '#CFE2F7',
+        showCheck: isPicked && correct,
+        showMiss: isPicked && !correct,
+        pick: () => this.setState({ picked: t.id })
+      };
+    });
+    const p = list.find((t) => t.id === picked);
+    return {
+      tiles,
+      idle: !picked,
+      right: picked === 'baa',
+      wrong: !!picked && picked !== 'baa',
+      wrongHint: p ? p.label + ' (' + p.word + ') starts with ' + p.first : ''
+    };
+  }
+}
+</script>
+</body>
+</html>

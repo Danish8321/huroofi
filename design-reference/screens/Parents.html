@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Huroofi – Parent zone</title>
+
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&amp;family=Noto+Naskh+Arabic:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F6FE0}a:hover{color:#1555B0}
+</style>
+</helmet>
+<div style="width: 390px; height: 1060px; box-sizing: border-box; background: #F4F7FB; font-family: 'Baloo Bhaijaan 2', 'Noto Sans Arabic', system-ui, sans-serif; color: #13294B; display: flex; flex-direction: column; padding: 18px 20px 26px; gap: 16px; overflow: hidden">
+
+  <div style="display: flex; align-items: center; gap: 12px">
+    <a href="Main.dc.html" aria-label="Back to kid mode" style="width: 48px; height: 48px; border-radius: 50%; background: #FFFFFF; border: 1px solid #D5E2F0; box-sizing: border-box; display: flex; align-items: center; justify-content: center; color: #13294B; flex-shrink: 0">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </a>
+    <h1 style="margin: 0; font-size: 26px; font-weight: 800">Parent zone</h1>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 22px; border: 1px solid #D5E2F0; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: #FFF4D6; border: 2px solid #FFC93C; overflow: hidden; flex-shrink: 0">
+        <img src="../../assets/illustrations/png/lion.png" alt="" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.15)">
+      </div>
+      <div style="flex-grow: 1; display: flex; flex-direction: column">
+        <span style="font-size: 20px; font-weight: 800; line-height: 1.1">Sara</span>
+        <span style="font-size: 16px; font-weight: 600; color: #4A5D7A">Stage 1 of 7 · Sunny Meadow</span>
+      </div>
+      <button type="button" style="height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid #A9CBF2; background: #FFFFFF; color: #1555B0; font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer">Switch child</button>
+    </div>
+    <div style="height: 14px; border-radius: 999px; background: #E3ECF7; overflow: hidden; display: flex">
+      <div style="width: 3.6%; background: #158048"></div>
+      <div style="width: 3.6%; background: #1F6FE0"></div>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; column-gap: 16px; row-gap: 4px; font-size: 16px; font-weight: 700; color: #4A5D7A">
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 4px; background: #158048"></span>1 learned</span>
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 4px; background: #1F6FE0"></span>1 learning</span>
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 4px; background: #C9D6E6"></span>26 to go</span>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 22px; border: 1px solid #D5E2F0; padding: 14px 16px 16px">
+    <div style="font-size: 20px; font-weight: 800">Learning mode</div>
+    <div style="font-size: 16px; font-weight: 600; color: #4A5D7A; margin-bottom: 10px">Changes what Sara sees when the app opens</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
+        <button type="button" onClick="{{m.pick}}" aria-pressed="{{m.on}}" style="min-height: 64px; border-radius: 16px; border: 2px solid {{m.border}}; background: {{m.bg}}; color: {{m.fg}}; font-family: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 4px">
+          <span style="font-size: 16px; font-weight: 800; line-height: 1.2">{{m.title}}</span>
+          <span style="font-size: 16px; font-weight: 600; line-height: 1.2">{{m.age}}</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 22px; border: 1px solid #D5E2F0; padding: 16px">
+    <div style="font-size: 20px; font-weight: 800; margin-bottom: 10px">All 28 letters</div>
+    <div dir="rtl" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px">
+      <sc-for list="{{letters}}" as="l" hint-placeholder-count="28">
+        <span style="height: 42px; box-sizing: border-box; border-radius: 12px; background: {{l.bg}}; border: {{l.border}}; color: {{l.color}}; display: flex; align-items: center; justify-content: center; font-family: 'Noto Naskh Arabic', serif; font-size: 26px; font-weight: 700; line-height: 1">{{l.ch}}</span>
+      </sc-for>
+    </div>
+    <div style="margin-top: 10px; font-size: 16px; font-weight: 600; color: #4A5D7A">Tap a letter to replay its lesson or reset it.</div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 22px; border: 1px solid #D5E2F0; padding: 4px 16px; display: flex; flex-direction: column">
+    <sc-for list="{{toggles}}" as="t" hint-placeholder-count="2">
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 64px; border-bottom: 1px solid #EEF3F9">
+        <div style="flex-grow: 1; display: flex; flex-direction: column">
+          <span style="font-size: 18px; font-weight: 800; line-height: 1.2">{{t.title}}</span>
+          <span style="font-size: 16px; font-weight: 600; color: #4A5D7A">{{t.sub}}</span>
+        </div>
+        <button type="button" aria-label="{{t.title}}" aria-pressed="{{t.on}}" onClick="{{t.flip}}" style="width: 56px; height: 34px; border-radius: 999px; border: none; background: {{t.track}}; position: relative; cursor: pointer; padding: 0; flex-shrink: 0">
+          <span style="position: absolute; top: 4px; left: {{t.knob}}; width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(19, 41, 75, 0.3)"></span>
+        </button>
+      </div>
+    </sc-for>
+    <div style="display: flex; align-items: center; gap: 12px; min-height: 64px; border-bottom: 1px solid #EEF3F9">
+      <div style="flex-grow: 1; display: flex; flex-direction: column">
+        <span style="font-size: 18px; font-weight: 800; line-height: 1.2">Daily play time</span>
+        <span style="font-size: 16px; font-weight: 600; color: #4A5D7A">A friendly “time to rest” screen appears</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px">
+        <button type="button" aria-label="Less time" onClick="{{less}}" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid #D5E2F0; background: #F4F7FB; font-family: inherit; font-size: 22px; font-weight: 800; color: #13294B; cursor: pointer">−</button>
+        <span style="min-width: 54px; text-align: center; font-size: 18px; font-weight: 800">{{minutes}} min</span>
+        <button type="button" aria-label="More time" onClick="{{more}}" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid #D5E2F0; background: #F4F7FB; font-family: inherit; font-size: 22px; font-weight: 800; color: #13294B; cursor: pointer">+</button>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; min-height: 64px">
+      <div style="flex-grow: 1; display: flex; flex-direction: column">
+        <span style="font-size: 18px; font-weight: 800; line-height: 1.2">Offline pack</span>
+        <span style="font-size: 16px; font-weight: 600; color: #4A5D7A">All letters, sounds and games</span>
+      </div>
+      <button type="button" style="height: 44px; padding: 0 16px; border-radius: 14px; border: none; background: #1F6FE0; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer">Download</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const chars = ['أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
+    const letters = chars.map((ch, i) => {
+      if (i === 0) return { ch, bg: '#158048', color: '#FFFFFF', border: '0' };
+      if (i === 1) return { ch, bg: '#FFFFFF', color: '#13294B', border: '3px solid #1F6FE0' };
+      return { ch, bg: '#EEF3F9', color: '#4A5D7A', border: '0' };
+    });
+    const defs = [
+      { id: 'voice', title: 'Voice & sounds', sub: 'Native-speaker audio for every letter', def: true },
+      { id: 'harakat', title: 'Show vowel marks', sub: 'Adds ḥarakāt like بَ بِ بُ to lessons', def: false }
+    ];
+    const toggles = defs.map((d) => {
+      const on = st[d.id] === undefined ? d.def : st[d.id];
+      return {
+        ...d,
+        on: on ? 'true' : 'false',
+        track: on ? '#158048' : '#C9D6E6',
+        knob: on ? '26px' : '4px',
+        flip: () => this.setState({ [d.id]: !on })
+      };
+    });
+    const minutes = st.minutes || 20;
+    const mode = st.mode || 'toddler';
+    const modes = [
+      { id: 'toddler', title: 'Toddler', age: '18m – 3y' },
+      { id: 'preschool', title: 'Preschool', age: '3 – 5y' },
+      { id: 'reader', title: 'Early reader', age: '5y +' }
+    ].map((m) => {
+      const on = m.id === mode;
+      return {
+        ...m,
+        on: on ? 'true' : 'false',
+        bg: on ? '#1F6FE0' : '#F4F7FB',
+        fg: on ? '#FFFFFF' : '#13294B',
+        border: on ? '#1F6FE0' : '#D5E2F0',
+        pick: () => this.setState({ mode: m.id })
+      };
+    });
+    return {
+      modes,
+      letters,
+      toggles,
+      minutes,
+      less: () => this.setState({ minutes: Math.max(5, minutes - 5) }),
+      more: () => this.setState({ minutes: Math.min(60, minutes + 5) })
+    };
+  }
+}
+</script>
+</body>
+</html>
