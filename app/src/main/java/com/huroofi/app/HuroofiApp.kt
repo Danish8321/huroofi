@@ -3,7 +3,6 @@ package com.huroofi.app
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.huroofi.app.debug.debugDestinations
 import com.huroofi.app.ui.theme.BalooBhaijaan2
+import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.NotoNaskhArabic
 
 object Routes {
@@ -23,7 +23,7 @@ object Routes {
 
 @Composable
 fun HuroofiApp() {
-    MaterialTheme {
+    HuroofiTheme {
         val nav = rememberNavController()
         NavHost(navController = nav, startDestination = Routes.Placeholder) {
             composable(Routes.Placeholder) { PlaceholderScreen() }
