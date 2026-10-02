@@ -36,3 +36,4 @@ Plans 01–04 are detailed (the agreed scope: steps 1+2). Plans 05–08 are outl
 3. Prompt audio names in plan 03 accepted.
 4. Harakat default off.
 5. Plans 01-04 approved; scope of first build = HANDOFF steps 1+2.
+6. Parent zone shows a static Offline mode row (plan 06 slice 5); no download logic.
