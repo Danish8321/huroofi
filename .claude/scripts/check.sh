@@ -4,5 +4,5 @@
 if [ -e app/lint-baseline.xml ] || [ -e lint-baseline.xml ] || [ -e lint.xml ] || [ -e app/lint.xml ]; then
   echo "FAIL: lint baseline / lint.xml is forbidden"; exit 1
 fi
-./gradlew --console=plain assembleDebug lintDebug
-echo "check.sh: PASS (assembleDebug + lintDebug)"
+./gradlew --console=plain assembleDebug lintDebug compileReleaseKotlin
+echo "check.sh: PASS (assembleDebug + lintDebug + compileReleaseKotlin)"

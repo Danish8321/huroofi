@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.huroofi.app.debug.DEBUG_START_ROUTE
 import com.huroofi.app.debug.debugDestinations
 import com.huroofi.app.ui.theme.BalooBhaijaan2
 import com.huroofi.app.ui.theme.HuroofiTheme
@@ -25,7 +26,7 @@ object Routes {
 fun HuroofiApp() {
     HuroofiTheme {
         val nav = rememberNavController()
-        NavHost(navController = nav, startDestination = Routes.Placeholder) {
+        NavHost(navController = nav, startDestination = DEBUG_START_ROUTE) {
             composable(Routes.Placeholder) { PlaceholderScreen() }
             debugDestinations()
         }
