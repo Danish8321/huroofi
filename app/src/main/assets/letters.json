@@ -1,0 +1,573 @@
+{
+  "letters": [
+    {
+      "index": 1,
+      "letter": "أ",
+      "name_ar": "ألف",
+      "name_latin": "alif",
+      "word_ar": "أسد",
+      "word_first": "أ",
+      "word_rest": "سد",
+      "meaning_en": "lion",
+      "picture": "lion",
+      "stage": 1,
+      "card_image": "assets/cards/01_alif_lion.png",
+      "audio": {
+        "letter": "audio/letters/01_alif.mp3",
+        "word": "audio/words/01_lion.mp3"
+      }
+    },
+    {
+      "index": 2,
+      "letter": "ب",
+      "name_ar": "باء",
+      "name_latin": "baa",
+      "word_ar": "بطة",
+      "word_first": "ب",
+      "word_rest": "طة",
+      "meaning_en": "duck",
+      "picture": "duck",
+      "stage": 1,
+      "card_image": "assets/cards/02_baa_duck.png",
+      "audio": {
+        "letter": "audio/letters/02_baa.mp3",
+        "word": "audio/words/02_duck.mp3"
+      }
+    },
+    {
+      "index": 3,
+      "letter": "ت",
+      "name_ar": "تاء",
+      "name_latin": "taa",
+      "word_ar": "تفاح",
+      "word_first": "ت",
+      "word_rest": "فاح",
+      "meaning_en": "apple",
+      "picture": "apple",
+      "stage": 1,
+      "card_image": "assets/cards/03_taa_apple.png",
+      "audio": {
+        "letter": "audio/letters/03_taa.mp3",
+        "word": "audio/words/03_apple.mp3"
+      }
+    },
+    {
+      "index": 4,
+      "letter": "ث",
+      "name_ar": "ثاء",
+      "name_latin": "thaa",
+      "word_ar": "ثعلب",
+      "word_first": "ث",
+      "word_rest": "علب",
+      "meaning_en": "fox",
+      "picture": "fox",
+      "stage": 1,
+      "card_image": "assets/cards/04_thaa_fox.png",
+      "audio": {
+        "letter": "audio/letters/04_thaa.mp3",
+        "word": "audio/words/04_fox.mp3"
+      }
+    },
+    {
+      "index": 5,
+      "letter": "ج",
+      "name_ar": "جيم",
+      "name_latin": "jiim",
+      "word_ar": "جزر",
+      "word_first": "ج",
+      "word_rest": "زر",
+      "meaning_en": "carrot",
+      "picture": "carrot",
+      "stage": 2,
+      "card_image": "assets/cards/05_jiim_carrot.png",
+      "audio": {
+        "letter": "audio/letters/05_jiim.mp3",
+        "word": "audio/words/05_carrot.mp3"
+      }
+    },
+    {
+      "index": 6,
+      "letter": "ح",
+      "name_ar": "حاء",
+      "name_latin": "ḥaa",
+      "word_ar": "حصان",
+      "word_first": "ح",
+      "word_rest": "صان",
+      "meaning_en": "horse",
+      "picture": "horse",
+      "stage": 2,
+      "card_image": "assets/cards/06_haa_horse.png",
+      "audio": {
+        "letter": "audio/letters/06_haa.mp3",
+        "word": "audio/words/06_horse.mp3"
+      }
+    },
+    {
+      "index": 7,
+      "letter": "خ",
+      "name_ar": "خاء",
+      "name_latin": "khaa",
+      "word_ar": "خروف",
+      "word_first": "خ",
+      "word_rest": "روف",
+      "meaning_en": "sheep",
+      "picture": "sheep",
+      "stage": 2,
+      "card_image": "assets/cards/07_khaa_sheep.png",
+      "audio": {
+        "letter": "audio/letters/07_khaa.mp3",
+        "word": "audio/words/07_sheep.mp3"
+      }
+    },
+    {
+      "index": 8,
+      "letter": "د",
+      "name_ar": "دال",
+      "name_latin": "daal",
+      "word_ar": "دجاجة",
+      "word_first": "د",
+      "word_rest": "جاجة",
+      "meaning_en": "hen",
+      "picture": "hen",
+      "stage": 2,
+      "card_image": "assets/cards/08_daal_hen.png",
+      "audio": {
+        "letter": "audio/letters/08_daal.mp3",
+        "word": "audio/words/08_hen.mp3"
+      }
+    },
+    {
+      "index": 9,
+      "letter": "ذ",
+      "name_ar": "ذال",
+      "name_latin": "dhaal",
+      "word_ar": "ذرة",
+      "word_first": "ذ",
+      "word_rest": "رة",
+      "meaning_en": "corn",
+      "picture": "corn",
+      "stage": 3,
+      "card_image": "assets/cards/09_dhaal_corn.png",
+      "audio": {
+        "letter": "audio/letters/09_dhaal.mp3",
+        "word": "audio/words/09_corn.mp3"
+      }
+    },
+    {
+      "index": 10,
+      "letter": "ر",
+      "name_ar": "راء",
+      "name_latin": "raa",
+      "word_ar": "ريشة",
+      "word_first": "ر",
+      "word_rest": "يشة",
+      "meaning_en": "feather",
+      "picture": "feather",
+      "stage": 3,
+      "card_image": "assets/cards/10_raa_feather.png",
+      "audio": {
+        "letter": "audio/letters/10_raa.mp3",
+        "word": "audio/words/10_feather.mp3"
+      }
+    },
+    {
+      "index": 11,
+      "letter": "ز",
+      "name_ar": "زاي",
+      "name_latin": "zaay",
+      "word_ar": "زهرة",
+      "word_first": "ز",
+      "word_rest": "هرة",
+      "meaning_en": "flower",
+      "picture": "flower",
+      "stage": 3,
+      "card_image": "assets/cards/11_zaay_flower.png",
+      "audio": {
+        "letter": "audio/letters/11_zaay.mp3",
+        "word": "audio/words/11_flower.mp3"
+      }
+    },
+    {
+      "index": 12,
+      "letter": "س",
+      "name_ar": "سين",
+      "name_latin": "siin",
+      "word_ar": "ساعة",
+      "word_first": "س",
+      "word_rest": "اعة",
+      "meaning_en": "clock",
+      "picture": "clock",
+      "stage": 3,
+      "card_image": "assets/cards/12_siin_clock.png",
+      "audio": {
+        "letter": "audio/letters/12_siin.mp3",
+        "word": "audio/words/12_clock.mp3"
+      }
+    },
+    {
+      "index": 13,
+      "letter": "ش",
+      "name_ar": "شين",
+      "name_latin": "shiin",
+      "word_ar": "شجرة",
+      "word_first": "ش",
+      "word_rest": "جرة",
+      "meaning_en": "tree",
+      "picture": "tree",
+      "stage": 4,
+      "card_image": "assets/cards/13_shiin_tree.png",
+      "audio": {
+        "letter": "audio/letters/13_shiin.mp3",
+        "word": "audio/words/13_tree.mp3"
+      }
+    },
+    {
+      "index": 14,
+      "letter": "ص",
+      "name_ar": "صاد",
+      "name_latin": "ṣaad",
+      "word_ar": "صاروخ",
+      "word_first": "ص",
+      "word_rest": "اروخ",
+      "meaning_en": "rocket",
+      "picture": "rocket",
+      "stage": 4,
+      "card_image": "assets/cards/14_saad_rocket.png",
+      "audio": {
+        "letter": "audio/letters/14_saad.mp3",
+        "word": "audio/words/14_rocket.mp3"
+      }
+    },
+    {
+      "index": 15,
+      "letter": "ض",
+      "name_ar": "ضاد",
+      "name_latin": "ḍaad",
+      "word_ar": "ضفدع",
+      "word_first": "ض",
+      "word_rest": "فدع",
+      "meaning_en": "frog",
+      "picture": "frog",
+      "stage": 4,
+      "card_image": "assets/cards/15_daad_frog.png",
+      "audio": {
+        "letter": "audio/letters/15_daad.mp3",
+        "word": "audio/words/15_frog.mp3"
+      }
+    },
+    {
+      "index": 16,
+      "letter": "ط",
+      "name_ar": "طاء",
+      "name_latin": "ṭaa",
+      "word_ar": "طائرة",
+      "word_first": "ط",
+      "word_rest": "ائرة",
+      "meaning_en": "airplane",
+      "picture": "plane",
+      "stage": 4,
+      "card_image": "assets/cards/16_taa_plane.png",
+      "audio": {
+        "letter": "audio/letters/16_taa.mp3",
+        "word": "audio/words/16_plane.mp3"
+      }
+    },
+    {
+      "index": 17,
+      "letter": "ظ",
+      "name_ar": "ظاء",
+      "name_latin": "ẓaa",
+      "word_ar": "ظرف",
+      "word_first": "ظ",
+      "word_rest": "رف",
+      "meaning_en": "envelope",
+      "picture": "envelope",
+      "stage": 5,
+      "card_image": "assets/cards/17_zaa_envelope.png",
+      "audio": {
+        "letter": "audio/letters/17_zaa.mp3",
+        "word": "audio/words/17_envelope.mp3"
+      }
+    },
+    {
+      "index": 18,
+      "letter": "ع",
+      "name_ar": "عين",
+      "name_latin": "ʿayn",
+      "word_ar": "عصفور",
+      "word_first": "ع",
+      "word_rest": "صفور",
+      "meaning_en": "sparrow",
+      "picture": "bird",
+      "stage": 5,
+      "card_image": "assets/cards/18_ayn_bird.png",
+      "audio": {
+        "letter": "audio/letters/18_ayn.mp3",
+        "word": "audio/words/18_bird.mp3"
+      }
+    },
+    {
+      "index": 19,
+      "letter": "غ",
+      "name_ar": "غين",
+      "name_latin": "ghayn",
+      "word_ar": "غسالة",
+      "word_first": "غ",
+      "word_rest": "سالة",
+      "meaning_en": "washing machine",
+      "picture": "washer",
+      "stage": 5,
+      "card_image": "assets/cards/19_ghayn_washer.png",
+      "audio": {
+        "letter": "audio/letters/19_ghayn.mp3",
+        "word": "audio/words/19_washer.mp3"
+      }
+    },
+    {
+      "index": 20,
+      "letter": "ف",
+      "name_ar": "فاء",
+      "name_latin": "faa",
+      "word_ar": "فراولة",
+      "word_first": "ف",
+      "word_rest": "راولة",
+      "meaning_en": "strawberry",
+      "picture": "strawberry",
+      "stage": 5,
+      "card_image": "assets/cards/20_faa_strawberry.png",
+      "audio": {
+        "letter": "audio/letters/20_faa.mp3",
+        "word": "audio/words/20_strawberry.mp3"
+      }
+    },
+    {
+      "index": 21,
+      "letter": "ق",
+      "name_ar": "قاف",
+      "name_latin": "qaaf",
+      "word_ar": "قلم",
+      "word_first": "ق",
+      "word_rest": "لم",
+      "meaning_en": "pencil",
+      "picture": "pencil",
+      "stage": 6,
+      "card_image": "assets/cards/21_qaaf_pencil.png",
+      "audio": {
+        "letter": "audio/letters/21_qaaf.mp3",
+        "word": "audio/words/21_pencil.mp3"
+      }
+    },
+    {
+      "index": 22,
+      "letter": "ك",
+      "name_ar": "كاف",
+      "name_latin": "kaaf",
+      "word_ar": "كرة",
+      "word_first": "ك",
+      "word_rest": "رة",
+      "meaning_en": "ball",
+      "picture": "ball",
+      "stage": 6,
+      "card_image": "assets/cards/22_kaaf_ball.png",
+      "audio": {
+        "letter": "audio/letters/22_kaaf.mp3",
+        "word": "audio/words/22_ball.mp3"
+      }
+    },
+    {
+      "index": 23,
+      "letter": "ل",
+      "name_ar": "لام",
+      "name_latin": "laam",
+      "word_ar": "ليمون",
+      "word_first": "ل",
+      "word_rest": "يمون",
+      "meaning_en": "lemon",
+      "picture": "lemon",
+      "stage": 6,
+      "card_image": "assets/cards/23_laam_lemon.png",
+      "audio": {
+        "letter": "audio/letters/23_laam.mp3",
+        "word": "audio/words/23_lemon.mp3"
+      }
+    },
+    {
+      "index": 24,
+      "letter": "م",
+      "name_ar": "ميم",
+      "name_latin": "miim",
+      "word_ar": "موز",
+      "word_first": "م",
+      "word_rest": "وز",
+      "meaning_en": "banana",
+      "picture": "banana",
+      "stage": 6,
+      "card_image": "assets/cards/24_miim_banana.png",
+      "audio": {
+        "letter": "audio/letters/24_miim.mp3",
+        "word": "audio/words/24_banana.mp3"
+      }
+    },
+    {
+      "index": 25,
+      "letter": "ن",
+      "name_ar": "نون",
+      "name_latin": "nuun",
+      "word_ar": "نجمة",
+      "word_first": "ن",
+      "word_rest": "جمة",
+      "meaning_en": "star",
+      "picture": "star",
+      "stage": 7,
+      "card_image": "assets/cards/25_nuun_star.png",
+      "audio": {
+        "letter": "audio/letters/25_nuun.mp3",
+        "word": "audio/words/25_star.mp3"
+      }
+    },
+    {
+      "index": 26,
+      "letter": "ه",
+      "name_ar": "هاء",
+      "name_latin": "haa",
+      "word_ar": "هرم",
+      "word_first": "ه",
+      "word_rest": "رم",
+      "meaning_en": "pyramid",
+      "picture": "pyramid",
+      "stage": 7,
+      "card_image": "assets/cards/26_haa_pyramid.png",
+      "audio": {
+        "letter": "audio/letters/26_haa.mp3",
+        "word": "audio/words/26_pyramid.mp3"
+      }
+    },
+    {
+      "index": 27,
+      "letter": "و",
+      "name_ar": "واو",
+      "name_latin": "waaw",
+      "word_ar": "وجه",
+      "word_first": "و",
+      "word_rest": "جه",
+      "meaning_en": "face",
+      "picture": "face",
+      "stage": 7,
+      "card_image": "assets/cards/27_waaw_face.png",
+      "audio": {
+        "letter": "audio/letters/27_waaw.mp3",
+        "word": "audio/words/27_face.mp3"
+      }
+    },
+    {
+      "index": 28,
+      "letter": "ي",
+      "name_ar": "ياء",
+      "name_latin": "yaa",
+      "word_ar": "يد",
+      "word_first": "ي",
+      "word_rest": "د",
+      "meaning_en": "hand",
+      "picture": "hand",
+      "stage": 7,
+      "card_image": "assets/cards/28_yaa_hand.png",
+      "audio": {
+        "letter": "audio/letters/28_yaa.mp3",
+        "word": "audio/words/28_hand.mp3"
+      }
+    }
+  ],
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Sunny Meadow",
+      "letters": [
+        "أ",
+        "ب",
+        "ت",
+        "ث"
+      ],
+      "border": "#F59E0B",
+      "pastel": "#FFEDC4",
+      "accent_dark": "#A35400"
+    },
+    {
+      "stage": 2,
+      "name": "Carrot Farm",
+      "letters": [
+        "ج",
+        "ح",
+        "خ",
+        "د"
+      ],
+      "border": "#EC4F8C",
+      "pastel": "#FFDDEA",
+      "accent_dark": "#B0185A"
+    },
+    {
+      "stage": 3,
+      "name": "Flower Hill",
+      "letters": [
+        "ذ",
+        "ر",
+        "ز",
+        "س"
+      ],
+      "border": "#14A88E",
+      "pastel": "#D2F4EC",
+      "accent_dark": "#00695C"
+    },
+    {
+      "stage": 4,
+      "name": "Rocket Base",
+      "letters": [
+        "ش",
+        "ص",
+        "ض",
+        "ط"
+      ],
+      "border": "#7C5CE0",
+      "pastel": "#E8E0FF",
+      "accent_dark": "#4C2DB0"
+    },
+    {
+      "stage": 5,
+      "name": "Birdy Forest",
+      "letters": [
+        "ظ",
+        "ع",
+        "غ",
+        "ف"
+      ],
+      "border": "#2F80ED",
+      "pastel": "#DAEAFF",
+      "accent_dark": "#0B4FB0"
+    },
+    {
+      "stage": 6,
+      "name": "Pencil Town",
+      "letters": [
+        "ق",
+        "ك",
+        "ل",
+        "م"
+      ],
+      "border": "#4CAF3A",
+      "pastel": "#DFF5D5",
+      "accent_dark": "#1F6E1A"
+    },
+    {
+      "stage": 7,
+      "name": "Star Castle",
+      "letters": [
+        "ن",
+        "ه",
+        "و",
+        "ي"
+      ],
+      "border": "#F2643A",
+      "pastel": "#FFE2D7",
+      "accent_dark": "#B2340E"
+    }
+  ]
+}
