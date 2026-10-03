@@ -13,6 +13,12 @@ Spoken once when Daily play time runs out (`audio/prompts/time_to_rest.mp3`); th
 
 - وقت الراحة، إلى اللقاء غدًا!  ("Time to rest. See you tomorrow!")
 
+## Play question (plan 07)
+
+Spoken at the start of each Play round (`audio/prompts/which_starts_with.mp3`), followed straight away by the letter clip, so it ends on "the letter".
+
+- أي صورة تبدأ بحرف…؟  ("Which picture starts with the letter…?")
+
 ## Per-letter prompts
 
 | # | Letter | Where is…? | Colour… |
