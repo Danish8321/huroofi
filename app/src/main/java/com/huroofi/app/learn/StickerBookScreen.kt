@@ -33,6 +33,7 @@ object StickerBookSpec {
     val CardCorner = 26.dp
     val CardEdge = Color(0xFFCFE2F7)
     val touchSizes = listOf(NavSpec.Item)
+    val textSizes = listOf(StickerSpec.QUESTION_SP)
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, CardEdge) + NavSpec.colors
 }
 

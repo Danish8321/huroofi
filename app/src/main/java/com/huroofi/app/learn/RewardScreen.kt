@@ -69,6 +69,7 @@ object RewardSpec {
     const val TITLE_SP = 36f
     const val TILE_SP = 34f
     const val STICKER_NAME_SP = 24f
+    val textSizes = listOf(TITLE_SP, TILE_SP, STICKER_NAME_SP)
 
     /** Confetti from the prototype, minus its red-orange (no red on child screens). */
     val confetti = listOf(Color(0xFFFF6FA5), Color(0xFF3B8CF0), Color(0xFF3BAA5C), Color(0xFF8A6CE8), HuroofiTokens.Sun)

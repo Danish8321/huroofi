@@ -63,6 +63,8 @@ object LessonSpec {
     const val NAME_SP = 30f
     const val WORD_SP = 46f
     const val SHAPE_SP = 38f
+    const val INLINE_SP = 24f
+    val textSizes = listOf(LETTER_SP, NAME_SP, WORD_SP, SHAPE_SP, INLINE_SP)
 
     val touchSizes = listOf(Back, Sound, Picture)
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Sun, EdgeColor)
@@ -172,7 +174,7 @@ fun LessonScreen(
 private fun LetterShapesGrid(letter: Letter) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            ArabicText(letter.letter, size = 24.sp, color = HuroofiTokens.Navy)
+            ArabicText(letter.letter, size = LessonSpec.INLINE_SP.sp, color = HuroofiTokens.Navy)
             Text("changes shape in words", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Muted)
         }
         val shapes = letterShapes(letter.letter)

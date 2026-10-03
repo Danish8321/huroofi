@@ -85,6 +85,7 @@ object MapSpec {
     val PathColor = Color(0xFFA9CBF2)
     val QuietBorder = Color(0xFFD5E2F0)
     const val NAME_SP = 20f
+    val textSizes = listOf(NAME_SP)
 
     /** The play button, a locked card (tap = boing + wiggle) and the nav items. */
     val touchSizes = listOf(Play, CardHeight, NavSpec.Item)

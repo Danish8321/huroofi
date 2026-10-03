@@ -76,6 +76,8 @@ object QuizSpec {
     val WrongText = Color(0xFFA35400)
     const val DIMMED = 0.4f
     const val CHIP_SP = 46f
+    const val INLINE_SP = 24f
+    val textSizes = listOf(CHIP_SP, INLINE_SP)
 
     /** The smallest option tile; option tiles share the space left, so this is their floor. */
     val TileMin = 96.dp
@@ -261,7 +263,7 @@ private fun WrongPanel(pick: Letter) {
                 style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
                 color = HuroofiTokens.Navy,
             )
-            ArabicText(pick.wordFirst, size = 24.sp, color = HuroofiTokens.Navy)
+            ArabicText(pick.wordFirst, size = QuizSpec.INLINE_SP.sp, color = HuroofiTokens.Navy)
         }
     }
 }
@@ -274,9 +276,9 @@ private fun RightPanel(target: Letter, accent: Color, showContinue: Boolean, can
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Great job!", style = HuroofiText.buttonPrimary, color = QuizSpec.RightText)
-            ArabicText(highlightedWord(target.wordFirst, target.wordRest, accent), size = 24.sp, color = HuroofiTokens.Navy)
+            ArabicText(highlightedWord(target.wordFirst, target.wordRest, accent), size = QuizSpec.INLINE_SP.sp, color = HuroofiTokens.Navy)
             Text("starts with", style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
-            ArabicText(target.letter, size = 24.sp, color = HuroofiTokens.Navy)
+            ArabicText(target.letter, size = QuizSpec.INLINE_SP.sp, color = HuroofiTokens.Navy)
         }
         if (showContinue) PrimaryButton("Continue", onClick = onContinue, kind = ButtonKind.Success, enabled = canContinue)
     }

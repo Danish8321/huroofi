@@ -67,6 +67,8 @@ object HomeSpec {
     const val LETTER_SP = 112f
     const val WORD_SP = 32f
     const val CHIP_SP = 28f
+    const val GREETING_SP = 26f
+    val textSizes = listOf(LETTER_SP, WORD_SP, CHIP_SP, GREETING_SP)
 
     val ChipLearned = HuroofiTokens.Success
     val ChipLearningRing = HuroofiTokens.Primary
@@ -128,7 +130,7 @@ private fun Greeting(review: Boolean) {
                 .border(3.dp, HuroofiTokens.Sun, CircleShape),
         )
         Column {
-            Text("Hi there!", style = HuroofiText.screenTitle.copy(fontSize = 26.sp), color = HuroofiTokens.Navy)
+            Text("Hi there!", style = HuroofiText.screenTitle.copy(fontSize = HomeSpec.GREETING_SP.sp), color = HuroofiTokens.Navy)
             Text(
                 if (review) "Let's practise a letter!" else "Ready for a new letter?",
                 style = HuroofiText.body,
