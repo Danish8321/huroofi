@@ -11,3 +11,5 @@ Slices:
 5. **Offline pack**: DECIDED (user): keep an "Offline mode" row in the zone. App is fully offline by design (no INTERNET permission), so the row is static: "All content is on this device." No download logic.
 
 Parent zone uses `parentBg`, 16 sp minimum, AA contrast; it is for adults so English text is fine.
+
+Owns (from plan 05 decision 15): counting usage seconds on every screen including toddler, enforcing the daily limit, and the "time to rest" screen, intercepted at the single `NavHost`.
