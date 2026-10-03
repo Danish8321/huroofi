@@ -60,7 +60,7 @@ Check: `check.sh`; preview with a mid-way progress.
 
 ### 1.3 Letter grid
 Files: same screen file.
-- Section card "Letters" with subtitle "Green = learned · Blue ring = learning". 4 rows × 7 cells, right-to-left (alif top-right) — use `LayoutDirection.Rtl` for the grid only. Cells are not clickable (decision 3); `contentDescription` "<name_latin>, learned/learning/to go".
+- Section card "All 28 letters" (no hint line). 4 rows × 7 cells, right-to-left (alif top-right) — use `LayoutDirection.Rtl` for the grid only. Cells are not clickable (decision 3); `contentDescription` "<name_latin>, learned/learning/to go".
 Check: `check.sh`; preview.
 
 ### 1.4 Wire the zone
@@ -94,6 +94,7 @@ Check: `check.sh`; preview both states.
 
 ### 3.2 Settings card
 Files: screen + route.
+- One card, as in the prototype: voice, vowel marks, daily play time (slice 4), offline.
 - "Voice & sounds" / "Native-speaker audio for every letter" → `setVoiceEnabled`.
 - "Show vowel marks (ḥarakāt)" / "Adds vowel marks like بَ بِ بُ in lessons" (Arabic part via `ArabicText` inline) → `setHarakatEnabled`.
 - Static "Offline pack" / "All content is on this device." row, no control.
@@ -137,8 +138,7 @@ Check: `ToddlerBackTest` (Rest swallows in toddler and non-toddler start); gates
 
 ### 4.6 Stepper
 Files: screen + route.
-- Card "Daily play time" / "Huroofi rests when time's up": − value + (buttons 48 dp, radius 12; value min-width 54, 18 sp, "20 min"). Bounds 5 / 60 disable the button; `setDailyLimitMinutes(±5)`.
-- Under it: "Played today: N min" (from `usageSecondsToday`, floor).
+- Row in the settings card, above Offline: "Daily play time" / "A friendly “time to rest” screen appears", − value + (buttons 48 dp, radius 12, `#F4F7FB`, border `#D5E2F0`; value min-width 54, 18 sp, "20 min"). Bounds 5 / 60 disable the button; `setDailyLimitMinutes(±5)`.
 Check: gates. Push.
 
 ---
