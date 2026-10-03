@@ -106,3 +106,27 @@ fun ChevronIcon(color: Color, pointsRight: Boolean, modifier: Modifier = Modifie
         drawPath(path, color, style = Stroke(width = 3f * u, cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
 }
+
+/** Five-point star from the toddler prototypes, filled with [fill] and outlined. Decorative. */
+@Composable
+fun StarIcon(
+    fill: Color,
+    modifier: Modifier = Modifier,
+    size: Dp = 30.dp,
+    outline: Color = Color(0xFF26324A),
+    outlineWidth: Float = 1.4f,
+) {
+    Canvas(modifier.size(size)) {
+        val u = this.size.width / 24f
+        val points = listOf(
+            12f to 2.8f, 14.8f to 8.6f, 21.1f to 9.5f, 16.5f to 13.9f, 17.6f to 20.2f,
+            12f to 17.2f, 6.4f to 20.2f, 7.5f to 13.9f, 2.9f to 9.5f, 9.2f to 8.6f,
+        )
+        val star = Path().apply {
+            points.forEachIndexed { i, (x, y) -> if (i == 0) moveTo(x * u, y * u) else lineTo(x * u, y * u) }
+            close()
+        }
+        drawPath(star, fill)
+        drawPath(star, outline, style = Stroke(width = outlineWidth * u, join = StrokeJoin.Round))
+    }
+}
