@@ -55,11 +55,8 @@ fun ComponentSamples(modifier: Modifier = Modifier) {
         Text("SpeechBubble", style = HuroofiText.sectionHeading)
         SpeechBubble("أين البطة؟", "Hear the question again", onSoundClick = {})
 
-        Text("ParentLock (normal, toddler)", style = HuroofiText.sectionHeading)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            ParentLock(onRequestParentZone = {}, contentDescription = "Parents")
-            ParentLock(onRequestParentZone = {}, contentDescription = "Parents", toddler = true)
-        }
+        Text("ParentLock", style = HuroofiText.sectionHeading)
+        ParentLock(onRequestParentZone = {}, contentDescription = "Parents")
 
         Text("StepTabs", style = HuroofiText.sectionHeading)
         StepTabs(listOf("Lesson", "Trace", "Quiz"), currentIndex = 1)
