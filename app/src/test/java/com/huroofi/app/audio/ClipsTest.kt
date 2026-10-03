@@ -35,7 +35,7 @@ class ClipsTest {
         val all = Clips.all(letters)
         assertEquals(all.size, all.map { it.path }.toSet().size)
         assertTrue(all.all { it.path.startsWith("audio/") && it.path.endsWith(".mp3") })
-        // 28 letter + 28 word + 28 where_is + 28 colour + 1 play + 3 praise + boing + cheer
-        assertEquals(28 * 4 + 1 + 3 + 2, all.size)
+        // 28 letter + 28 word + 28 where_is + 28 colour + play + rest + 3 praise + boing + cheer
+        assertEquals(28 * 4 + 2 + 3 + 2, all.size)
     }
 }

@@ -25,6 +25,9 @@ object Clips {
 
     val whatShallWePlay = Clip("audio/prompts/what_shall_we_play.mp3")
 
+    /** "وقت الراحة، إلى اللقاء غدًا!" on the Rest screen (plan 06 decision 6). */
+    val timeToRest = Clip("audio/prompts/time_to_rest.mp3")
+
     fun praise(n: Int): Clip {
         require(n in 1..PRAISE_COUNT) { "praise clip must be 1..$PRAISE_COUNT" }
         return Clip("audio/sfx/praise_$n.mp3")
@@ -37,5 +40,5 @@ object Clips {
 
     fun all(letters: List<Letter>): List<Clip> =
         letters.flatMap { listOf(letter(it), word(it), whereIs(it), colour(it)) } +
-            whatShallWePlay + (1..PRAISE_COUNT).map(::praise) + boing + cheer
+            whatShallWePlay + timeToRest + (1..PRAISE_COUNT).map(::praise) + boing + cheer
 }

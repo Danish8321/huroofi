@@ -9,8 +9,10 @@ enum class BackAction { Swallow, PopToToddlerHome, Default }
 /**
  * What system Back does on [route] (plan 05 decision 6). Toddler Home swallows it, so a child can't
  * leave the app; activities and the gate go back to Toddler Home. Leaving is only through the gate.
+ * The Rest screen swallows Back in every mode (plan 06 decision 6).
  */
 fun toddlerBack(route: String, startRoute: String): BackAction = when {
+    route == Routes.Rest -> BackAction.Swallow
     startRoute != Routes.ToddlerHome -> BackAction.Default
     route == Routes.ToddlerHome -> BackAction.Swallow
     route in TODDLER_RETURNS_HOME -> BackAction.PopToToddlerHome

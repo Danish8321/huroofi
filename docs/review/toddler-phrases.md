@@ -7,6 +7,14 @@ Please check each line for grammar and naturalness. Notes for the reviewer:
 - "لوّن" keeps its shadda, as in the approved prototype. The plain form (CONTEXT.md) drops short vowels only; confirm the shadda should stay.
 - Words that may not take the article naturally, or need a different form for a toddler prompt, should be marked; the fix is a data field in `letters.json`, not code.
 
+## Rest screen (plan 06)
+
+Spoken once when Daily play time runs out (`audio/prompts/time_to_rest.mp3`); the big title is its first half.
+
+- وقت الراحة، إلى اللقاء غدًا!  ("Time to rest. See you tomorrow!")
+
+## Per-letter prompts
+
 | # | Letter | Where is…? | Colour… |
 |---|---|---|---|
 | 1 | أ | أين الأسد؟ | لوّن الألف |

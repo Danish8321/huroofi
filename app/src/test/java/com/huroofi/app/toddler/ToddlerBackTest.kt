@@ -38,4 +38,10 @@ class ToddlerBackTest {
             assertEquals(route, BackAction.Default, toddlerBack(route, startRoute = Routes.Placeholder))
         }
     }
+
+    @Test
+    fun restSwallowsBackInEveryMode() {
+        assertEquals(BackAction.Swallow, back(Routes.Rest))
+        assertEquals(BackAction.Swallow, toddlerBack(Routes.Rest, startRoute = Routes.Placeholder))
+    }
 }
