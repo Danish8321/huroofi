@@ -18,6 +18,7 @@ class LearnSpecTest {
         Screen("Home", HomeSpec.touchSizes, HomeSpec.colors),
         Screen("Lesson", LessonSpec.touchSizes, LessonSpec.colors),
         Screen("Trace", TraceSpec.touchSizes, TraceSpec.colors),
+        Screen("Quiz", QuizSpec.touchSizes, QuizSpec.colors),
     )
 
     @Test

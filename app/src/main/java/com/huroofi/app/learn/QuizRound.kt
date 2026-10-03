@@ -33,6 +33,8 @@ data class QuizGame(
     val rounds: Int = QUIZ_ROUNDS,
     /** The last wrong picture, dimmed until the next tap. */
     val wrongPick: Letter? = null,
+    /** Counts wrong taps, so tapping the same wrong picture again still replays the hint. */
+    val wrongTaps: Int = 0,
     /** This round was answered; waiting for [nextRound]. */
     val solved: Boolean = false,
 ) {
@@ -43,7 +45,7 @@ data class QuizGame(
     fun answer(pick: Letter): QuizGame = when {
         solved || finished -> this
         isRight(pick) -> copy(roundsDone = roundsDone + 1, wrongPick = null, solved = true)
-        else -> copy(wrongPick = pick)
+        else -> copy(wrongPick = pick, wrongTaps = wrongTaps + 1)
     }
 
     fun nextRound(options: List<Letter>): QuizGame =

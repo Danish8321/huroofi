@@ -39,7 +39,7 @@ fun LearnBackHandler(route: String, onToGate: () -> Unit = {}, onToLesson: () ->
 
 /** Sky while progress loads, so Home never flashes the wrong letter. */
 @Composable
-private fun Loading() {
+internal fun Loading() {
     Box(Modifier.fillMaxSize().background(HuroofiTokens.Sky))
 }
 

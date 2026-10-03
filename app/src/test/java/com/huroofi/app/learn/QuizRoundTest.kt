@@ -57,6 +57,7 @@ class QuizRoundTest {
         assertEquals(0, after.roundsDone)
         assertFalse(after.solved)
         assertEquals(wrong, after.wrongPick)
+        assertEquals(2, after.answer(wrong).wrongTaps)
     }
 
     @Test

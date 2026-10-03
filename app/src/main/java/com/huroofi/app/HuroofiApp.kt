@@ -33,6 +33,8 @@ import com.huroofi.app.learn.HomeRoute
 import com.huroofi.app.learn.LearnBackHandler
 import com.huroofi.app.learn.LearnRoutes
 import com.huroofi.app.learn.LessonRoute
+import com.huroofi.app.learn.PathNext
+import com.huroofi.app.learn.QuizRoute
 import com.huroofi.app.learn.TraceRoute
 import com.huroofi.app.learn.NavTab
 import com.huroofi.app.learn.PathStep
@@ -189,13 +191,13 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
     composable(LearnRoutes.Home) {
         LearnBackHandler(LearnRoutes.Home, onToGate = toGate)
         HomeRoute(
-            steps = listOf(PathStep.MEET, PathStep.TRACE),
+            steps = PathStep.entries,
             navTabs = listOf(NavTab.HOME, NavTab.PARENTS),
             onStep = { step, index ->
                 when (step) {
                     PathStep.MEET -> nav.navigate(LearnRoutes.lesson(index), overHome)
                     PathStep.TRACE -> nav.navigate(LearnRoutes.trace(index), overHome)
-                    PathStep.PLAY -> Unit
+                    PathStep.PLAY -> nav.navigate(LearnRoutes.quiz(index), overHome)
                 }
             },
             onMap = null,
@@ -210,7 +212,16 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
         val index = entry.arguments?.getInt(LearnRoutes.ARG_INDEX) ?: return@composable
         val toLesson = { nav.navigate(LearnRoutes.lesson(index), overHome) }
         LearnBackHandler(LearnRoutes.Trace, onToLesson = toLesson)
-        // Play arrives in slice 3; until then a finished trace goes back to Home.
-        TraceRoute(index, onBack = toLesson, onDone = toHome)
+        TraceRoute(index, onBack = toLesson, onDone = { nav.navigate(LearnRoutes.quiz(index), overHome) })
+    }
+    composable(LearnRoutes.Quiz, arguments = indexArg) { entry ->
+        val index = entry.arguments?.getInt(LearnRoutes.ARG_INDEX) ?: return@composable
+        QuizRoute(index, onClose = toHome) { next ->
+            when (next) {
+                is PathNext.Meet -> nav.navigate(LearnRoutes.lesson(next.index), overHome)
+                // Reward arrives in slice 4; until then a finished stage goes back to Home.
+                is PathNext.Reward, PathNext.Home -> toHome()
+            }
+        }
     }
 }
