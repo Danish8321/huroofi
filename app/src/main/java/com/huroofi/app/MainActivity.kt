@@ -17,7 +17,9 @@ class MainActivity : ComponentActivity() {
         }
         val container = (application as HuroofiApplication).container
         setContent {
-            CompositionLocalProvider(LocalAppContainer provides container) { HuroofiApp() }
+            CompositionLocalProvider(LocalAppContainer provides container) {
+                HuroofiApp(onCloseApp = { finishAffinity() })
+            }
         }
     }
 }

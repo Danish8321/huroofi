@@ -13,8 +13,11 @@ const val GALLERY_ROUTE = "gallery"
 /** Debug builds start on the component gallery until real screens exist. */
 const val DEBUG_START_ROUTE = GALLERY_ROUTE
 
-fun NavGraphBuilder.debugDestinations() {
+fun NavGraphBuilder.debugDestinations(onRequestParentZone: () -> Unit) {
     composable(GALLERY_ROUTE) {
-        ComponentSamples(Modifier.fillMaxSize().verticalScroll(rememberScrollState()))
+        ComponentSamples(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            onRequestParentZone = onRequestParentZone,
+        )
     }
 }

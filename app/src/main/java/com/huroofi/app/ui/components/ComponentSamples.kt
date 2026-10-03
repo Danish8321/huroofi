@@ -21,7 +21,7 @@ private val sampleStage = StageColors.fromHex("#F59E0B", "#FFEDC4", "#A35400")
 
 /** Every shared component once. Used by the previews here and by the debug gallery. */
 @Composable
-fun ComponentSamples(modifier: Modifier = Modifier) {
+fun ComponentSamples(modifier: Modifier = Modifier, onRequestParentZone: () -> Unit = {}) {
     Column(modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("PrimaryButton", style = HuroofiText.sectionHeading)
         PrimaryButton("Let's go!", onClick = {})
@@ -56,7 +56,7 @@ fun ComponentSamples(modifier: Modifier = Modifier) {
         SpeechBubble("أين البطة؟", "Hear the question again", onSoundClick = {})
 
         Text("ParentLock", style = HuroofiText.sectionHeading)
-        ParentLock(onRequestParentZone = {}, contentDescription = "Parents")
+        ParentLock(onRequestParentZone = onRequestParentZone, contentDescription = "Parents")
 
         Text("StepTabs", style = HuroofiText.sectionHeading)
         StepTabs(listOf("Lesson", "Trace", "Quiz"), currentIndex = 1)
