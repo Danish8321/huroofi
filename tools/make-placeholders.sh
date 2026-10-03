@@ -12,6 +12,7 @@ paths() {
   grep -o '"picture": *"[^"]*"' $JSON | sed 's/.*: *"\(.*\)"/audio\/prompts\/where_is_\1.mp3/'
   grep -o '"name_latin": *"[^"]*"' $JSON | sed 's/.*: *"\(.*\)"/audio\/prompts\/colour_\1.mp3/'
   echo audio/prompts/what_shall_we_play.mp3
+  echo audio/prompts/time_to_rest.mp3
   echo audio/sfx/praise_1.mp3
   echo audio/sfx/praise_2.mp3
   echo audio/sfx/praise_3.mp3
