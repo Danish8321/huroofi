@@ -14,10 +14,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -36,6 +39,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -73,8 +78,11 @@ object ZoneSpec {
     val CellGlyph = 26.sp
     val ToGoCell = Color(0xFFEEF3F9)
     const val GRID_COLUMNS = 7
+    val ModeButton = 64.dp
+    val ModeRadius = 16.dp
+    val ModeBorder = 2.dp
 
-    val touchSizes = listOf(BackButton)
+    val touchSizes = listOf(BackButton, ModeButton)
 
     /** Text colour on background, for the contrast sweep. */
     val textPairs = listOf(
@@ -82,6 +90,7 @@ object ZoneSpec {
         HuroofiTokens.Navy to Color.White,
         HuroofiTokens.Muted to Color.White,
         Color.White to Learned,
+        Color.White to HuroofiTokens.Primary,
         HuroofiTokens.Muted to ToGoCell,
     )
 }
@@ -95,6 +104,7 @@ fun ParentZoneScreen(
     letters: List<GridLetter>,
     mode: AgeMode,
     onBack: () -> Unit,
+    onModeChange: (AgeMode) -> Unit,
     footer: @Composable ColumnScope.() -> Unit = {},
 ) {
     Column(
@@ -108,6 +118,7 @@ fun ParentZoneScreen(
     ) {
         ZoneHeader(onBack)
         ChildCard(progress, mode)
+        ModeCard(mode, onModeChange)
         ZoneCard {
             Text("All ${letters.size} letters", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy)
             LetterGrid(letters)
@@ -189,6 +200,54 @@ private fun ChildCard(progress: ParentProgress, mode: AgeMode) {
                 color = HuroofiTokens.Muted,
             )
         }
+    }
+}
+
+/** Mode labels from the prototype. A new mode applies on the next app start (plan 05 decision 12). */
+private val modeLabels = listOf(
+    AgeMode.TODDLER to ("Toddler" to "18m – 3y"),
+    AgeMode.PRESCHOOL to ("Preschool" to "3 – 5y"),
+    AgeMode.READER to ("Early reader" to "5y+"),
+)
+
+@Composable
+private fun ModeCard(mode: AgeMode, onModeChange: (AgeMode) -> Unit) {
+    ZoneCard {
+        Column {
+            Text("Learning mode", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy)
+            Text(
+                "Changes what your child sees when the app opens",
+                style = HuroofiText.caption,
+                color = HuroofiTokens.Muted,
+            )
+        }
+        Row(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for ((value, label) in modeLabels) {
+                ModeButton(label.first, label.second, value == mode, Modifier.weight(1f)) { onModeChange(value) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModeButton(title: String, age: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(ZoneSpec.ModeRadius)
+    val fill = if (selected) HuroofiTokens.Primary else HuroofiTokens.ParentBg
+    val edge = if (selected) HuroofiTokens.Primary else ZoneSpec.CardBorder
+    val text = if (selected) Color.White else HuroofiTokens.Navy
+    Column(
+        modifier
+            .heightIn(min = ZoneSpec.ModeButton)
+            .clip(shape)
+            .background(fill)
+            .border(ZoneSpec.ModeBorder, edge, shape)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .padding(horizontal = 4.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(title, style = HuroofiText.caption.copy(fontWeight = FontWeight.ExtraBold), color = text, textAlign = TextAlign.Center)
+        Text(age, style = HuroofiText.caption, color = text, textAlign = TextAlign.Center)
     }
 }
 
@@ -280,5 +339,5 @@ private fun ParentZonePreview() {
         GridLetter(glyphs[i % glyphs.size], "letter ${i + 1}", state)
     }
     val progress = ParentProgress(stage, 7, letters.mapIndexed { i, l -> i + 1 to l.state }.toMap())
-    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}) }
+    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}) }
 }
