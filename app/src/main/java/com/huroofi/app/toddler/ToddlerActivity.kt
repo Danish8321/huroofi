@@ -3,6 +3,7 @@ package com.huroofi.app.toddler
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.huroofi.app.Routes
+import com.huroofi.app.ui.components.ParentLockSize
 
 /** Fill, border, bottom edge and label colour of one Toddler Home tile. */
 data class TileColors(val background: Color, val border: Color, val shadow: Color, val text: Color)
@@ -36,9 +37,11 @@ object ToddlerHomeSpec {
     val TileBorder = 5.dp
     val TileShadow = 8.dp
     val LabelColumnWidth = 92.dp
-    val HeaderHeight = 112.dp
     val MascotSize = 96.dp
     val BubbleHeight = 68.dp
+
+    /** Lock above the bubble. The prototype's 112 assumes a 44 dp lock; ours is 48 dp to touch, so 116. */
+    val HeaderHeight = ParentLockSize.Hit + BubbleHeight
     val MaxContentWidth = 480.dp
     val Gap = 20.dp
     val MiniCardBorder = Color(0xFFF59E0B)
