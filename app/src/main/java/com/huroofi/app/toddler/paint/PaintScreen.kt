@@ -244,7 +244,8 @@ private fun CrayonButton(crayon: Crayon, selected: Boolean, onClick: () -> Unit)
     Box(
         Modifier
             .size(PaintSpec.CrayonSize + PaintSpec.CrayonShadow)
-            .clickable(role = Role.RadioButton, onClick = onClick)
+            // The ring is the feedback; a square ripple would spill past the round crayon.
+            .clickable(interactionSource = null, indication = null, role = Role.RadioButton, onClick = onClick)
             .semantics {
                 contentDescription = crayon.label
                 this.selected = selected

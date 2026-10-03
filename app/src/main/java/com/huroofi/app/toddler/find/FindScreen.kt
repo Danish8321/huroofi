@@ -225,7 +225,8 @@ private fun FindTile(letter: Letter, round: FindRound, onClick: () -> Unit, modi
             .fillMaxWidth()
             .offset { IntOffset(nudge.value.dp.roundToPx(), 0) }
             .semantics { contentDescription = letter.meaningEn.replaceFirstChar { it.uppercase() } }
-            .clickable(role = Role.Button, onClick = onClick),
+            // The nudge or the party is the feedback; a square ripple would spill past the rounded tile.
+            .clickable(interactionSource = null, indication = null, role = Role.Button, onClick = onClick),
     ) {
         Box(
             Modifier
