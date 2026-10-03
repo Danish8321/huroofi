@@ -11,7 +11,7 @@ Spec: `05-toddler.md` (approved, decisions 1–15). This file only breaks that s
 
 ## Where to work
 
-- Branch `feat/steps-1-2-foundation` (already on origin). It holds steps 1+2 and slice 1 (parent gate). Work on it directly; one commit per task; push after every slice.
+- `main` holds steps 1+2 and slice 1 (parent gate). Create `feat/toddler-mode` from `origin/main` and work there; one commit per task; push the branch after every slice. Never commit to `main` directly.
 - Package root: `app/src/main/java/com/huroofi/app/`. Tests: `app/src/test/java/com/huroofi/app/` (JVM only).
 - Commit messages: conventional (`feat(toddler): ...`), ending with the attribution lines your harness gives you.
 
