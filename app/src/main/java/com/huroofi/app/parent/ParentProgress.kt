@@ -2,6 +2,7 @@ package com.huroofi.app.parent
 
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
+import com.huroofi.app.learn.learningLetter
 
 /** How a letter shows in the Parent zone (glossary: Learned letter, Learning letter, Letters to go). */
 enum class LetterState { LEARNED, LEARNING, TO_GO }
@@ -21,7 +22,7 @@ data class ParentProgress(val stage: Stage, val stageCount: Int, val states: Map
  * Everything else is to go.
  */
 fun parentProgress(letters: List<Letter>, stages: List<Stage>, completed: Set<Int>, openStage: Int): ParentProgress {
-    val learning = letters.sortedBy { it.index }.firstOrNull { it.stage == openStage && it.index !in completed }?.index
+    val learning = learningLetter(letters, completed, openStage)?.index
     val states = letters.associate { letter ->
         letter.index to when (letter.index) {
             in completed -> LetterState.LEARNED
