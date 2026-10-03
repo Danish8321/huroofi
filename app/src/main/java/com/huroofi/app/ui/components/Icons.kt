@@ -10,6 +10,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -66,5 +67,27 @@ fun SoundIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 32.dp) {
             color, -45f, 90f, false,
             Offset(w * 0.4f, h * 0.14f), Size(w * 0.48f, h * 0.72f), style = stroke,
         )
+    }
+}
+
+/** House outline from the toddler prototypes. Decorative: the owning button supplies the content description. */
+@Composable
+fun HomeIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 34.dp) {
+    Canvas(modifier.size(size)) {
+        val u = this.size.width / 24f
+        val stroke = Stroke(width = 2.4f * u, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        val roof = Path().apply {
+            moveTo(3f * u, 11f * u)
+            lineTo(12f * u, 4f * u)
+            lineTo(21f * u, 11f * u)
+        }
+        val body = Path().apply {
+            moveTo(5f * u, 10f * u)
+            lineTo(5f * u, 20f * u)
+            lineTo(19f * u, 20f * u)
+            lineTo(19f * u, 10f * u)
+        }
+        drawPath(roof, color, style = stroke)
+        drawPath(body, color, style = stroke)
     }
 }
