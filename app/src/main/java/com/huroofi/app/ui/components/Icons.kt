@@ -130,3 +130,31 @@ fun StarIcon(
         drawPath(star, outline, style = Stroke(width = outlineWidth * u, join = StrokeJoin.Round))
     }
 }
+
+/** Eraser over a line, from `ToddlerPaint.html`. Decorative: the owning button supplies the content description. */
+@Composable
+fun WipeIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 32.dp) {
+    Canvas(modifier.size(size)) {
+        val u = this.size.width / 24f
+        val stroke = Stroke(width = 2.2f * u, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        val line = Path().apply {
+            moveTo(7f * u, 21f * u)
+            lineTo(17f * u, 21f * u)
+        }
+        val eraser = Path().apply {
+            moveTo(5f * u, 16f * u)
+            lineTo(14f * u, 7f * u)
+            lineTo(19f * u, 12f * u)
+            lineTo(13f * u, 18f * u)
+            lineTo(8f * u, 18f * u)
+            close()
+        }
+        val band = Path().apply {
+            moveTo(10f * u, 11f * u)
+            lineTo(15f * u, 16f * u)
+        }
+        drawPath(line, color, style = stroke)
+        drawPath(eraser, color, style = stroke)
+        drawPath(band, color, style = stroke)
+    }
+}
