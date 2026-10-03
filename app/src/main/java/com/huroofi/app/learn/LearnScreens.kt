@@ -131,3 +131,22 @@ fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit) {
 }
 
 private const val CHEER_PAUSE_MS = 400L
+
+/** Reward for [stage]: `cheer` on open (decision 5). The sticker was saved before this opened. */
+@Composable
+fun RewardRoute(stage: Int, onNext: () -> Unit) {
+    val container = LocalAppContainer.current
+    val content = container.content
+    val scope = rememberCoroutineScope()
+    val prompt = remember { PromptPlayer(container.sound, scope) }
+    LaunchedEffect(stage) { prompt.play(Clips.cheer) }
+    RewardScreen(
+        stage = content.stage(stage),
+        letters = content.lettersInStage(stage),
+        next = content.stages.firstOrNull { it.stage == stage + 1 },
+        onNext = {
+            prompt.stop()
+            onNext()
+        },
+    )
+}

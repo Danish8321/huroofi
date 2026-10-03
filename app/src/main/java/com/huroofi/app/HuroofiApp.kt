@@ -35,6 +35,7 @@ import com.huroofi.app.learn.LearnRoutes
 import com.huroofi.app.learn.LessonRoute
 import com.huroofi.app.learn.PathNext
 import com.huroofi.app.learn.QuizRoute
+import com.huroofi.app.learn.RewardRoute
 import com.huroofi.app.learn.TraceRoute
 import com.huroofi.app.learn.NavTab
 import com.huroofi.app.learn.PathStep
@@ -219,9 +220,15 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
         QuizRoute(index, onClose = toHome) { next ->
             when (next) {
                 is PathNext.Meet -> nav.navigate(LearnRoutes.lesson(next.index), overHome)
-                // Reward arrives in slice 4; until then a finished stage goes back to Home.
-                is PathNext.Reward, PathNext.Home -> toHome()
+                is PathNext.Reward -> nav.navigate(LearnRoutes.reward(next.stage), overHome)
+                PathNext.Home -> toHome()
             }
         }
+    }
+    composable(LearnRoutes.Reward, arguments = listOf(navArgument(LearnRoutes.ARG_STAGE) { type = NavType.IntType })) { entry ->
+        val stage = entry.arguments?.getInt(LearnRoutes.ARG_STAGE) ?: return@composable
+        // The Letter Map arrives in slice 5; until then Reward returns to Home.
+        LearnBackHandler(LearnRoutes.Reward, onToMap = toHome)
+        RewardRoute(stage, onNext = toHome)
     }
 }
