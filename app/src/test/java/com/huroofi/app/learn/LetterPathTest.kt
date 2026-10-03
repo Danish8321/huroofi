@@ -61,4 +61,33 @@ class LetterPathTest {
     fun reviewGoesHome() {
         assertEquals(PathNext.Home, nextStep(letters, (1..28).toSet(), justLearned = 4, wasNew = false))
     }
+
+    private fun states(completed: Set<Int>) = stageStates(TestContent.repo.stages, completed, stageOf)
+
+    @Test
+    fun freshMapHasStageOneCurrentAndTheRestLocked() {
+        val s = states(emptySet())
+        assertEquals(StageState.CURRENT, s[1])
+        for (n in 2..7) assertEquals("$n", StageState.LOCKED, s[n])
+    }
+
+    @Test
+    fun aStageInProgressStaysCurrent() {
+        assertEquals(StageState.CURRENT, states(setOf(1, 2, 3))[1])
+    }
+
+    @Test
+    fun finishingStageOneOpensStageTwo() {
+        val s = states(setOf(1, 2, 3, 4))
+        assertEquals(StageState.FINISHED, s[1])
+        assertEquals(StageState.CURRENT, s[2])
+        for (n in 3..7) assertEquals("$n", StageState.LOCKED, s[n])
+    }
+
+    @Test
+    fun allLearnedFinishesEveryStageWithNoneCurrent() {
+        val s = states((1..28).toSet())
+        assertEquals(7, s.size)
+        assertTrue(s.values.all { it == StageState.FINISHED })
+    }
 }
