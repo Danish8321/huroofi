@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -53,6 +54,9 @@ import androidx.compose.ui.unit.sp
 import com.huroofi.app.R
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.data.progress.AgeMode
+import com.huroofi.app.data.progress.LIMIT_STEP_MINUTES
+import com.huroofi.app.data.progress.MAX_LIMIT_MINUTES
+import com.huroofi.app.data.progress.MIN_LIMIT_MINUTES
 import com.huroofi.app.ui.components.ChevronIcon
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
@@ -93,8 +97,11 @@ object ZoneSpec {
     val Knob = 26.dp
     val SwitchOn = HuroofiTokens.Success
     val SwitchOff = Color(0xFFC9D6E6)
+    val Stepper = 48.dp
+    val StepperRadius = 12.dp
+    val StepperValue = 54.dp
 
-    val touchSizes = listOf(BackButton, ModeButton, Row)
+    val touchSizes = listOf(BackButton, ModeButton, Row, Stepper)
 
     /** Text colour on background, for the contrast sweep. */
     val textPairs = listOf(
@@ -121,6 +128,8 @@ fun ParentZoneScreen(
     onVoiceChange: (Boolean) -> Unit,
     harakat: Boolean,
     onHarakatChange: (Boolean) -> Unit,
+    limitMinutes: Int,
+    onLimitChange: (Int) -> Unit,
     footer: @Composable ColumnScope.() -> Unit = {},
 ) {
     Column(
@@ -139,7 +148,7 @@ fun ParentZoneScreen(
             Text("All ${letters.size} letters", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy)
             LetterGrid(letters)
         }
-        SettingsCard(voice, onVoiceChange, harakat, onHarakatChange)
+        SettingsCard(voice, onVoiceChange, harakat, onHarakatChange, limitMinutes, onLimitChange)
         footer()
     }
 }
@@ -274,6 +283,8 @@ private fun SettingsCard(
     onVoiceChange: (Boolean) -> Unit,
     harakat: Boolean,
     onHarakatChange: (Boolean) -> Unit,
+    limitMinutes: Int,
+    onLimitChange: (Int) -> Unit,
 ) {
     val shape = RoundedCornerShape(ZoneSpec.CardRadius)
     Column(
@@ -286,6 +297,10 @@ private fun SettingsCard(
         ToggleRow("Voice & sounds", AnnotatedString("Native-speaker audio for every letter"), voice, onVoiceChange)
         ZoneDivider()
         ToggleRow("Show vowel marks", harakatSubtitle, harakat, onHarakatChange)
+        ZoneDivider()
+        SettingRow("Daily play time", AnnotatedString("A friendly “time to rest” screen appears")) {
+            LimitStepper(limitMinutes, onLimitChange)
+        }
         ZoneDivider()
         SettingRow("Offline pack", AnnotatedString("All content is on this device."))
     }
@@ -339,6 +354,43 @@ private fun ToggleRow(title: String, subtitle: AnnotatedString, checked: Boolean
         ) {
             Box(Modifier.padding(horizontal = 4.dp).size(ZoneSpec.Knob).background(Color.White, CircleShape))
         }
+    }
+}
+
+/** − 20 min +, in steps of 5 within 5..60; effective at once (plan 06 decision 6). */
+@Composable
+private fun LimitStepper(minutes: Int, onChange: (Int) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        StepButton("−", "Less time", enabled = minutes > MIN_LIMIT_MINUTES) { onChange(minutes - LIMIT_STEP_MINUTES) }
+        Text(
+            "$minutes min",
+            style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold),
+            color = HuroofiTokens.Navy,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(min = ZoneSpec.StepperValue),
+        )
+        StepButton("+", "More time", enabled = minutes < MAX_LIMIT_MINUTES) { onChange(minutes + LIMIT_STEP_MINUTES) }
+    }
+}
+
+@Composable
+private fun StepButton(symbol: String, label: String, enabled: Boolean, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(ZoneSpec.StepperRadius)
+    Box(
+        Modifier
+            .size(ZoneSpec.Stepper)
+            .clip(shape)
+            .background(HuroofiTokens.ParentBg)
+            .border(1.dp, ZoneSpec.CardBorder, shape)
+            .semantics { contentDescription = label }
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            symbol,
+            style = HuroofiText.buttonPrimary,
+            color = if (enabled) HuroofiTokens.Navy else ZoneSpec.SwitchOff,
+        )
     }
 }
 
@@ -430,5 +482,5 @@ private fun ParentZonePreview() {
         GridLetter(glyphs[i % glyphs.size], "letter ${i + 1}", state)
     }
     val progress = ParentProgress(stage, 7, letters.mapIndexed { i, l -> i + 1 to l.state }.toMap())
-    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}) }
+    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}, limitMinutes = 20, onLimitChange = {}) }
 }

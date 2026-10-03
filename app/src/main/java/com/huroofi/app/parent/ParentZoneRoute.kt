@@ -9,6 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.huroofi.app.LocalAppContainer
 import com.huroofi.app.data.progress.AgeMode
+import com.huroofi.app.data.progress.DEFAULT_LIMIT_MINUTES
 import kotlinx.coroutines.launch
 
 /** Reads stored progress and shows the Parent zone. [onBack] returns to this session's home (decision 8). */
@@ -21,6 +22,7 @@ fun ParentZoneRoute(onBack: () -> Unit, footer: @Composable ColumnScope.() -> Un
     val completed by progress.completedLetters.collectAsStateWithLifecycle(emptySet())
     val voice by progress.voiceEnabled.collectAsStateWithLifecycle(true)
     val harakat by progress.harakatEnabled.collectAsStateWithLifecycle(false)
+    val limit by progress.dailyLimitMinutes.collectAsStateWithLifecycle(DEFAULT_LIMIT_MINUTES)
     val openStage by progress.unlockedStage.collectAsStateWithLifecycle(1)
     val summary = remember(completed, openStage) {
         parentProgress(content.letters, content.stages, completed, openStage)
@@ -40,6 +42,8 @@ fun ParentZoneRoute(onBack: () -> Unit, footer: @Composable ColumnScope.() -> Un
         onVoiceChange = { scope.launch { progress.setVoiceEnabled(it) } },
         harakat = harakat,
         onHarakatChange = { scope.launch { progress.setHarakatEnabled(it) } },
+        limitMinutes = limit,
+        onLimitChange = { scope.launch { progress.setDailyLimitMinutes(it) } },
         footer = footer,
     )
 }
