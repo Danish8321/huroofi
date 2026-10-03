@@ -3,6 +3,7 @@ package com.huroofi.app.toddler
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.huroofi.app.parent.RestSpec
 import com.huroofi.app.toddler.cards.CardsSpec
 import com.huroofi.app.toddler.find.FindSpec
 import com.huroofi.app.toddler.paint.Crayon
@@ -15,7 +16,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Every toddler screen against the toddler rules (plan 05). New screens are added here by hand. */
+/** Every toddler screen (and the Rest screen) against the toddler rules (plan 05). New screens are added here by hand. */
 class ToddlerRulesSweepTest {
     private class Screen(val name: String, val touchSizes: List<Dp>, val colors: List<Color>, val choices: Int)
 
@@ -37,6 +38,7 @@ class ToddlerRulesSweepTest {
             PaintSpec.colors + listOf(LetterOutlineSpec.FillColor, LetterOutlineSpec.EdgeColor),
             PaintSpec.CHOICES,
         ),
+        Screen("Rest", RestSpec.touchSizes, RestSpec.colors, RestSpec.CHOICES),
     )
 
     /** Paint, not feedback (decision 2). */
