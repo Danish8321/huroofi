@@ -33,6 +33,7 @@ import com.huroofi.app.learn.HomeRoute
 import com.huroofi.app.learn.LearnBackHandler
 import com.huroofi.app.learn.LearnRoutes
 import com.huroofi.app.learn.LessonRoute
+import com.huroofi.app.learn.MapRoute
 import com.huroofi.app.learn.PathNext
 import com.huroofi.app.learn.QuizRoute
 import com.huroofi.app.learn.RewardRoute
@@ -190,15 +191,17 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
     val toGate: () -> Unit = { nav.navigate(Routes.Gate) }
     val toHome: () -> Unit = { nav.popBackStack(LearnRoutes.Home, inclusive = false) }
     val indexArg = listOf(navArgument(LearnRoutes.ARG_INDEX) { type = NavType.IntType })
-    val navTabs = listOf(NavTab.HOME, NavTab.STICKERS, NavTab.PARENTS)
+    val tabOptions: NavOptionsBuilder.() -> Unit = {
+        popUpTo(LearnRoutes.Home)
+        launchSingleTop = true
+    }
+    val toMap: () -> Unit = { nav.navigate(LearnRoutes.Map, tabOptions) }
+    val navTabs = NavTab.entries
     val onTab: (NavTab) -> Unit = { tab ->
         when (tab) {
             NavTab.HOME -> toHome()
-            NavTab.MAP -> Unit
-            NavTab.STICKERS -> nav.navigate(LearnRoutes.Stickers) {
-                popUpTo(LearnRoutes.Home)
-                launchSingleTop = true
-            }
+            NavTab.MAP -> toMap()
+            NavTab.STICKERS -> nav.navigate(LearnRoutes.Stickers, tabOptions)
             NavTab.PARENTS -> toGate()
         }
     }
@@ -214,7 +217,7 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
                     PathStep.PLAY -> nav.navigate(LearnRoutes.quiz(index), overHome)
                 }
             },
-            onMap = null,
+            onMap = toMap,
             onTab = onTab,
         )
     }
@@ -241,8 +244,10 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
     }
     composable(LearnRoutes.Reward, arguments = listOf(navArgument(LearnRoutes.ARG_STAGE) { type = NavType.IntType })) { entry ->
         val stage = entry.arguments?.getInt(LearnRoutes.ARG_STAGE) ?: return@composable
-        // The Letter Map arrives in slice 5; until then Reward returns to Home.
-        LearnBackHandler(LearnRoutes.Reward, onToMap = toHome)
-        RewardRoute(stage, onNext = toHome)
+        LearnBackHandler(LearnRoutes.Reward, onToMap = toMap)
+        RewardRoute(stage, onNext = toMap)
+    }
+    composable(LearnRoutes.Map) {
+        MapRoute(navTabs, onTab, onPlay = { index -> nav.navigate(LearnRoutes.lesson(index), overHome) })
     }
 }

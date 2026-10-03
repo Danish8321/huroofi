@@ -21,6 +21,7 @@ class LearnSpecTest {
         Screen("Quiz", QuizSpec.touchSizes, QuizSpec.colors),
         Screen("Reward", RewardSpec.touchSizes, RewardSpec.colors),
         Screen("StickerBook", StickerBookSpec.touchSizes, StickerBookSpec.colors),
+        Screen("Map", MapSpec.touchSizes, MapSpec.colors),
     )
 
     @Test

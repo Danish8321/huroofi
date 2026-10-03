@@ -88,7 +88,6 @@ object QuizSpec {
 }
 
 private val CloseIcon = listOf("M6 6l12 12M18 6L6 18")
-private val CheckIcon = listOf("M5 12l5 5 9-10")
 
 /** Delay before the right picture wiggles after a wrong tap, as in toddler Find. */
 private const val HINT_DELAY_MS = 300L
@@ -245,7 +244,7 @@ private fun OptionTile(option: Letter, game: QuizGame, modifier: Modifier, onCli
                     .size(QuizSpec.Badge)
                     .background(HuroofiTokens.Success, CircleShape),
                 contentAlignment = Alignment.Center,
-            ) { LineIcon(CheckIcon, HuroofiTokens.Card, size = 24.dp, strokeWidth = 3.2f) }
+            ) { LineIcon(LearnIcons.Check, HuroofiTokens.Card, size = 24.dp, strokeWidth = 3.2f) }
         }
     }
 }

@@ -35,6 +35,7 @@ object LearnIcons {
     val Star = listOf("M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z")
     val Lock = listOf("M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z", "M8 11V8a4 4 0 0 1 8 0v3")
     val Next = listOf("M9 5l7 7-7 7")
+    val Check = listOf("M5 12l5 5 9-10")
 
     fun forStep(step: PathStep): List<String> = when (step) {
         PathStep.MEET -> Book
