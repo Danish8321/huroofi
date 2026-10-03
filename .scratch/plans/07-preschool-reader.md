@@ -1,6 +1,6 @@
 # 07 Preschool / reader flow — HANDOFF step 5
 
-Status: **approved 2026-10-03** (grill-with-docs, Q1–Q9); building. Task list: [07-preschool-reader-tasks.md](07-preschool-reader-tasks.md). Branch (from task 0): `feat/preschool-reader`.
+Status: **built 2026-10-03** (slices 1–6 on `feat/preschool-reader`, not merged). Emulator: slices 1–3 checked; slices 4–5 only partly (Home nav, Letter Map fresh state, Rest replacing Play at the limit). Not seen on a device: Reward, Sticker book, a finished stage on the Map, Back from Reward / Map / Stickers, Preschool mode. No sound checked. Task list: [07-preschool-reader-tasks.md](07-preschool-reader-tasks.md).
 
 Reference prototypes: `Main`, `StageMap`, `Lesson`, `Trace`, `Quiz`, `Reward` in `design-reference/screens/`. Rebuild natively. Where a decision below disagrees with a prototype, the decision wins.
 
