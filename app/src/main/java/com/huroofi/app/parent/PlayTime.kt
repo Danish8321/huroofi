@@ -11,6 +11,7 @@ import com.huroofi.app.learn.LearnRoutes
 val ChildRoutes = setOf(
     LearnRoutes.Home,
     LearnRoutes.Lesson,
+    LearnRoutes.Trace,
     Routes.ToddlerHome,
     Routes.ToddlerCards,
     Routes.ToddlerFind,

@@ -33,6 +33,7 @@ import com.huroofi.app.learn.HomeRoute
 import com.huroofi.app.learn.LearnBackHandler
 import com.huroofi.app.learn.LearnRoutes
 import com.huroofi.app.learn.LessonRoute
+import com.huroofi.app.learn.TraceRoute
 import com.huroofi.app.learn.NavTab
 import com.huroofi.app.learn.PathStep
 import com.huroofi.app.parent.ChildRoutes
@@ -188,12 +189,13 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
     composable(LearnRoutes.Home) {
         LearnBackHandler(LearnRoutes.Home, onToGate = toGate)
         HomeRoute(
-            steps = listOf(PathStep.MEET),
+            steps = listOf(PathStep.MEET, PathStep.TRACE),
             navTabs = listOf(NavTab.HOME, NavTab.PARENTS),
             onStep = { step, index ->
                 when (step) {
                     PathStep.MEET -> nav.navigate(LearnRoutes.lesson(index), overHome)
-                    PathStep.TRACE, PathStep.PLAY -> Unit
+                    PathStep.TRACE -> nav.navigate(LearnRoutes.trace(index), overHome)
+                    PathStep.PLAY -> Unit
                 }
             },
             onMap = null,
@@ -202,6 +204,13 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
     }
     composable(LearnRoutes.Lesson, arguments = indexArg) { entry ->
         val index = entry.arguments?.getInt(LearnRoutes.ARG_INDEX) ?: return@composable
-        LessonRoute(index, onBack = toHome, onNext = null)
+        LessonRoute(index, onBack = toHome, onNext = { nav.navigate(LearnRoutes.trace(index), overHome) })
+    }
+    composable(LearnRoutes.Trace, arguments = indexArg) { entry ->
+        val index = entry.arguments?.getInt(LearnRoutes.ARG_INDEX) ?: return@composable
+        val toLesson = { nav.navigate(LearnRoutes.lesson(index), overHome) }
+        LearnBackHandler(LearnRoutes.Trace, onToLesson = toLesson)
+        // Play arrives in slice 3; until then a finished trace goes back to Home.
+        TraceRoute(index, onBack = toLesson, onDone = toHome)
     }
 }

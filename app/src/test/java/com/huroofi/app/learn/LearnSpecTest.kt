@@ -16,6 +16,7 @@ class LearnSpecTest {
         Screen("Nav", listOf(NavSpec.Item), NavSpec.colors),
         Screen("Home", HomeSpec.touchSizes, HomeSpec.colors),
         Screen("Lesson", LessonSpec.touchSizes, LessonSpec.colors),
+        Screen("Trace", TraceSpec.touchSizes, TraceSpec.colors),
     )
 
     @Test

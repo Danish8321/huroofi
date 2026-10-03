@@ -20,6 +20,8 @@ import com.huroofi.app.parent.parentProgress
 import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.ui.theme.HuroofiTokens
 import kotlin.random.Random
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /** Applies [learnBack] for [route]; place it inside that route's destination. */
 @Composable
@@ -101,3 +103,31 @@ fun LessonRoute(index: Int, onBack: () -> Unit, onNext: (() -> Unit)?) {
         },
     )
 }
+
+/** Trace: `cheer`, a short pause, then [onDone] (decision 3). */
+@Composable
+fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit) {
+    val container = LocalAppContainer.current
+    val letter = remember(index) { container.content.letter(index) }
+    val scope = rememberCoroutineScope()
+    val prompt = remember { PromptPlayer(container.sound, scope) }
+    TraceScreen(
+        letter = letter.letter,
+        onBack = {
+            prompt.stop()
+            onBack()
+        },
+        onDone = {
+            scope.launch {
+                val cheer = prompt.run {
+                    play(Clips.cheer)
+                    delay(CHEER_PAUSE_MS)
+                }
+                cheer.join()
+                if (!cheer.isCancelled) onDone()
+            }
+        },
+    )
+}
+
+private const val CHEER_PAUSE_MS = 400L
