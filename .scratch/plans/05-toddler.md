@@ -1,4 +1,11 @@
-# 05 Toddler mode (approved) — HANDOFF step 3
+# 05 Toddler mode (built) — HANDOFF step 3
+
+**Status (2026-10-03):** slices 1–6 built on `feat/toddler-mode`; `check.sh`, `test-fast.sh` and `contract.sh` pass.
+Open:
+- Visual behaviour (layout, animation, touch feel, audio timing) is unverified: no device or emulator was used.
+- Generated captions (`ToddlerPhrases`) wait for native-speaker review: `docs/review/toddler-phrases.md`.
+- No daily time limit until plan 06 (decision 15).
+- Paint shows four crayons; they are treated as a palette, not answer choices, so the ≤ 3 choices rule does not apply to them (decision 2).
 
 Each item is a vertical slice: UI + state + sound + progress write + tests at the tiers it touches.
 
