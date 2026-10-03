@@ -7,7 +7,7 @@ import com.huroofi.app.data.content.Stage
 enum class LetterState { LEARNED, LEARNING, TO_GO }
 
 /** What the Parent zone card and grid show (plan 06 decision 2). [states] is keyed by letter index. */
-data class ParentProgress(val stage: Stage, val states: Map<Int, LetterState>) {
+data class ParentProgress(val stage: Stage, val stageCount: Int, val states: Map<Int, LetterState>) {
     val learned: Int get() = states.values.count { it == LetterState.LEARNED }
     val learning: Int get() = states.values.count { it == LetterState.LEARNING }
     val toGo: Int get() = states.values.count { it == LetterState.TO_GO }
@@ -30,5 +30,5 @@ fun parentProgress(letters: List<Letter>, stages: List<Stage>, completed: Set<In
         }
     }
     val stage = stages.first { it.stage == openStage }
-    return ParentProgress(stage, states)
+    return ParentProgress(stage, stages.size, states)
 }
