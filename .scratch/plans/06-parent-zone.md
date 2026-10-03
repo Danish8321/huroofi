@@ -1,4 +1,9 @@
-# 06 Parent zone (approved) — HANDOFF step 4
+# 06 Parent zone (built) — HANDOFF step 4
+
+**Status (2026-10-03):** slices 1–5 built on `feat/parent-zone`; `check.sh`, `test-fast.sh` and `contract.sh` pass.
+Checked on the `huroofi_phone` emulator (no sound): zone card, grid, mode picker, toggles and stepper (bounds disable the button); with a 5-minute limit Rest replaced Find, Back stayed on Rest, gate → zone → raise limit → back landed on Toddler Home, and lowering the limit again sent the child back to Rest.
+Not verified: that backgrounding the app stops counting, midnight reset on a device, tablets, sound. The rest clip is a silent placeholder; its phrase is in `docs/review/toddler-phrases.md` for native review.
+Known, outside this plan: status-bar icons are white on the light backgrounds (plan 08).
 
 Reference: `Parents.html`. Behind the parent gate (plan 05 slice 1). Task list: [06-parent-zone-tasks.md](06-parent-zone-tasks.md).
 
