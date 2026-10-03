@@ -301,6 +301,13 @@ private fun SettingsCard(
         ToggleRow("Voice & sounds", AnnotatedString("Native-speaker audio for every letter"), voice, onVoiceChange)
         ZoneDivider()
         ToggleRow("Show vowel marks", harakatSubtitle, harakat, onHarakatChange)
+        // Plan 07 decision 6: vowelled data is deferred, so the toggle has nothing to show yet.
+        Text(
+            "Vowel marks arrive in a later update.",
+            Modifier.padding(bottom = 12.dp),
+            style = HuroofiText.caption,
+            color = HuroofiTokens.Muted,
+        )
         ZoneDivider()
         SettingRow("Daily play time", AnnotatedString("A friendly “time to rest” screen appears")) {
             LimitStepper(limitMinutes, onLimitChange)
