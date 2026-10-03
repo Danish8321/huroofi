@@ -1,6 +1,7 @@
 package com.huroofi.app
 
 import com.huroofi.app.data.progress.AgeMode
+import com.huroofi.app.learn.LearnRoutes
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -11,8 +12,8 @@ class StartRouteTest {
     }
 
     @Test
-    fun preschoolAndReaderStartOnPlaceholderUntilPlan07() {
-        assertEquals(Routes.Placeholder, startRoute(AgeMode.PRESCHOOL))
-        assertEquals(Routes.Placeholder, startRoute(AgeMode.READER))
+    fun preschoolAndReaderStartOnHome() {
+        assertEquals(LearnRoutes.Home, startRoute(AgeMode.PRESCHOOL))
+        assertEquals(LearnRoutes.Home, startRoute(AgeMode.READER))
     }
 }

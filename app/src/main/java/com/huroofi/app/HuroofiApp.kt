@@ -1,11 +1,8 @@
 package com.huroofi.app
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,22 +12,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptionsBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.huroofi.app.data.progress.AgeMode
 import com.huroofi.app.data.progress.DEFAULT_LIMIT_MINUTES
 import com.huroofi.app.debug.DEBUG_GALLERY_ROUTE
 import com.huroofi.app.debug.debugDestinations
 import com.huroofi.app.gate.ParentGateScreen
+import com.huroofi.app.learn.HomeRoute
+import com.huroofi.app.learn.LearnBackHandler
+import com.huroofi.app.learn.LearnRoutes
+import com.huroofi.app.learn.LessonRoute
+import com.huroofi.app.learn.NavTab
+import com.huroofi.app.learn.PathStep
 import com.huroofi.app.parent.ChildRoutes
 import com.huroofi.app.parent.ParentZoneRoute
 import com.huroofi.app.parent.RestMove
@@ -44,16 +48,13 @@ import com.huroofi.app.toddler.cards.LookListenScreen
 import com.huroofi.app.toddler.find.FindScreen
 import com.huroofi.app.toddler.paint.PaintScreen
 import com.huroofi.app.ui.components.PrimaryButton
-import com.huroofi.app.ui.theme.BalooBhaijaan2
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.LocalHuroofiColors
-import com.huroofi.app.ui.theme.NotoNaskhArabic
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 object Routes {
-    const val Placeholder = "placeholder"
     const val Gate = "gate"
     const val ParentZone = "parent_zone"
     const val ToddlerHome = "toddler_home"
@@ -66,8 +67,7 @@ object Routes {
 /** Home screen for the stored mode. Read once per app start (plan 05 decision 12: no live switch). */
 fun startRoute(mode: AgeMode): String = when (mode) {
     AgeMode.TODDLER -> Routes.ToddlerHome
-    // Main screen is plan 07.
-    AgeMode.PRESCHOOL, AgeMode.READER -> Routes.Placeholder
+    AgeMode.PRESCHOOL, AgeMode.READER -> LearnRoutes.Home
 }
 
 @Composable
@@ -95,7 +95,7 @@ private fun HuroofiNavHost(startRoute: String, onCloseApp: () -> Unit) {
     val toddlerToGate: () -> Unit = { nav.navigate(Routes.Gate) { popUpTo(Routes.ToddlerHome) } }
     PlayTimeKeeper(nav, startRoute)
     NavHost(navController = nav, startDestination = startRoute) {
-        composable(Routes.Placeholder) { PlaceholderScreen() }
+        learnDestinations(nav)
         composable(Routes.ToddlerHome) {
             ToddlerBackHandler(Routes.ToddlerHome, startRoute, onPopToToddlerHome = toHome)
             ToddlerHomeRoute(onOpenActivity = { nav.navigate(it.route) }, onRequestParentZone = toddlerToGate)
@@ -179,14 +179,29 @@ private fun PlayTimeKeeper(nav: NavHostController, startRoute: String) {
     }
 }
 
-@Composable
-private fun PlaceholderScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text("Huroofi", style = TextStyle(fontFamily = BalooBhaijaan2, fontSize = 36.sp))
-        Text("حروفي", style = TextStyle(fontFamily = NotoNaskhArabic, fontSize = 37.sp))
+/** Preschool and Early reader screens (plan 07). Every learn screen opens on top of Home. */
+private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
+    val overHome: NavOptionsBuilder.() -> Unit = { popUpTo(LearnRoutes.Home) }
+    val toGate: () -> Unit = { nav.navigate(Routes.Gate) }
+    val toHome: () -> Unit = { nav.popBackStack(LearnRoutes.Home, inclusive = false) }
+    val indexArg = listOf(navArgument(LearnRoutes.ARG_INDEX) { type = NavType.IntType })
+    composable(LearnRoutes.Home) {
+        LearnBackHandler(LearnRoutes.Home, onToGate = toGate)
+        HomeRoute(
+            steps = listOf(PathStep.MEET),
+            navTabs = listOf(NavTab.HOME, NavTab.PARENTS),
+            onStep = { step, index ->
+                when (step) {
+                    PathStep.MEET -> nav.navigate(LearnRoutes.lesson(index), overHome)
+                    PathStep.TRACE, PathStep.PLAY -> Unit
+                }
+            },
+            onMap = null,
+            onTab = { tab -> if (tab == NavTab.PARENTS) toGate() },
+        )
+    }
+    composable(LearnRoutes.Lesson, arguments = indexArg) { entry ->
+        val index = entry.arguments?.getInt(LearnRoutes.ARG_INDEX) ?: return@composable
+        LessonRoute(index, onBack = toHome, onNext = null)
     }
 }
