@@ -1,6 +1,6 @@
 # 07 Preschool / reader flow — HANDOFF step 5
 
-Status: **built 2026-10-03** (slices 1–6 on `feat/preschool-reader`, not merged). Emulator: slices 1–3 checked; slices 4–5 only partly (Home nav, Letter Map fresh state, Rest replacing Play at the limit). Not seen on a device: Reward, Sticker book, a finished stage on the Map, Back from Reward / Map / Stickers, Preschool mode. No sound checked. Task list: [07-preschool-reader-tasks.md](07-preschool-reader-tasks.md).
+Status: **built 2026-10-03** (slices 1–6 on `feat/preschool-reader`, not merged). Emulator pass done on `huroofi_phone`: Preschool Meet → Trace → Play with 3 pictures; stage 1 finished into Reward, sticker in the book, finished stage on the Map; locked-card tap plays a clip and moves; Early reader shapes for ج (4) and د (Alone, End) and 4 pictures; Back from Reward → Map, Map and Stickers → Home; 5-minute limit → Rest. Real sound not checked (placeholder audio). Stage 7 colours moved off red. Task list: [07-preschool-reader-tasks.md](07-preschool-reader-tasks.md).
 
 Reference prototypes: `Main`, `StageMap`, `Lesson`, `Trace`, `Quiz`, `Reward` in `design-reference/screens/`. Rebuild natively. Where a decision below disagrees with a prototype, the decision wins.
 
