@@ -3,6 +3,7 @@ package com.huroofi.app.ui.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -12,6 +13,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -156,5 +159,20 @@ fun WipeIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 32.dp) {
         drawPath(line, color, style = stroke)
         drawPath(eraser, color, style = stroke)
         drawPath(band, color, style = stroke)
+    }
+}
+
+/**
+ * Outline icon from prototype SVG path data in a 24-unit box, drawn with round caps and joins.
+ * Decorative: the owning control supplies the content description.
+ */
+@Composable
+fun LineIcon(paths: List<String>, color: Color, modifier: Modifier = Modifier, size: Dp = 28.dp, strokeWidth: Float = 2.2f) {
+    val parsed = remember(paths) { paths.map { PathParser().parsePathString(it).toPath() } }
+    Canvas(modifier.size(size)) {
+        val u = this.size.width / 24f
+        scale(u, u, pivot = Offset.Zero) {
+            for (p in parsed) drawPath(p, color, style = Stroke(width = strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        }
     }
 }
