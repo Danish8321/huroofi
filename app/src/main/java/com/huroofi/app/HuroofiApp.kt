@@ -36,6 +36,7 @@ import com.huroofi.app.learn.LessonRoute
 import com.huroofi.app.learn.PathNext
 import com.huroofi.app.learn.QuizRoute
 import com.huroofi.app.learn.RewardRoute
+import com.huroofi.app.learn.StickerBookRoute
 import com.huroofi.app.learn.TraceRoute
 import com.huroofi.app.learn.NavTab
 import com.huroofi.app.learn.PathStep
@@ -189,11 +190,23 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
     val toGate: () -> Unit = { nav.navigate(Routes.Gate) }
     val toHome: () -> Unit = { nav.popBackStack(LearnRoutes.Home, inclusive = false) }
     val indexArg = listOf(navArgument(LearnRoutes.ARG_INDEX) { type = NavType.IntType })
+    val navTabs = listOf(NavTab.HOME, NavTab.STICKERS, NavTab.PARENTS)
+    val onTab: (NavTab) -> Unit = { tab ->
+        when (tab) {
+            NavTab.HOME -> toHome()
+            NavTab.MAP -> Unit
+            NavTab.STICKERS -> nav.navigate(LearnRoutes.Stickers) {
+                popUpTo(LearnRoutes.Home)
+                launchSingleTop = true
+            }
+            NavTab.PARENTS -> toGate()
+        }
+    }
     composable(LearnRoutes.Home) {
         LearnBackHandler(LearnRoutes.Home, onToGate = toGate)
         HomeRoute(
             steps = PathStep.entries,
-            navTabs = listOf(NavTab.HOME, NavTab.PARENTS),
+            navTabs = navTabs,
             onStep = { step, index ->
                 when (step) {
                     PathStep.MEET -> nav.navigate(LearnRoutes.lesson(index), overHome)
@@ -202,9 +215,10 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
                 }
             },
             onMap = null,
-            onTab = { tab -> if (tab == NavTab.PARENTS) toGate() },
+            onTab = onTab,
         )
     }
+    composable(LearnRoutes.Stickers) { StickerBookRoute(navTabs, onTab) }
     composable(LearnRoutes.Lesson, arguments = indexArg) { entry ->
         val index = entry.arguments?.getInt(LearnRoutes.ARG_INDEX) ?: return@composable
         LessonRoute(index, onBack = toHome, onNext = { nav.navigate(LearnRoutes.trace(index), overHome) })

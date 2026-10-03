@@ -14,6 +14,7 @@ val ChildRoutes = setOf(
     LearnRoutes.Trace,
     LearnRoutes.Quiz,
     LearnRoutes.Reward,
+    LearnRoutes.Stickers,
     Routes.ToddlerHome,
     Routes.ToddlerCards,
     Routes.ToddlerFind,
