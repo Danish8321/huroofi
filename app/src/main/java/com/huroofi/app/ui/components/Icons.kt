@@ -91,3 +91,18 @@ fun HomeIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 34.dp) {
         drawPath(body, color, style = stroke)
     }
 }
+
+/** Chevron pointing left ([pointsRight] false) or right. Decorative. */
+@Composable
+fun ChevronIcon(color: Color, pointsRight: Boolean, modifier: Modifier = Modifier, size: Dp = 44.dp) {
+    Canvas(modifier.size(size)) {
+        val u = this.size.width / 24f
+        val x = if (pointsRight) listOf(9f, 16f, 9f) else listOf(15f, 8f, 15f)
+        val path = Path().apply {
+            moveTo(x[0] * u, 5f * u)
+            lineTo(x[1] * u, 12f * u)
+            lineTo(x[2] * u, 19f * u)
+        }
+        drawPath(path, color, style = Stroke(width = 3f * u, cap = StrokeCap.Round, join = StrokeJoin.Round))
+    }
+}
