@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,6 +58,7 @@ object HomeSpec {
     val CardShadow = Color(0xFFCFE2F7)
     val Edge = 8.dp
     val Picture = 128.dp
+    val LetterBox = 150.dp
     val TileHeight = 80.dp
     val TileCorner = 24.dp
     val TileIconBox = 48.dp
@@ -160,7 +162,9 @@ private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
                 )
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        ArabicText(letter.letter, size = HomeSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
+                        Box(Modifier.height(HomeSpec.LetterBox), contentAlignment = Alignment.Center) {
+                            ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = HomeSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
+                        }
                         Text(letter.nameLatin, style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -221,7 +225,7 @@ private fun StageStrip(chips: List<StageChip>, stage: Stage, onClick: (() -> Uni
                 color = HuroofiTokens.Navy,
             )
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     for (chip in chips) StageLetterChip(chip, stage)
                 }
             }

@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,6 +56,7 @@ object LessonSpec {
     val InnerCorner = 28.dp
     val IndexCircle = 34.dp
     val Picture = 104.dp
+    val LetterBox = 220.dp
     val ShapeCorner = 18.dp
     val EdgeColor = Color(0xFFCFE2F7)
     const val LETTER_SP = 170f
@@ -122,7 +125,10 @@ fun LessonScreen(
                             ArabicText(letter.nameAr, size = LessonSpec.NAME_SP.sp, color = HuroofiTokens.Navy)
                         }
                     }
-                    ArabicText(letter.letter, Modifier.fillMaxWidth(), size = LessonSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
+                    // Naskh line metrics are much taller than the glyph; a fixed box keeps the card compact.
+                    Box(Modifier.fillMaxWidth().height(LessonSpec.LetterBox), contentAlignment = Alignment.Center) {
+                        ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = LessonSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
+                    }
                     Row(
                         Modifier
                             .fillMaxWidth()
