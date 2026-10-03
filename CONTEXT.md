@@ -10,7 +10,7 @@
 
 **Letter shape**: one of four written forms of a letter: alone, start, middle, end. Shown only to Early readers in the Lesson.
 
-**Non-joining letter**: a letter that does not connect to the letter after it (أ د ذ ر ز و). It has only alone and end shapes.
+**Non-joining letter**: a letter that does not connect to the letter after it (أ د ذ ر ز و). It has only alone and end shapes; start and middle are never shown for it, not even greyed. Letter shapes never take vowel marks.
 
 **Picture word**: the Arabic word shown with a letter's illustration (e.g. أسد for أ).
 
@@ -20,7 +20,17 @@
 
 **Child**: the one young learner using this device. The app stores no name, photo or profile for the child, and keeps one set of progress per device. Parent-facing text says "your child".
 
-**Learned letter**: a letter whose lesson the child has completed. Toddler play never makes a letter learned.
+**Letter path**: the three steps for one letter, in order: Meet (the Lesson), Trace, Play (the Quiz).
+
+**Learned letter**: a letter whose Play step the child has answered correctly. Meet and Trace alone do not make a letter learned. Toddler play never makes a letter learned.
+
+**Today's letter**: the letter Home offers. It is the learning letter; once all 28 are learned, a random learned letter for review.
+
+**Stage complete**: all four letters of a stage are learned. Only then does the Reward screen appear, give the stage's sticker and unlock the next stage.
+
+**Sticker**: the reward for a completed stage; one per stage, seven in all, named after the stage (e.g. "Sunny Meadow sticker"). The app has no other score or currency.
+
+**Sticker book**: the Stickers tab; shows all seven stickers, earned ones filled in and the rest as gentle empty slots.
 
 **Learning letter**: the one letter the learning path offers next: the first letter, in alphabet order, that is not yet learned within the open stage. None once all 28 are learned.
 

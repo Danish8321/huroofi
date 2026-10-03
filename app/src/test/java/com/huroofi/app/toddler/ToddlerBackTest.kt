@@ -1,6 +1,7 @@
 package com.huroofi.app.toddler
 
 import com.huroofi.app.Routes
+import com.huroofi.app.learn.LearnRoutes
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -27,21 +28,21 @@ class ToddlerBackTest {
     }
 
     @Test
-    fun parentZoneAndPlaceholderKeepDefaultBack() {
+    fun parentZoneAndLearnHomeKeepDefaultBack() {
         assertEquals(BackAction.Default, back(Routes.ParentZone))
-        assertEquals(BackAction.Default, back(Routes.Placeholder))
+        assertEquals(BackAction.Default, back(LearnRoutes.Home))
     }
 
     @Test
     fun outsideToddlerModeBackIsDefault() {
-        for (route in listOf(Routes.Placeholder, Routes.Gate, Routes.ParentZone)) {
-            assertEquals(route, BackAction.Default, toddlerBack(route, startRoute = Routes.Placeholder))
+        for (route in listOf(LearnRoutes.Home, Routes.Gate, Routes.ParentZone)) {
+            assertEquals(route, BackAction.Default, toddlerBack(route, startRoute = LearnRoutes.Home))
         }
     }
 
     @Test
     fun restSwallowsBackInEveryMode() {
         assertEquals(BackAction.Swallow, back(Routes.Rest))
-        assertEquals(BackAction.Swallow, toddlerBack(Routes.Rest, startRoute = Routes.Placeholder))
+        assertEquals(BackAction.Swallow, toddlerBack(Routes.Rest, startRoute = LearnRoutes.Home))
     }
 }

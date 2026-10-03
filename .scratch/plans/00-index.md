@@ -10,7 +10,7 @@ Source of truth: `HANDOFF.md`. Plans follow its §9 build order. Each plan is on
 | 04 | [Verification gates](04-gates.md) | all | draft |
 | 05 | [Toddler mode](05-toddler.md) — [task list](05-toddler-tasks.md) | 3 | built (slices 1–6 on `feat/toddler-mode`); checked on a phone emulator (no sound), phrases pending native review, daily limit in 06 |
 | 06 | [Parent zone](06-parent-zone.md) — [task list](06-parent-zone-tasks.md) | 4 | built (slices 1–5 on `feat/parent-zone`); checked on a phone emulator (no sound), rest phrase pending native review |
-| 07 | [Preschool / reader flow](07-preschool-reader.md) | 5 | outline |
+| 07 | [Preschool / reader flow](07-preschool-reader.md) — [task list](07-preschool-reader-tasks.md) | 5 | built (slices 1–6 on `feat/preschool-reader`); checked on a phone emulator (no sound) |
 | 08 | [Tablet, immersive, a11y, Families check](08-polish.md) | 6 | outline |
 
 Plans 01–04 are detailed (the agreed scope: steps 1+2). Plans 05–08 are outlines, to be sharpened with `grill-with-docs` before their step starts.
@@ -41,6 +41,6 @@ Plans 01–04 are detailed (the agreed scope: steps 1+2). Plans 05–08 are outl
 8. Play Console / signing: last stage, after demo.
 9. App icon: build the best we can (design pass, user approves).
 10. Audio recordings: user supplies later; silent placeholders until then.
-11. Trace stroke paths: Claude authors, user reviews (plan 07 slice 3).
+11. Trace stroke paths: superseded by plan 07 decision 3 (trace over the letter glyph; no path data).
 12. Mode switch: applies on next app start (home chosen from stored mode at every start). No live switch.
-13. Vowelled data: plan 06 stores the ḥarakāt setting only; vowelled data (native-reviewed) and its effect are plan 07. OPEN: letter shapes data (plan 07).
+13. Vowelled data: plan 06 stores the ḥarakāt setting only. Plan 07 defers vowelled data to a later plan (needs a native-reviewed list); the zone notes this under the toggle. Letter shapes: built from tatweel in code (plan 07 decision 2).

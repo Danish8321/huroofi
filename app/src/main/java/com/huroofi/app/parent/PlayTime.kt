@@ -2,14 +2,20 @@ package com.huroofi.app.parent
 
 import com.huroofi.app.Routes
 import com.huroofi.app.data.progress.limitReached
+import com.huroofi.app.learn.LearnRoutes
 
 /**
  * Screens the child plays on. Only these count towards Daily play time and only these are
- * replaced by the Rest screen (plan 06 decision 6). Placeholder stands in for the Preschool and
- * Early reader home until plan 07.
+ * replaced by the Rest screen (plan 06 decision 6; learn screens: plan 07 decision 9).
  */
 val ChildRoutes = setOf(
-    Routes.Placeholder,
+    LearnRoutes.Home,
+    LearnRoutes.Lesson,
+    LearnRoutes.Trace,
+    LearnRoutes.Quiz,
+    LearnRoutes.Reward,
+    LearnRoutes.Stickers,
+    LearnRoutes.Map,
     Routes.ToddlerHome,
     Routes.ToddlerCards,
     Routes.ToddlerFind,
