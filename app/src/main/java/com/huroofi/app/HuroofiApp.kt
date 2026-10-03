@@ -44,6 +44,7 @@ object Routes {
     const val ToddlerCards = "toddler_cards"
     const val ToddlerFind = "toddler_find"
     const val ToddlerPaint = "toddler_paint"
+    const val Rest = "rest"
 }
 
 /** Home screen for the stored mode. Read once per app start (plan 05 decision 12: no live switch). */
