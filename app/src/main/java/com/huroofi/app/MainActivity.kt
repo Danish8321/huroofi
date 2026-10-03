@@ -4,6 +4,7 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.CompositionLocalProvider
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,6 +15,9 @@ class MainActivity : ComponentActivity() {
         } else {
             ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
-        setContent { HuroofiApp() }
+        val container = (application as HuroofiApplication).container
+        setContent {
+            CompositionLocalProvider(LocalAppContainer provides container) { HuroofiApp() }
+        }
     }
 }
