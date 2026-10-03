@@ -1,6 +1,7 @@
 package com.huroofi.app.debug
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Modifier
@@ -16,7 +17,7 @@ val DEBUG_GALLERY_ROUTE: String? = GALLERY_ROUTE
 fun NavGraphBuilder.debugDestinations(onRequestParentZone: () -> Unit) {
     composable(GALLERY_ROUTE) {
         ComponentSamples(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()),
             onRequestParentZone = onRequestParentZone,
         )
     }

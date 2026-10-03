@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,7 +67,7 @@ fun ParentGateScreen(
     }
 
     Column(
-        modifier = modifier.fillMaxSize().background(colors.gateBg).padding(horizontal = 28.dp, vertical = 48.dp),
+        modifier = modifier.fillMaxSize().background(colors.gateBg).safeDrawingPadding().padding(horizontal = 28.dp, vertical = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         LockIcon(color = colors.sun, size = 56.dp)

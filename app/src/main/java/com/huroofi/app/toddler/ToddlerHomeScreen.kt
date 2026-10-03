@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -114,6 +115,7 @@ fun ToddlerScaffold(modifier: Modifier = Modifier, content: @Composable ColumnSc
         Column(
             Modifier
                 .fillMaxHeight()
+                .safeDrawingPadding()
                 .widthIn(max = ToddlerHomeSpec.MaxContentWidth)
                 .padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 30.dp),
             verticalArrangement = Arrangement.spacedBy(ToddlerHomeSpec.Gap),
