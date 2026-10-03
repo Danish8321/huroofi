@@ -29,6 +29,7 @@ import com.huroofi.app.toddler.ToddlerActivity
 import com.huroofi.app.toddler.ToddlerActivityStub
 import com.huroofi.app.toddler.ToddlerHomeRoute
 import com.huroofi.app.toddler.cards.LookListenScreen
+import com.huroofi.app.toddler.find.FindScreen
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.theme.BalooBhaijaan2
 import com.huroofi.app.ui.theme.HuroofiTheme
@@ -82,7 +83,10 @@ private fun HuroofiNavHost(startRoute: String, onCloseApp: () -> Unit) {
         composable(Routes.ToddlerCards) {
             LookListenScreen(onHome = toHome, onRequestParentZone = toddlerToGate)
         }
-        for (activity in ToddlerActivity.entries - ToddlerActivity.CARDS) {
+        composable(Routes.ToddlerFind) {
+            FindScreen(onHome = toHome, onRequestParentZone = toddlerToGate)
+        }
+        for (activity in ToddlerActivity.entries - ToddlerActivity.CARDS - ToddlerActivity.FIND) {
             composable(activity.route) {
                 ToddlerActivityStub(activity, onHome = toHome, onRequestParentZone = toddlerToGate)
             }
