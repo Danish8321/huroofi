@@ -100,6 +100,10 @@ object ZoneSpec {
     val Stepper = 48.dp
     val StepperRadius = 12.dp
     val StepperValue = 54.dp
+    val Title = 26.sp
+
+    /** Sizes set here; everything else uses HuroofiText styles, which TypeScaleTest keeps ≥ 16 sp. */
+    val textSizes = listOf(Title, CellGlyph)
 
     val touchSizes = listOf(BackButton, ModeButton, Row, Stepper)
 
@@ -168,7 +172,7 @@ private fun ZoneHeader(onBack: () -> Unit) {
         ) { ChevronIcon(HuroofiTokens.Navy, pointsRight = false, size = 24.dp) }
         Text(
             "Parent zone",
-            style = HuroofiText.screenTitle.copy(fontSize = 26.sp),
+            style = HuroofiText.screenTitle.copy(fontSize = ZoneSpec.Title),
             color = HuroofiTokens.Navy,
             modifier = Modifier.semantics { heading() },
         )
