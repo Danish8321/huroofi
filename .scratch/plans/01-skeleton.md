@@ -6,7 +6,7 @@ Goal: an empty Compose app that builds, installs-ready, with project layout fixe
 
 - Gradle project at repo root, one module `:app`, package `com.huroofi.app`, Kotlin DSL, version catalog `gradle/libs.versions.toml`.
 - Single activity `MainActivity` → `HuroofiApp()` → `NavHost` (one placeholder route for now).
-- `minSdk 26`, `targetSdk` = `compileSdk` = 36 (see index open question 1).
+- `minSdk 29` (Android 10+), `targetSdk` = `compileSdk` = 36 (see index open question 1).
 - App name "Huroofi", launcher label English, portrait on phones, free rotation on tablets (`screenOrientation` handled by `sw600dp` resource qualifier for a boolean).
 - Dependencies, all first-party Jetpack/Kotlin: Compose BOM, material3, navigation-compose, activity-compose, lifecycle-runtime-compose, datastore-preferences, kotlinx-serialization-json, kotlinx-coroutines. Test: junit4, kotlinx-coroutines-test. **No** Media3, no Hilt, no image loader (assets are local drawables). Exact versions: look up latest stable at implementation time (Context7/Maven), pin in the catalog.
 - Permissions: none. No INTERNET permission (offline rule, and it makes Families review easier).
