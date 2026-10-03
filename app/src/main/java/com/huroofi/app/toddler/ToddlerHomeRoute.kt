@@ -1,6 +1,5 @@
 package com.huroofi.app.toddler
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -10,7 +9,7 @@ import com.huroofi.app.audio.Clips
 
 /**
  * Toddler Home with its sound: "ماذا نلعب؟" plays every time Home appears and on a bubble tap;
- * leaving cuts it (plan 05 decision 12). Back does nothing here (decision 6).
+ * leaving cuts it (plan 05 decision 12). Back is handled by [ToddlerBackHandler].
  */
 @Composable
 fun ToddlerHomeRoute(onOpenActivity: (ToddlerActivity) -> Unit, onRequestParentZone: () -> Unit) {
@@ -18,7 +17,6 @@ fun ToddlerHomeRoute(onOpenActivity: (ToddlerActivity) -> Unit, onRequestParentZ
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(sound, scope) }
     LaunchedEffect(Unit) { prompt.play(Clips.whatShallWePlay) }
-    BackHandler {}
     ToddlerHomeScreen(
         onReplayPrompt = { prompt.play(Clips.whatShallWePlay) },
         onOpenActivity = {

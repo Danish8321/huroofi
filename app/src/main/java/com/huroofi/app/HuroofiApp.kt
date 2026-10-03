@@ -25,6 +25,7 @@ import com.huroofi.app.data.progress.AgeMode
 import com.huroofi.app.debug.DEBUG_GALLERY_ROUTE
 import com.huroofi.app.debug.debugDestinations
 import com.huroofi.app.gate.ParentGateScreen
+import com.huroofi.app.toddler.ToddlerBackHandler
 import com.huroofi.app.toddler.ToddlerHomeRoute
 import com.huroofi.app.toddler.cards.LookListenScreen
 import com.huroofi.app.toddler.find.FindScreen
@@ -77,18 +78,23 @@ private fun HuroofiNavHost(startRoute: String, onCloseApp: () -> Unit) {
     NavHost(navController = nav, startDestination = startRoute) {
         composable(Routes.Placeholder) { PlaceholderScreen() }
         composable(Routes.ToddlerHome) {
+            ToddlerBackHandler(Routes.ToddlerHome, startRoute, onPopToToddlerHome = toHome)
             ToddlerHomeRoute(onOpenActivity = { nav.navigate(it.route) }, onRequestParentZone = toddlerToGate)
         }
         composable(Routes.ToddlerCards) {
+            ToddlerBackHandler(Routes.ToddlerCards, startRoute, onPopToToddlerHome = toHome)
             LookListenScreen(onHome = toHome, onRequestParentZone = toddlerToGate)
         }
         composable(Routes.ToddlerFind) {
+            ToddlerBackHandler(Routes.ToddlerFind, startRoute, onPopToToddlerHome = toHome)
             FindScreen(onHome = toHome, onRequestParentZone = toddlerToGate)
         }
         composable(Routes.ToddlerPaint) {
+            ToddlerBackHandler(Routes.ToddlerPaint, startRoute, onPopToToddlerHome = toHome)
             PaintScreen(onHome = toHome, onRequestParentZone = toddlerToGate)
         }
         composable(Routes.Gate) {
+            ToddlerBackHandler(Routes.Gate, startRoute, onPopToToddlerHome = toHome)
             ParentGateScreen(
                 onOpenParentZone = { nav.navigate(Routes.ParentZone) { popUpTo(Routes.Gate) { inclusive = true } } },
                 onCloseApp = onCloseApp,
