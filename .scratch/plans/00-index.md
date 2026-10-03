@@ -8,7 +8,7 @@ Source of truth: `HANDOFF.md`. Plans follow its §9 build order. Each plan is on
 | 02 | [Theme and shared components](02-theme-components.md) | 1 | draft |
 | 03 | [Content layer, audio, progress](03-content-layer.md) | 2 | draft |
 | 04 | [Verification gates](04-gates.md) | all | draft |
-| 05 | [Toddler mode](05-toddler.md) | 3 | outline |
+| 05 | [Toddler mode](05-toddler.md) | 3 | approved (grill 2026-10-03) |
 | 06 | [Parent zone](06-parent-zone.md) | 4 | outline |
 | 07 | [Preschool / reader flow](07-preschool-reader.md) | 5 | outline |
 | 08 | [Tablet, immersive, a11y, Families check](08-polish.md) | 6 | outline |
@@ -36,3 +36,11 @@ Plans 01–04 are detailed (the agreed scope: steps 1+2). Plans 05–08 are outl
 3. Prompt audio names in plan 03 accepted.
 4. Harakat default off.
 5. Plans 01-04 approved; scope of first build = HANDOFF steps 1+2.
+6. Parent zone shows a static Offline mode row (plan 06 slice 5); no download logic.
+7. Device: emulator (to be installed locally: emulator + system image; unblocks test-full.sh/e2e.sh).
+8. Play Console / signing: last stage, after demo.
+9. App icon: build the best we can (design pass, user approves).
+10. Audio recordings: user supplies later; silent placeholders until then.
+11. Trace stroke paths: Claude authors, user reviews (plan 07 slice 3).
+12. Mode switch: applies on next app start (home chosen from stored mode at every start). No live switch.
+13. OPEN, needs broader discussion: vowelled words / harakat data (plan 06), letter shapes data (plan 07).
