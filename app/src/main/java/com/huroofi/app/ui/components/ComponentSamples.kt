@@ -55,6 +55,9 @@ fun ComponentSamples(modifier: Modifier = Modifier, onRequestParentZone: () -> U
         Text("SpeechBubble", style = HuroofiText.sectionHeading)
         SpeechBubble("أين البطة؟", "Hear the question again", onSoundClick = {})
 
+        Text("ToddlerHomeButton", style = HuroofiText.sectionHeading)
+        ToddlerHomeButton(onClick = {})
+
         Text("ParentLock", style = HuroofiText.sectionHeading)
         ParentLock(onRequestParentZone = onRequestParentZone, contentDescription = "Parents")
 

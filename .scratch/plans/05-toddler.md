@@ -1,4 +1,12 @@
-# 05 Toddler mode (approved) — HANDOFF step 3
+# 05 Toddler mode (built) — HANDOFF step 3
+
+**Status (2026-10-03):** slices 1–6 built on `feat/toddler-mode`; `check.sh`, `test-fast.sh` and `contract.sh` pass.
+Open:
+- Checked on an API 36 phone emulator (1080×2400): Home, Look & listen (swipe, Next), Find it (wrong tap nudges, right tap: green, stars, Next), Paint (strokes follow the finger, star and Next appear), Back rules, lock hold to gate. This found and fixed: content under the status bar, a square ripple on Find tiles, the Home lock overlapping the bubble.
+- Still unverified: sound (emulator ran without audio), tablets, a real device's touch feel.
+- Generated captions (`ToddlerPhrases`) wait for native-speaker review: `docs/review/toddler-phrases.md` (a first pass found nothing).
+- No daily time limit until plan 06 (decision 15).
+- Paint shows four crayons; they are treated as a palette, not answer choices, so the ≤ 3 choices rule does not apply to them (decision 2).
 
 Each item is a vertical slice: UI + state + sound + progress write + tests at the tiers it touches.
 

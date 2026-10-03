@@ -5,6 +5,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
@@ -36,3 +39,35 @@ fun ArabicText(
         ),
     )
 }
+
+/** [ArabicText] for a run with styled parts, e.g. a word whose first letter is highlighted. */
+@Composable
+fun ArabicText(
+    text: AnnotatedString,
+    modifier: Modifier = Modifier,
+    size: TextUnit = TypeScale.ArabicChip.default.sp,
+    color: Color = LocalContentColor.current,
+    textAlign: TextAlign = TextAlign.Center,
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        color = color,
+        textAlign = textAlign,
+        style = TextStyle(
+            fontFamily = NotoNaskhArabic,
+            fontSize = size,
+            textDirection = TextDirection.Rtl,
+            lineHeight = size * 1.3f,
+        ),
+    )
+}
+
+/** The picture word with its first letter in [highlight] (HANDOFF section 4: word_first + word_rest). */
+fun highlightedWord(first: String, rest: String, highlight: Color): AnnotatedString =
+    buildAnnotatedString {
+        pushStyle(SpanStyle(color = highlight))
+        append(first)
+        pop()
+        append(rest)
+    }

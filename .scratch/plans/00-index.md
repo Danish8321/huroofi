@@ -8,7 +8,7 @@ Source of truth: `HANDOFF.md`. Plans follow its §9 build order. Each plan is on
 | 02 | [Theme and shared components](02-theme-components.md) | 1 | draft |
 | 03 | [Content layer, audio, progress](03-content-layer.md) | 2 | draft |
 | 04 | [Verification gates](04-gates.md) | all | draft |
-| 05 | [Toddler mode](05-toddler.md) — [task list](05-toddler-tasks.md) | 3 | approved; slice 1 built, 2–6 ready to execute |
+| 05 | [Toddler mode](05-toddler.md) — [task list](05-toddler-tasks.md) | 3 | built (slices 1–6 on `feat/toddler-mode`); checked on a phone emulator (no sound), phrases pending native review, no daily limit until 06 |
 | 06 | [Parent zone](06-parent-zone.md) | 4 | outline |
 | 07 | [Preschool / reader flow](07-preschool-reader.md) | 5 | outline |
 | 08 | [Tablet, immersive, a11y, Families check](08-polish.md) | 6 | outline |

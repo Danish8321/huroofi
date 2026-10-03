@@ -10,6 +10,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -66,5 +67,94 @@ fun SoundIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 32.dp) {
             color, -45f, 90f, false,
             Offset(w * 0.4f, h * 0.14f), Size(w * 0.48f, h * 0.72f), style = stroke,
         )
+    }
+}
+
+/** House outline from the toddler prototypes. Decorative: the owning button supplies the content description. */
+@Composable
+fun HomeIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 34.dp) {
+    Canvas(modifier.size(size)) {
+        val u = this.size.width / 24f
+        val stroke = Stroke(width = 2.4f * u, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        val roof = Path().apply {
+            moveTo(3f * u, 11f * u)
+            lineTo(12f * u, 4f * u)
+            lineTo(21f * u, 11f * u)
+        }
+        val body = Path().apply {
+            moveTo(5f * u, 10f * u)
+            lineTo(5f * u, 20f * u)
+            lineTo(19f * u, 20f * u)
+            lineTo(19f * u, 10f * u)
+        }
+        drawPath(roof, color, style = stroke)
+        drawPath(body, color, style = stroke)
+    }
+}
+
+/** Chevron pointing left ([pointsRight] false) or right. Decorative. */
+@Composable
+fun ChevronIcon(color: Color, pointsRight: Boolean, modifier: Modifier = Modifier, size: Dp = 44.dp) {
+    Canvas(modifier.size(size)) {
+        val u = this.size.width / 24f
+        val x = if (pointsRight) listOf(9f, 16f, 9f) else listOf(15f, 8f, 15f)
+        val path = Path().apply {
+            moveTo(x[0] * u, 5f * u)
+            lineTo(x[1] * u, 12f * u)
+            lineTo(x[2] * u, 19f * u)
+        }
+        drawPath(path, color, style = Stroke(width = 3f * u, cap = StrokeCap.Round, join = StrokeJoin.Round))
+    }
+}
+
+/** Five-point star from the toddler prototypes, filled with [fill] and outlined. Decorative. */
+@Composable
+fun StarIcon(
+    fill: Color,
+    modifier: Modifier = Modifier,
+    size: Dp = 30.dp,
+    outline: Color = Color(0xFF26324A),
+    outlineWidth: Float = 1.4f,
+) {
+    Canvas(modifier.size(size)) {
+        val u = this.size.width / 24f
+        val points = listOf(
+            12f to 2.8f, 14.8f to 8.6f, 21.1f to 9.5f, 16.5f to 13.9f, 17.6f to 20.2f,
+            12f to 17.2f, 6.4f to 20.2f, 7.5f to 13.9f, 2.9f to 9.5f, 9.2f to 8.6f,
+        )
+        val star = Path().apply {
+            points.forEachIndexed { i, (x, y) -> if (i == 0) moveTo(x * u, y * u) else lineTo(x * u, y * u) }
+            close()
+        }
+        drawPath(star, fill)
+        drawPath(star, outline, style = Stroke(width = outlineWidth * u, join = StrokeJoin.Round))
+    }
+}
+
+/** Eraser over a line, from `ToddlerPaint.html`. Decorative: the owning button supplies the content description. */
+@Composable
+fun WipeIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 32.dp) {
+    Canvas(modifier.size(size)) {
+        val u = this.size.width / 24f
+        val stroke = Stroke(width = 2.2f * u, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        val line = Path().apply {
+            moveTo(7f * u, 21f * u)
+            lineTo(17f * u, 21f * u)
+        }
+        val eraser = Path().apply {
+            moveTo(5f * u, 16f * u)
+            lineTo(14f * u, 7f * u)
+            lineTo(19f * u, 12f * u)
+            lineTo(13f * u, 18f * u)
+            lineTo(8f * u, 18f * u)
+            close()
+        }
+        val band = Path().apply {
+            moveTo(10f * u, 11f * u)
+            lineTo(15f * u, 16f * u)
+        }
+        drawPath(line, color, style = stroke)
+        drawPath(eraser, color, style = stroke)
+        drawPath(band, color, style = stroke)
     }
 }
