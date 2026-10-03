@@ -3,6 +3,7 @@ package com.huroofi.app.learn
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import com.huroofi.app.toddler.isRed
+import com.huroofi.app.toddler.paint.Crayon
 import com.huroofi.app.ui.theme.HuroofiDimens
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -26,8 +27,16 @@ class LearnSpecTest {
         }
     }
 
+    /** Crayons are the child's paint, not feedback: the toddler crayon allow-list (plan 05 decision 2). */
+    private val crayonAllowList = Crayon.entries.map { it.color }
+
     @Test
     fun noRed() {
-        for (s in screens) for (c in s.colors) assertFalse("${s.name}: $c", isRed(c))
+        for (s in screens) for (c in s.colors) assertFalse("${s.name}: $c", isRed(c) && c !in crayonAllowList)
+    }
+
+    @Test
+    fun pinkCrayonIsNotRed() {
+        assertFalse(isRed(TraceSpec.Pink))
     }
 }

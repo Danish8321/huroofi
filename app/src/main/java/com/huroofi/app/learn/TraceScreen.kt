@@ -93,11 +93,12 @@ object TraceSpec {
 
     val Pink = Color(0xFFFF6FA5)
 
-    /** The four toddler paints plus pink (prototype). The child's own paint, not feedback, so not in [colors] (as in toddler Paint). */
+    /** The four toddler paints plus pink (prototype). Coral passes only via the crayon allow-list (plan 05 decision 2). */
     val crayons: List<Pair<Color, String>> = Crayon.entries.map { it.color to it.label } + (Pink to "Pink paint")
 
     val touchSizes = listOf(Helper, CrayonSize, Again, LessonSpec.Back)
-    val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, EdgeColor, AgainBorder)
+    val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, EdgeColor, AgainBorder) +
+        crayons.map { it.first }
 }
 
 /** Points are snapshot state, so the canvas redraws as a stroke grows. */
