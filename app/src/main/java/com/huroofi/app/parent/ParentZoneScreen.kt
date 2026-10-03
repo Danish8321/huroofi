@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -39,8 +40,12 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -81,8 +86,15 @@ object ZoneSpec {
     val ModeButton = 64.dp
     val ModeRadius = 16.dp
     val ModeBorder = 2.dp
+    val Row = 64.dp
+    val Divider = Color(0xFFEEF3F9)
+    val SwitchWidth = 56.dp
+    val SwitchHeight = 34.dp
+    val Knob = 26.dp
+    val SwitchOn = HuroofiTokens.Success
+    val SwitchOff = Color(0xFFC9D6E6)
 
-    val touchSizes = listOf(BackButton, ModeButton)
+    val touchSizes = listOf(BackButton, ModeButton, Row)
 
     /** Text colour on background, for the contrast sweep. */
     val textPairs = listOf(
@@ -105,6 +117,10 @@ fun ParentZoneScreen(
     mode: AgeMode,
     onBack: () -> Unit,
     onModeChange: (AgeMode) -> Unit,
+    voice: Boolean,
+    onVoiceChange: (Boolean) -> Unit,
+    harakat: Boolean,
+    onHarakatChange: (Boolean) -> Unit,
     footer: @Composable ColumnScope.() -> Unit = {},
 ) {
     Column(
@@ -123,6 +139,7 @@ fun ParentZoneScreen(
             Text("All ${letters.size} letters", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy)
             LetterGrid(letters)
         }
+        SettingsCard(voice, onVoiceChange, harakat, onHarakatChange)
         footer()
     }
 }
@@ -252,6 +269,80 @@ private fun ModeButton(title: String, age: String, selected: Boolean, modifier: 
 }
 
 @Composable
+private fun SettingsCard(
+    voice: Boolean,
+    onVoiceChange: (Boolean) -> Unit,
+    harakat: Boolean,
+    onHarakatChange: (Boolean) -> Unit,
+) {
+    val shape = RoundedCornerShape(ZoneSpec.CardRadius)
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(Color.White, shape)
+            .border(1.dp, ZoneSpec.CardBorder, shape)
+            .padding(horizontal = ZoneSpec.CardPadding, vertical = 4.dp),
+    ) {
+        ToggleRow("Voice & sounds", AnnotatedString("Native-speaker audio for every letter"), voice, onVoiceChange)
+        ZoneDivider()
+        ToggleRow("Show vowel marks", harakatSubtitle, harakat, onHarakatChange)
+        ZoneDivider()
+        SettingRow("Offline pack", AnnotatedString("All content is on this device."))
+    }
+}
+
+/** "بَ بِ بُ" in Naskh inside the English subtitle (plan 06 decision 4). */
+private val harakatSubtitle = buildAnnotatedString {
+    append("Adds vowel marks like ")
+    withStyle(SpanStyle(fontFamily = NotoNaskhArabic, fontWeight = FontWeight.Bold)) { append("بَ بِ بُ") }
+    append(" in lessons")
+}
+
+@Composable
+private fun ZoneDivider() {
+    Box(Modifier.fillMaxWidth().height(1.dp).background(ZoneSpec.Divider))
+}
+
+@Composable
+private fun SettingRow(
+    title: String,
+    subtitle: AnnotatedString,
+    modifier: Modifier = Modifier,
+    control: @Composable () -> Unit = {},
+) {
+    Row(
+        modifier.fillMaxWidth().heightIn(min = ZoneSpec.Row).padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
+            Text(subtitle, style = HuroofiText.caption, color = HuroofiTokens.Muted)
+        }
+        control()
+    }
+}
+
+/** The whole row toggles; the drawn switch is decoration (prototype: 56×34 track, 26 knob). */
+@Composable
+private fun ToggleRow(title: String, subtitle: AnnotatedString, checked: Boolean, onChange: (Boolean) -> Unit) {
+    SettingRow(
+        title,
+        subtitle,
+        Modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onChange),
+    ) {
+        Box(
+            Modifier
+                .size(ZoneSpec.SwitchWidth, ZoneSpec.SwitchHeight)
+                .background(if (checked) ZoneSpec.SwitchOn else ZoneSpec.SwitchOff, CircleShape),
+            contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart,
+        ) {
+            Box(Modifier.padding(horizontal = 4.dp).size(ZoneSpec.Knob).background(Color.White, CircleShape))
+        }
+    }
+}
+
+@Composable
 private fun ProgressBar(progress: ParentProgress) {
     val total = progress.states.size.coerceAtLeast(1).toFloat()
     Row(
@@ -339,5 +430,5 @@ private fun ParentZonePreview() {
         GridLetter(glyphs[i % glyphs.size], "letter ${i + 1}", state)
     }
     val progress = ParentProgress(stage, 7, letters.mapIndexed { i, l -> i + 1 to l.state }.toMap())
-    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}) }
+    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}) }
 }

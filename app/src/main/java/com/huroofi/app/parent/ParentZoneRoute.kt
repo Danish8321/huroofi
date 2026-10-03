@@ -19,6 +19,8 @@ fun ParentZoneRoute(onBack: () -> Unit, footer: @Composable ColumnScope.() -> Un
     val progress = container.progress
     val mode by progress.mode.collectAsStateWithLifecycle(AgeMode.TODDLER)
     val completed by progress.completedLetters.collectAsStateWithLifecycle(emptySet())
+    val voice by progress.voiceEnabled.collectAsStateWithLifecycle(true)
+    val harakat by progress.harakatEnabled.collectAsStateWithLifecycle(false)
     val openStage by progress.unlockedStage.collectAsStateWithLifecycle(1)
     val summary = remember(completed, openStage) {
         parentProgress(content.letters, content.stages, completed, openStage)
@@ -34,6 +36,10 @@ fun ParentZoneRoute(onBack: () -> Unit, footer: @Composable ColumnScope.() -> Un
         mode,
         onBack = onBack,
         onModeChange = { scope.launch { progress.setMode(it) } },
+        voice = voice,
+        onVoiceChange = { scope.launch { progress.setVoiceEnabled(it) } },
+        harakat = harakat,
+        onHarakatChange = { scope.launch { progress.setHarakatEnabled(it) } },
         footer = footer,
     )
 }
