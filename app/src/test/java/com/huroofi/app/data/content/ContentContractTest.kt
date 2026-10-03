@@ -1,9 +1,11 @@
 package com.huroofi.app.data.content
 
+import com.huroofi.app.toddler.isRed
 import com.huroofi.app.ui.theme.StageColors
 import java.io.File
 import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -53,6 +55,17 @@ class ContentContractTest {
         content.stages.forEach { s ->
             val c = StageColors.fromHex(s.border, s.pastel, s.accentDark)
             assertEquals(s.colors(), c)
+        }
+    }
+
+    /** Stage colours paint child screens, so they follow the no-red rule too (plan 05 decision 2). */
+    @Test
+    fun noStageColourIsRed() {
+        content.stages.forEach { s ->
+            val c = s.colors()
+            listOf("border" to c.border, "pastel" to c.pastel, "accent_dark" to c.accent).forEach { (name, colour) ->
+                assertFalse("stage ${s.stage} $name is red", isRed(colour))
+            }
         }
     }
 

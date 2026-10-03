@@ -20,7 +20,7 @@ internal object LearnPreviewData {
         Stage(4, "Rocket Base", emptyList(), "#7C5CE0", "#E8E0FF", "#4C2DB0"),
         Stage(5, "Birdy Forest", emptyList(), "#2F80ED", "#DAEAFF", "#0B4FB0"),
         Stage(6, "Pencil Town", emptyList(), "#4CAF3A", "#DFF5D5", "#1F6E1A"),
-        Stage(7, "Star Castle", emptyList(), "#F2643A", "#FFE2D7", "#B2340E"),
+        Stage(7, "Star Castle", emptyList(), "#F07D2A", "#FFE2D7", "#9C430A"),
     )
 
     val letters = listOf(
