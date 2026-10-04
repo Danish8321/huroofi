@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -97,6 +98,7 @@ object ZoneSpec {
     val Knob = 26.dp
     val SwitchOn = HuroofiTokens.Success
     val SwitchOff = Color(0xFFC9D6E6)
+    const val DISABLED_ALPHA = 0.5f
     val Stepper = 48.dp
     val StepperRadius = 12.dp
     val StepperValue = 54.dp
@@ -300,10 +302,10 @@ private fun SettingsCard(
     ) {
         ToggleRow("Voice & sounds", AnnotatedString("Native-speaker audio for every letter"), voice, onVoiceChange)
         ZoneDivider()
-        ToggleRow("Show vowel marks", harakatSubtitle, harakat, onHarakatChange)
-        // Plan 07 decision 6: vowelled data is deferred, so the toggle has nothing to show yet.
+        // Plan 07 decision 6: vowelled data is deferred, so the toggle is locked off until it ships.
+        ToggleRow("Show vowel marks", harakatSubtitle, harakat, onHarakatChange, enabled = false)
         Text(
-            "Vowel marks arrive in a later update.",
+            "Coming soon: vowel marks arrive in a later update.",
             Modifier.padding(bottom = 12.dp),
             style = HuroofiText.caption,
             color = HuroofiTokens.Muted,
@@ -349,19 +351,25 @@ private fun SettingRow(
     }
 }
 
-/** The whole row toggles; the drawn switch is decoration (prototype: 56×34 track, 26 knob). */
+/**
+ * The whole row toggles; the drawn switch is decoration (prototype: 56×34 track, 26 knob). A disabled
+ * row shows off and faded, whatever is stored.
+ */
 @Composable
-private fun ToggleRow(title: String, subtitle: AnnotatedString, checked: Boolean, onChange: (Boolean) -> Unit) {
+private fun ToggleRow(title: String, subtitle: AnnotatedString, checked: Boolean, onChange: (Boolean) -> Unit, enabled: Boolean = true) {
+    val on = checked && enabled
     SettingRow(
         title,
         subtitle,
-        Modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onChange),
+        Modifier
+            .toggleable(value = on, enabled = enabled, role = Role.Switch, onValueChange = onChange)
+            .alpha(if (enabled) 1f else ZoneSpec.DISABLED_ALPHA),
     ) {
         Box(
             Modifier
                 .size(ZoneSpec.SwitchWidth, ZoneSpec.SwitchHeight)
-                .background(if (checked) ZoneSpec.SwitchOn else ZoneSpec.SwitchOff, CircleShape),
-            contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart,
+                .background(if (on) ZoneSpec.SwitchOn else ZoneSpec.SwitchOff, CircleShape),
+            contentAlignment = if (on) Alignment.CenterEnd else Alignment.CenterStart,
         ) {
             Box(Modifier.padding(horizontal = 4.dp).size(ZoneSpec.Knob).background(Color.White, CircleShape))
         }

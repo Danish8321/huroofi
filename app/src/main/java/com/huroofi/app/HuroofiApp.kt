@@ -138,6 +138,7 @@ private fun HuroofiNavHost(session: AgeMode, onCloseApp: () -> Unit, onModeChang
             ParentGateScreen(
                 onOpenParentZone = { nav.navigate(Routes.ParentZone) { popUpTo(Routes.Gate) { inclusive = true } } },
                 onCloseApp = onCloseApp,
+                onBackToPlay = { nav.popBackStack(startRoute, inclusive = false) },
             )
         }
         composable(Routes.ParentZone) {

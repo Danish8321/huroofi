@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
@@ -48,6 +49,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -82,6 +84,7 @@ object MapSpec {
     val Badge = 44.dp
     val NumberCircle = 34.dp
     val PathWidth = 8.dp
+    val TopFade = 24.dp
     val PathColor = Color(0xFFA9CBF2)
     val QuietBorder = Color(0xFFD5E2F0)
     const val NAME_SP = 20f
@@ -117,7 +120,8 @@ fun MapScreen(
             Text("Letter Map", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
             Text(
                 subtitle(stages),
-                style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
+                // Balanced lines, so the wrap never leaves one word alone.
+                style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold, lineBreak = LineBreak.Heading),
                 color = HuroofiTokens.Muted,
             )
         }
@@ -141,6 +145,13 @@ fun MapScreen(
                     }
                 }
             }
+            // Cards scrolled under the header fade out instead of being cut sharply.
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(MapSpec.TopFade)
+                    .background(Brush.verticalGradient(listOf(HuroofiTokens.Sky, HuroofiTokens.Sky.copy(alpha = 0f)))),
+            )
         }
         LearnNav(NavTab.MAP, navTabs, onTab)
     }

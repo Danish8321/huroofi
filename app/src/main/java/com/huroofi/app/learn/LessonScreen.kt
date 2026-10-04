@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.ChevronIcon
+import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
@@ -57,14 +58,18 @@ object LessonSpec {
     val IndexCircle = 34.dp
     val Picture = 104.dp
     val LetterBox = 220.dp
+
+    /** Early reader: a smaller big letter leaves room for the shapes row above "Next" on a phone. */
+    val LetterBoxWithShapes = 146.dp
     val ShapeCorner = 18.dp
     val EdgeColor = Color(0xFFCFE2F7)
     const val LETTER_SP = 170f
+    const val LETTER_WITH_SHAPES_SP = 120f
     const val NAME_SP = 30f
     const val WORD_SP = 46f
     const val SHAPE_SP = 38f
     const val INLINE_SP = 24f
-    val textSizes = listOf(LETTER_SP, NAME_SP, WORD_SP, SHAPE_SP, INLINE_SP)
+    val textSizes = listOf(LETTER_SP, LETTER_WITH_SHAPES_SP, NAME_SP, WORD_SP, SHAPE_SP, INLINE_SP)
 
     val touchSizes = listOf(Back, Sound, Picture)
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Sun, EdgeColor)
@@ -128,8 +133,12 @@ fun LessonScreen(
                         }
                     }
                     // Naskh line metrics are much taller than the glyph; a fixed box keeps the card compact.
-                    Box(Modifier.fillMaxWidth().height(LessonSpec.LetterBox), contentAlignment = Alignment.Center) {
-                        ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = LessonSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
+                    Box(
+                        Modifier.fillMaxWidth().height(if (showShapes) LessonSpec.LetterBoxWithShapes else LessonSpec.LetterBox),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        val letterSp = if (showShapes) LessonSpec.LETTER_WITH_SHAPES_SP else LessonSpec.LETTER_SP
+                        ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = letterSp.sp, color = HuroofiTokens.Navy)
                     }
                     Row(
                         Modifier
@@ -165,7 +174,7 @@ fun LessonScreen(
             }
             if (showShapes) LetterShapesGrid(letter)
         }
-        if (onNext != null) PrimaryButton("Next: Trace it", onClick = onNext)
+        if (onNext != null) PrimaryButton("Next: Trace it", onClick = onNext, icon = ButtonIcons.Next)
     }
 }
 

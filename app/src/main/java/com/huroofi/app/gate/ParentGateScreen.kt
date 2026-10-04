@@ -2,10 +2,13 @@ package com.huroofi.app.gate
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,8 +29,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +40,7 @@ import androidx.compose.runtime.withFrameMillis
 import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.LockIcon
 import com.huroofi.app.ui.components.PrimaryButton
+import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.LocalHuroofiColors
@@ -44,13 +50,14 @@ private val HoldRingTrack = Color(0xFF2B4C7E)
 private val GateBody = Color(0xFFD5E2F0)
 
 /**
- * Parent gate: press and hold the circle for 3 seconds. Both actions appear only after the hold.
- * Not unit-tested (drawing and touch); the hold rules live in [HoldGate].
+ * Parent gate: press and hold the circle for 3 seconds. Both actions appear only after the hold;
+ * "Back to play" is always there (ParentGate.html). Not unit-tested (drawing and touch); the hold rules live in [HoldGate].
  */
 @Composable
 fun ParentGateScreen(
     onOpenParentZone: () -> Unit,
     onCloseApp: () -> Unit,
+    onBackToPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalHuroofiColors.current
@@ -67,7 +74,7 @@ fun ParentGateScreen(
     }
 
     Column(
-        modifier = modifier.fillMaxSize().background(colors.gateBg).safeDrawingPadding().padding(horizontal = 28.dp, vertical = 48.dp),
+        modifier = modifier.fillMaxSize().background(colors.gateBg).safeDrawingPadding().padding(start = 28.dp, end = 28.dp, top = 48.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         LockIcon(color = colors.sun, size = 56.dp)
@@ -139,11 +146,18 @@ fun ParentGateScreen(
                 }
             }
         }
+        Spacer(Modifier.weight(1f))
+        Box(
+            Modifier.defaultMinSize(minHeight = HuroofiDimens.MinTouch).clickable(role = Role.Button, onClick = onBackToPlay),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("Back to play", style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = colors.sun)
+        }
     }
 }
 
 @Preview(widthDp = 390, heightDp = 844)
 @Composable
 private fun ParentGatePreview() {
-    HuroofiTheme { ParentGateScreen(onOpenParentZone = {}, onCloseApp = {}) }
+    HuroofiTheme { ParentGateScreen(onOpenParentZone = {}, onCloseApp = {}, onBackToPlay = {}) }
 }
