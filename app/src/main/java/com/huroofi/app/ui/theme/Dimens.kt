@@ -19,6 +19,9 @@ object HuroofiDimens {
     val ToddlerMainControlMin = 84.dp
     val ToddlerMainControlMax = 104.dp
     val EdgeSafe = 16.dp
+
+    /** Widest any screen's content gets; wider windows centre it (plan 08 decision 4). */
+    val MaxContentWidth = 480.dp
 }
 
 fun minTouchTarget(toddler: Boolean): Dp =

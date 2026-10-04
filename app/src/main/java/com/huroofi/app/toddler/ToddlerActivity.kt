@@ -42,7 +42,6 @@ object ToddlerHomeSpec {
 
     /** Lock above the bubble. The prototype's 112 assumes a 44 dp lock; ours is 48 dp to touch, so 116. */
     val HeaderHeight = ParentLockSize.Hit + BubbleHeight
-    val MaxContentWidth = 480.dp
     val Gap = 20.dp
     val MiniCardBorder = Color(0xFFF59E0B)
     val PaintLetter = Color(0xFFEC4F8C)

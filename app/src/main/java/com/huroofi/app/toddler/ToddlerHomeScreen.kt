@@ -61,6 +61,7 @@ import com.huroofi.app.R
 import com.huroofi.app.ui.components.ParentLock
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.LocalHuroofiColors
@@ -105,7 +106,7 @@ fun ToddlerHomeScreen(
     }
 }
 
-/** Sky background, prototype padding, and a centred column no wider than 480 dp (plan 05 decision 14). */
+/** Sky background, prototype padding, and a centred column no wider than [HuroofiDimens.MaxContentWidth]. */
 @Composable
 fun ToddlerScaffold(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Box(
@@ -116,7 +117,7 @@ fun ToddlerScaffold(modifier: Modifier = Modifier, content: @Composable ColumnSc
             Modifier
                 .fillMaxHeight()
                 .safeDrawingPadding()
-                .widthIn(max = ToddlerHomeSpec.MaxContentWidth)
+                .widthIn(max = HuroofiDimens.MaxContentWidth)
                 .padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 30.dp),
             verticalArrangement = Arrangement.spacedBy(ToddlerHomeSpec.Gap),
             content = content,
