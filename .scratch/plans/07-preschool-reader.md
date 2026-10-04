@@ -30,7 +30,7 @@ Glossary terms used here (see `CONTEXT.md`): Letter path, Learned letter, Learni
 - Supersedes index decision 11 (Claude-authored stroke paths): none are needed.
 
 ### 4. Play (quiz)
-- "Which one starts with [letter]?" with picture options (picture + picture word). Auto-plays the new `which_starts_with` clip, then the letter's clip. "Hear the question" button replays.
+- "Which one starts with [letter]?" with picture-only options, as in `Quiz.html` (amended 2026-10-04: a word under the picture would give the answer away). Auto-plays the new `which_starts_with` clip, then the letter's clip. "Hear the question" button replays.
 - Options: Preschool 3, Early reader 4.
 - Distractors: random other letters from all 28, positions shuffled. Skip any distractor whose picture word starts with the target letter. Pure, unit-tested `QuizRound`.
 - 3 rounds, all about Today's letter, fresh distractors and order each round. Progress = 3 dots.
