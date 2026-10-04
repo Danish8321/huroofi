@@ -3,6 +3,7 @@ package com.huroofi.app.ui.components
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 
@@ -14,18 +15,24 @@ object ToddlerHomeButtonSpec {
     val ShadowColor = Color(0xFFCFE2F7)
 }
 
-/** Big round Home button on every toddler activity. */
+/** Big round Home button on every toddler activity. The tablet Find layout passes scaled sizes. */
 @Composable
-fun ToddlerHomeButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun ToddlerHomeButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    size: Dp = ToddlerHomeButtonSpec.Size,
+    iconSize: Dp = ToddlerHomeButtonSpec.IconSize,
+    shadow: Dp = ToddlerHomeButtonSpec.Shadow,
+) {
     val colors = LocalHuroofiColors.current
     RoundIconButton(
         contentDescription = "Home",
         onClick = onClick,
         modifier = modifier,
         toddler = true,
-        size = ToddlerHomeButtonSpec.Size,
+        size = size,
         containerColor = colors.card,
         shadowColor = ToddlerHomeButtonSpec.ShadowColor,
-        shadowDepth = ToddlerHomeButtonSpec.Shadow,
-    ) { HomeIcon(color = colors.navy, size = ToddlerHomeButtonSpec.IconSize) }
+        shadowDepth = shadow,
+    ) { HomeIcon(color = colors.navy, size = iconSize) }
 }
