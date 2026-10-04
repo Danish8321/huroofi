@@ -83,15 +83,18 @@ fun EmptyStickerBadge(stage: Stage, modifier: Modifier = Modifier, size: Dp = St
     }
 }
 
-/** One Sticker book slot: badge and name when earned, the outline alone when not. */
+/**
+ * One Sticker book slot: badge and name when earned; the outline and the name, quieter, when not,
+ * so an unearned slot never shows a blank band.
+ */
 @Composable
 fun StickerSlot(stage: Stage, letters: List<Letter>, earned: Boolean, modifier: Modifier = Modifier) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (earned) StickerBadge(stage, letters) else EmptyStickerBadge(stage)
         Text(
-            if (earned) stickerName(stage) else "",
-            style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold),
-            color = HuroofiTokens.Navy,
+            stickerName(stage),
+            style = HuroofiText.body.copy(fontWeight = if (earned) FontWeight.ExtraBold else FontWeight.SemiBold),
+            color = if (earned) HuroofiTokens.Navy else HuroofiTokens.Muted,
             textAlign = TextAlign.Center,
             minLines = 2,
         )
