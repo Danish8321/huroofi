@@ -6,12 +6,15 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -55,6 +58,7 @@ import com.huroofi.app.ui.theme.highlightedWord
 /** Sizes and colours of Home (`Main.html`, plan 07 decision 7). */
 object HomeSpec {
     val Avatar = 58.dp
+    val Gap = 22.dp
     val CardCorner = 30.dp
     val CardShadow = Color(0xFFCFE2F7)
     val Edge = 8.dp
@@ -103,19 +107,29 @@ fun HomeScreen(
     onTab: (NavTab) -> Unit,
 ) {
     Column(Modifier.fillMaxSize().background(HuroofiTokens.Sky).safeDrawingPadding()) {
-        Column(
-            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(22.dp),
-        ) {
-            Greeting(review)
-            TodayCard(today, todayStage, onGo = { onStep(PathStep.MEET) })
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                for (step in steps) StepTile(step, Modifier.weight(1f)) { onStep(step) }
+        BoxWithConstraints(Modifier.weight(1f)) {
+            // At least the screen tall, so spare height is shared between the gaps instead of pooling above the nav.
+            Column(Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(horizontal = 20.dp, vertical = 20.dp)) {
+                Greeting(review)
+                SectionGap()
+                TodayCard(today, todayStage, onGo = { onStep(PathStep.MEET) })
+                SectionGap()
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    for (step in steps) StepTile(step, Modifier.weight(1f)) { onStep(step) }
+                }
+                SectionGap()
+                StageStrip(strip, stripStage, onStrip)
             }
-            StageStrip(strip, stripStage, onStrip)
         }
         LearnNav(NavTab.HOME, navTabs, onTab)
     }
+}
+
+/** [HomeSpec.Gap] plus an equal share of any spare height. */
+@Composable
+private fun ColumnScope.SectionGap() {
+    Spacer(Modifier.height(HomeSpec.Gap))
+    Spacer(Modifier.weight(1f))
 }
 
 @Composable
