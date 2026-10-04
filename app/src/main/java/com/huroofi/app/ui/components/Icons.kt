@@ -162,6 +162,13 @@ fun WipeIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 32.dp) {
     }
 }
 
+/** Prototype button icons as SVG path data for [LineIcon]. */
+object ButtonIcons {
+    val Next = listOf("M9 5l7 7-7 7")
+    val Done = listOf("M5 12l5 5 9-10")
+    val Again = listOf("M4 12a8 8 0 1 0 3-6.2", "M4 4v5h5")
+}
+
 /**
  * Outline icon from prototype SVG path data in a 24-unit box, drawn with round caps and joins.
  * Decorative: the owning control supplies the content description.

@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
+import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.StarIcon
 import com.huroofi.app.ui.theme.ArabicText
@@ -124,7 +125,7 @@ fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onNext: () -
                 )
             }
             Spacer(Modifier.height(16.dp))
-            PrimaryButton("Next stage", onClick = onNext)
+            PrimaryButton("Next stage", onClick = onNext, icon = ButtonIcons.Next)
         }
     }
 }

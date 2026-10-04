@@ -43,6 +43,7 @@ import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.parent.LetterState
 import com.huroofi.app.ui.components.LineIcon
+import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.theme.ArabicText
@@ -181,7 +182,7 @@ private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
             }
         }
         Spacer(Modifier.height(16.dp))
-        PrimaryButton("Let's go!", onClick = onGo)
+        PrimaryButton("Let's go!", onClick = onGo, icon = ButtonIcons.Next)
     }
 }
 

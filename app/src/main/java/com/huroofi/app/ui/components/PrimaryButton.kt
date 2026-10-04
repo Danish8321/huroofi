@@ -4,11 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +38,10 @@ private fun ButtonKind.colors(c: HuroofiColors) = when (this) {
     ButtonKind.Sun -> ButtonColors(c.sun, c.sunShadow, c.navy)
 }
 
-/** 64 dp tall, 22 dp corners, solid face with a 6 dp darker bottom edge that sinks when pressed. */
+/**
+ * 64 dp tall, 22 dp corners, solid face with a 6 dp darker bottom edge that sinks when pressed.
+ * [icon] (see [ButtonIcons]) follows the label, as in the prototypes.
+ */
 @Composable
 fun PrimaryButton(
     text: String,
@@ -44,6 +49,7 @@ fun PrimaryButton(
     modifier: Modifier = Modifier,
     kind: ButtonKind = ButtonKind.Primary,
     enabled: Boolean = true,
+    icon: List<String>? = null,
 ) {
     val colors = kind.colors(LocalHuroofiColors.current)
     val source = remember { MutableInteractionSource() }
@@ -80,7 +86,10 @@ fun PrimaryButton(
                 .padding(horizontal = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text(text, style = HuroofiText.buttonPrimary, color = colors.label)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(text, style = HuroofiText.buttonPrimary, color = colors.label)
+                if (icon != null) LineIcon(icon, colors.label, size = 26.dp, strokeWidth = 2.6f)
+            }
         }
     }
 }

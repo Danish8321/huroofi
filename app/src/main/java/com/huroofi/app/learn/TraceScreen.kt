@@ -63,6 +63,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.huroofi.app.R
 import com.huroofi.app.toddler.paint.Crayon
+import com.huroofi.app.ui.components.ButtonIcons
+import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
@@ -238,9 +240,14 @@ fun TraceScreen(letter: String, onBack: () -> Unit, onDone: () -> Unit) {
                         check?.clear()
                     },
                 contentAlignment = Alignment.Center,
-            ) { Text("Again", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy) }
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    LineIcon(ButtonIcons.Again, HuroofiTokens.Navy, size = 22.dp, strokeWidth = 2.4f)
+                    Text("Again", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
+                }
+            }
             if (strokes.isNotEmpty()) {
-                Box(Modifier.weight(1f)) { PrimaryButton("I did it!", onClick = ::finish) }
+                Box(Modifier.weight(1f)) { PrimaryButton("I did it!", onClick = ::finish, icon = ButtonIcons.Done) }
             }
         }
     }

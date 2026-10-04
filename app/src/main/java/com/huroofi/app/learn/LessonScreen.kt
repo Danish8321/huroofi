@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.ChevronIcon
+import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
@@ -165,7 +166,7 @@ fun LessonScreen(
             }
             if (showShapes) LetterShapesGrid(letter)
         }
-        if (onNext != null) PrimaryButton("Next: Trace it", onClick = onNext)
+        if (onNext != null) PrimaryButton("Next: Trace it", onClick = onNext, icon = ButtonIcons.Next)
     }
 }
 
