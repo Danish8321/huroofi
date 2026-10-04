@@ -317,6 +317,13 @@ private fun SettingsCard(
         }
         ZoneDivider()
         SettingRow("Offline pack", AnnotatedString("All content is on this device."))
+        // Plan 08 decision 8: apps cannot block the home gesture; Android's App pinning can.
+        Text(
+            "To keep your child in Huroofi, turn on App pinning in your phone's Settings.",
+            Modifier.padding(bottom = 12.dp),
+            style = HuroofiText.caption,
+            color = HuroofiTokens.Muted,
+        )
     }
 }
 
