@@ -58,6 +58,9 @@ Measured after, same emulator (ink centre minus tile centre):
 - Look & listen, all 28: within 1.7 dp of 118x136; ب was +34 dp, now +0.2, dot inside.
 - Map and Home chips (40 dp): worst ع غ +2.5 dp across (6%), all others within 1.7 dp; ر س م ي were +7 to +9 low, now 0 to 0.4.
 - Zone grid (43x42 dp): worst ع غ +2.3 dp across (5%); filled cells checked by eye.
-- Quiz prompt and Reward tiles use the same composable; not re-measured on device.
+- Quiz prompt chip (64 dp), ذ ر ز س: worst 0.6 dp; ذ was −5.5.
+- Reward tiles (58 dp), ذ ر ز س: worst ر ز 2.1 dp across (4%), at least 12 dp clear of the ring (measured by colour, the ring hides it from `lp.py`).
+- `LetterChip` (debug Component gallery only), ب in all three states: centred by eye.
+- All of the above re-checked on the shipped APK (`main` 428bc32).
 
 Before/after: `013-before-after.png`.
