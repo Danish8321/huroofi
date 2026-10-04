@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -49,7 +48,7 @@ import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.StarIcon
-import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
@@ -152,7 +151,7 @@ private fun LetterTiles(letters: List<Letter>) {
                         .border(RewardSpec.TileBorder, HuroofiTokens.Success, shape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = RewardSpec.TILE_SP.sp, color = HuroofiTokens.Navy)
+                    CenteredLetter(letter.letter, size = RewardSpec.TILE_SP.sp, color = HuroofiTokens.Navy)
                 }
             }
         }

@@ -50,6 +50,7 @@ import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
@@ -279,7 +280,7 @@ fun StageLetterChip(chip: StageChip, stage: Stage, locked: Boolean = false) {
             .semantics { contentDescription = "${chip.letter.nameLatin}, $state" },
         contentAlignment = Alignment.Center,
     ) {
-        ArabicText(chip.letter.letter, size = HomeSpec.CHIP_SP.sp, color = text, style = HuroofiText.arabicChip.copy(lineHeight = 28.sp))
+        CenteredLetter(chip.letter.letter, size = HomeSpec.CHIP_SP.sp, color = text, style = HuroofiText.arabicChip)
     }
 }
 

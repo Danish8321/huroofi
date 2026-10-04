@@ -14,6 +14,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import kotlin.math.min
 
@@ -41,8 +42,11 @@ fun fitGlyph(measurer: TextMeasurer, letter: String, size: Size, share: Float, d
     return measure(PROBE_PX * scale) to Offset(size.width / 2f - ink.center.x * scale, size.height / 2f - ink.center.y * scale)
 }
 
+/** How far to move a laid-out glyph so the centre of its [ink] lands on the centre of its [box]. */
+fun inkShift(box: IntSize, ink: Rect): Offset = Offset(box.width / 2f - ink.center.x, box.height / 2f - ink.center.y)
+
 /** The box around the pixels [layout] actually paints, or null when it paints none. */
-private fun inkBounds(layout: TextLayoutResult, density: Density): Rect? {
+internal fun inkBounds(layout: TextLayoutResult, density: Density): Rect? {
     val w = layout.size.width
     val h = layout.size.height
     if (w == 0 || h == 0) return null

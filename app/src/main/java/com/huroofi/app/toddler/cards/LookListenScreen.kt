@@ -53,6 +53,7 @@ import com.huroofi.app.ui.components.ChevronIcon
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
@@ -176,7 +177,7 @@ private fun LetterCard(
                             .background(stage.pastel, RoundedCornerShape(spec.LetterBoxCorner))
                             .padding(horizontal = 16.dp),
                         contentAlignment = Alignment.Center,
-                    ) { ArabicText(letter.letter, size = spec.LETTER_SP.sp, color = colors.navy) }
+                    ) { CenteredLetter(letter.letter, size = spec.LETTER_SP.sp, color = colors.navy) }
                     if (speaking) TalkingBars(stage.border, Modifier.align(Alignment.TopStart).padding(top = 6.dp))
                 }
                 WigglingPicture(letter, stage, picture, wiggles, onPictureTap)
