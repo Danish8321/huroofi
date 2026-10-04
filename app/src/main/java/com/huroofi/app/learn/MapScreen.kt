@@ -65,6 +65,7 @@ import com.huroofi.app.data.progress.unlockedStage
 import com.huroofi.app.parent.LetterState
 import com.huroofi.app.parent.parentProgress
 import com.huroofi.app.toddler.PromptPlayer
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.theme.HuroofiText
@@ -115,45 +116,47 @@ fun MapScreen(
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().background(HuroofiTokens.Sky).safeDrawingPadding()) {
-        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp)) {
-            Text("Letter Map", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
-            Text(
-                subtitle(stages),
-                // Balanced lines, so the wrap never leaves one word alone.
-                style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold, lineBreak = LineBreak.Heading),
-                color = HuroofiTokens.Muted,
-            )
-        }
-        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-            val cardWidth = min(MapSpec.CardWidth, maxWidth - MapSpec.Inset * 2)
-            val starts = listOf(MapSpec.Inset, maxWidth - MapSpec.Inset - cardWidth)
-            val scroll = rememberScrollState()
-            val step = with(LocalDensity.current) { (MapSpec.CardHeight + MapSpec.Gap).roundToPx() }
-            val current = stages.indexOfFirst { it.state == StageState.CURRENT }
-            LaunchedEffect(current) { if (current > 0) scroll.scrollTo(current * step) }
-            Box(Modifier.fillMaxSize().verticalScroll(scroll).padding(vertical = 24.dp)) {
-                DottedPath(stages.size, starts, cardWidth, Modifier.matchParentSize())
-                Column(verticalArrangement = Arrangement.spacedBy(MapSpec.Gap)) {
-                    stages.forEachIndexed { i, s ->
-                        MapCard(
-                            s,
-                            Modifier.padding(start = starts[i % 2]).width(cardWidth).height(MapSpec.CardHeight),
-                            onPlay = onPlay,
-                            onLocked = onLocked,
-                        )
+    CappedWidth(HuroofiTokens.Sky) {
+        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp)) {
+                Text("Letter Map", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
+                Text(
+                    subtitle(stages),
+                    // Balanced lines, so the wrap never leaves one word alone.
+                    style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold, lineBreak = LineBreak.Heading),
+                    color = HuroofiTokens.Muted,
+                )
+            }
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                val cardWidth = min(MapSpec.CardWidth, maxWidth - MapSpec.Inset * 2)
+                val starts = listOf(MapSpec.Inset, maxWidth - MapSpec.Inset - cardWidth)
+                val scroll = rememberScrollState()
+                val step = with(LocalDensity.current) { (MapSpec.CardHeight + MapSpec.Gap).roundToPx() }
+                val current = stages.indexOfFirst { it.state == StageState.CURRENT }
+                LaunchedEffect(current) { if (current > 0) scroll.scrollTo(current * step) }
+                Box(Modifier.fillMaxSize().verticalScroll(scroll).padding(vertical = 24.dp)) {
+                    DottedPath(stages.size, starts, cardWidth, Modifier.matchParentSize())
+                    Column(verticalArrangement = Arrangement.spacedBy(MapSpec.Gap)) {
+                        stages.forEachIndexed { i, s ->
+                            MapCard(
+                                s,
+                                Modifier.padding(start = starts[i % 2]).width(cardWidth).height(MapSpec.CardHeight),
+                                onPlay = onPlay,
+                                onLocked = onLocked,
+                            )
+                        }
                     }
                 }
+                // Cards scrolled under the header fade out instead of being cut sharply.
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(MapSpec.TopFade)
+                        .background(Brush.verticalGradient(listOf(HuroofiTokens.Sky, HuroofiTokens.Sky.copy(alpha = 0f)))),
+                )
             }
-            // Cards scrolled under the header fade out instead of being cut sharply.
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(MapSpec.TopFade)
-                    .background(Brush.verticalGradient(listOf(HuroofiTokens.Sky, HuroofiTokens.Sky.copy(alpha = 0f)))),
-            )
+            LearnNav(NavTab.MAP, navTabs, onTab)
         }
-        LearnNav(NavTab.MAP, navTabs, onTab)
     }
 }
 

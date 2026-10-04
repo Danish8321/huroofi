@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -27,7 +26,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -58,10 +56,11 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huroofi.app.R
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.ParentLock
+import com.huroofi.app.ui.components.ScaleDownToFit
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ArabicText
-import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.LocalHuroofiColors
@@ -106,18 +105,14 @@ fun ToddlerHomeScreen(
     }
 }
 
-/** Sky background, prototype padding, and a centred column no wider than [HuroofiDimens.MaxContentWidth]. */
+/** Sky background, prototype padding, and a centred column ([CappedWidth]). */
 @Composable
 fun ToddlerScaffold(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Box(
-        modifier.fillMaxSize().background(LocalHuroofiColors.current.sky),
-        contentAlignment = Alignment.TopCenter,
-    ) {
+    CappedWidth(LocalHuroofiColors.current.sky, modifier) {
         Column(
             Modifier
                 .fillMaxHeight()
                 .safeDrawingPadding()
-                .widthIn(max = HuroofiDimens.MaxContentWidth)
                 .padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 30.dp),
             verticalArrangement = Arrangement.spacedBy(ToddlerHomeSpec.Gap),
             content = content,
@@ -179,24 +174,24 @@ private fun ActivityTile(activity: ToddlerActivity, onClick: () -> Unit, modifie
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            // Art and label keep their designed size, shrinking only in a short window (tablet landscape).
+            ScaleDownToFit(Modifier.weight(1f)) {
                 when (activity) {
                     ToddlerActivity.CARDS -> CardsArt()
                     ToddlerActivity.FIND -> FindArt()
                     ToddlerActivity.PAINT -> PaintArt()
                 }
             }
-            Column(
-                Modifier.width(spec.LabelColumnWidth),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                ArabicText(activity.arabicLabel, size = 40.sp, color = tile.text)
-                Text(
-                    activity.englishLabel,
-                    style = HuroofiText.caption.copy(fontWeight = FontWeight.Bold),
-                    color = tile.text,
-                    textAlign = TextAlign.Center,
-                )
+            ScaleDownToFit(Modifier.width(spec.LabelColumnWidth)) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    ArabicText(activity.arabicLabel, size = 40.sp, color = tile.text)
+                    Text(
+                        activity.englishLabel,
+                        style = HuroofiText.caption.copy(fontWeight = FontWeight.Bold),
+                        color = tile.text,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
     }
@@ -224,7 +219,8 @@ private fun MiniCard(picture: Int, modifier: Modifier) {
 
 @Composable
 private fun FindArt() {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    // The padding covers the magnifier hanging 24 dp below the apple, so ScaleDownToFit counts it.
+    Row(Modifier.padding(vertical = 24.dp), verticalAlignment = Alignment.CenterVertically) {
         Image(painterResource(R.drawable.pic_apple), contentDescription = null, modifier = Modifier.size(132.dp))
         Canvas(Modifier.offset(x = (-46).dp, y = 30.dp).size(120.dp)) {
             val u = size.width / 120f

@@ -45,6 +45,7 @@ import com.huroofi.app.R
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.parent.LetterState
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.PrimaryButton
@@ -107,22 +108,24 @@ fun HomeScreen(
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().background(HuroofiTokens.Sky).safeDrawingPadding()) {
-        BoxWithConstraints(Modifier.weight(1f)) {
-            // At least the screen tall, so spare height is shared between the gaps instead of pooling above the nav.
-            Column(Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(horizontal = 20.dp, vertical = 20.dp)) {
-                Greeting(review)
-                SectionGap()
-                TodayCard(today, todayStage, onGo = { onStep(PathStep.MEET) })
-                SectionGap()
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    for (step in steps) StepTile(step, Modifier.weight(1f)) { onStep(step) }
+    CappedWidth(HuroofiTokens.Sky) {
+        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            BoxWithConstraints(Modifier.weight(1f)) {
+                // At least the screen tall, so spare height is shared between the gaps instead of pooling above the nav.
+                Column(Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(horizontal = 20.dp, vertical = 20.dp)) {
+                    Greeting(review)
+                    SectionGap()
+                    TodayCard(today, todayStage, onGo = { onStep(PathStep.MEET) })
+                    SectionGap()
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        for (step in steps) StepTile(step, Modifier.weight(1f)) { onStep(step) }
+                    }
+                    SectionGap()
+                    StageStrip(strip, stripStage, onStrip)
                 }
-                SectionGap()
-                StageStrip(strip, stripStage, onStrip)
             }
+            LearnNav(NavTab.HOME, navTabs, onTab)
         }
-        LearnNav(NavTab.HOME, navTabs, onTab)
     }
 }
 

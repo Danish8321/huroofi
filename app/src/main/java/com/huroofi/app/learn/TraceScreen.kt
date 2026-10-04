@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import com.huroofi.app.R
 import com.huroofi.app.toddler.paint.Crayon
 import com.huroofi.app.ui.components.ButtonIcons
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.theme.HuroofiDimens
@@ -89,6 +90,9 @@ object TraceSpec {
 
     /** The glyph's ink fills this share of the canvas width or height, whichever binds first. */
     const val INK_SHARE = 0.7f
+
+    /** Keeps the canvas about 320 dp tall; a shorter window scrolls (tablet landscape). */
+    val MinHeight = 680.dp
 
     val Pink = Color(0xFFFF6FA5)
 
@@ -146,108 +150,110 @@ fun TraceScreen(letter: String, onBack: () -> Unit, onDone: () -> Unit) {
         }
     }
 
-    Column(
-        Modifier.fillMaxSize().background(HuroofiTokens.Sky).safeDrawingPadding().padding(horizontal = 20.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        PathHeader(PathStep.TRACE, "Back to lesson", onBack)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.size(TraceSpec.Helper))
-            Text(
-                "Trace the letter with your finger!",
-                Modifier.weight(1f).background(HuroofiTokens.Card, RoundedCornerShape(20.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
-                style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
-                color = HuroofiTokens.Navy,
-            )
-        }
-        val cardShape = RoundedCornerShape(TraceSpec.CanvasCorner)
-        Box(
-            Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .dropEdge(TraceSpec.EdgeColor, 8.dp, cardShape)
-                .clip(cardShape)
-                .background(HuroofiTokens.Card)
-                .onSizeChanged { canvasSize = it }
-                .semantics { contentDescription = "Tracing area for the letter $letter" }
-                .pointerInput(Unit) {
-                    awaitEachGesture {
-                        val down = awaitFirstDown()
-                        down.consume()
-                        val stroke = InkStroke(currentCrayon, mutableStateListOf(down.position))
-                        strokes += stroke
-                        currentCheck?.addInk(down.position)
-                        while (true) {
-                            val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
-                            if (!change.pressed) break
-                            change.consume()
-                            stroke.points += change.position
-                            currentCheck?.addInk(change.position)
-                        }
-                        if (currentCheck?.done == true) finish()
-                    }
-                },
+    CappedWidth(HuroofiTokens.Sky, minHeight = TraceSpec.MinHeight) {
+        Column(
+            Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Canvas(Modifier.fillMaxSize()) {
-                glyph?.let { (layout, topLeft) -> drawText(layout, TraceSpec.Guide, topLeft) }
-                val width = TraceSpec.Ink.toPx()
-                val style = Stroke(width = width, cap = StrokeCap.Round, join = StrokeJoin.Round)
-                for (s in strokes) {
-                    if (s.points.size == 1) {
-                        drawCircle(s.color, width / 2f, s.points[0])
-                        continue
-                    }
-                    val path = Path().apply {
-                        moveTo(s.points[0].x, s.points[0].y)
-                        for (p in s.points.drop(1)) lineTo(p.x, p.y)
-                    }
-                    drawPath(path, s.color, style = style)
-                }
-            }
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            for ((color, label) in TraceSpec.crayons) {
-                val picked = color == crayon
-                Box(
-                    Modifier
-                        .size(TraceSpec.CrayonSize)
-                        .clip(CircleShape)
-                        .background(color)
-                        .border(TraceSpec.CrayonRing, if (picked) HuroofiTokens.Navy else HuroofiTokens.Card, CircleShape)
-                        .semantics {
-                            contentDescription = label
-                            selected = picked
-                        }
-                        .clickable(role = Role.RadioButton) { crayon = color },
+            PathHeader(PathStep.TRACE, "Back to lesson", onBack)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.size(TraceSpec.Helper))
+                Text(
+                    "Trace the letter with your finger!",
+                    Modifier.weight(1f).background(HuroofiTokens.Card, RoundedCornerShape(20.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
+                    style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
+                    color = HuroofiTokens.Navy,
                 )
             }
-        }
-        // Fixed height, so "I did it!" appearing never resizes the canvas.
-        Row(
-            Modifier.height(HuroofiDimens.PrimaryButtonHeight + HuroofiDimens.ButtonShadow),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
+            val cardShape = RoundedCornerShape(TraceSpec.CanvasCorner)
             Box(
                 Modifier
-                    .width(TraceSpec.AgainWidth)
-                    .height(TraceSpec.Again)
-                    .clip(RoundedCornerShape(22.dp))
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .dropEdge(TraceSpec.EdgeColor, 8.dp, cardShape)
+                    .clip(cardShape)
                     .background(HuroofiTokens.Card)
-                    .border(3.dp, TraceSpec.AgainBorder, RoundedCornerShape(22.dp))
-                    .clickable(role = Role.Button) {
-                        strokes.clear()
-                        check?.clear()
+                    .onSizeChanged { canvasSize = it }
+                    .semantics { contentDescription = "Tracing area for the letter $letter" }
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            val down = awaitFirstDown()
+                            down.consume()
+                            val stroke = InkStroke(currentCrayon, mutableStateListOf(down.position))
+                            strokes += stroke
+                            currentCheck?.addInk(down.position)
+                            while (true) {
+                                val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
+                                if (!change.pressed) break
+                                change.consume()
+                                stroke.points += change.position
+                                currentCheck?.addInk(change.position)
+                            }
+                            if (currentCheck?.done == true) finish()
+                        }
                     },
-                contentAlignment = Alignment.Center,
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LineIcon(ButtonIcons.Again, HuroofiTokens.Navy, size = 22.dp, strokeWidth = 2.4f)
-                    Text("Again", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
+                Canvas(Modifier.fillMaxSize()) {
+                    glyph?.let { (layout, topLeft) -> drawText(layout, TraceSpec.Guide, topLeft) }
+                    val width = TraceSpec.Ink.toPx()
+                    val style = Stroke(width = width, cap = StrokeCap.Round, join = StrokeJoin.Round)
+                    for (s in strokes) {
+                        if (s.points.size == 1) {
+                            drawCircle(s.color, width / 2f, s.points[0])
+                            continue
+                        }
+                        val path = Path().apply {
+                            moveTo(s.points[0].x, s.points[0].y)
+                            for (p in s.points.drop(1)) lineTo(p.x, p.y)
+                        }
+                        drawPath(path, s.color, style = style)
+                    }
                 }
             }
-            if (strokes.isNotEmpty()) {
-                Box(Modifier.weight(1f)) { PrimaryButton("I did it!", onClick = ::finish, icon = ButtonIcons.Done) }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                for ((color, label) in TraceSpec.crayons) {
+                    val picked = color == crayon
+                    Box(
+                        Modifier
+                            .size(TraceSpec.CrayonSize)
+                            .clip(CircleShape)
+                            .background(color)
+                            .border(TraceSpec.CrayonRing, if (picked) HuroofiTokens.Navy else HuroofiTokens.Card, CircleShape)
+                            .semantics {
+                                contentDescription = label
+                                selected = picked
+                            }
+                            .clickable(role = Role.RadioButton) { crayon = color },
+                    )
+                }
+            }
+            // Fixed height, so "I did it!" appearing never resizes the canvas.
+            Row(
+                Modifier.height(HuroofiDimens.PrimaryButtonHeight + HuroofiDimens.ButtonShadow),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Box(
+                    Modifier
+                        .width(TraceSpec.AgainWidth)
+                        .height(TraceSpec.Again)
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(HuroofiTokens.Card)
+                        .border(3.dp, TraceSpec.AgainBorder, RoundedCornerShape(22.dp))
+                        .clickable(role = Role.Button) {
+                            strokes.clear()
+                            check?.clear()
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LineIcon(ButtonIcons.Again, HuroofiTokens.Navy, size = 22.dp, strokeWidth = 2.4f)
+                        Text("Again", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
+                    }
+                }
+                if (strokes.isNotEmpty()) {
+                    Box(Modifier.weight(1f)) { PrimaryButton("I did it!", onClick = ::finish, icon = ButtonIcons.Done) }
+                }
             }
         }
     }

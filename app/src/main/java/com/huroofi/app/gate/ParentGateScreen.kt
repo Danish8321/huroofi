@@ -38,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.withFrameMillis
 import com.huroofi.app.ui.components.ButtonKind
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LockIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.theme.HuroofiDimens
@@ -73,85 +74,87 @@ fun ParentGateScreen(
         }
     }
 
-    Column(
-        modifier = modifier.fillMaxSize().background(colors.gateBg).safeDrawingPadding().padding(start = 28.dp, end = 28.dp, top = 48.dp, bottom = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        LockIcon(color = colors.sun, size = 56.dp)
-        Text(
-            "Grown-ups only",
-            style = HuroofiText.screenTitle,
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 14.dp),
-        )
-        Text(
-            "Press and hold the circle for 3 seconds to open settings.",
-            style = HuroofiText.body,
-            color = GateBody,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-        Box(
-            modifier = Modifier
-                .padding(top = 56.dp)
-                .size(200.dp)
-                .background(HoldPad, CircleShape)
-                .semantics { contentDescription = "Press and hold for 3 seconds" }
-                .pointerInput(Unit) {
-                    detectTapGestures(onPress = {
-                        gate.press(withFrameMillis { it })
-                        pressed = true
-                        tryAwaitRelease()
-                        pressed = false
-                        gate.release()
-                        state = gate.state
-                    })
-                },
-            contentAlignment = Alignment.Center,
+    CappedWidth(colors.gateBg, modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(start = 28.dp, end = 28.dp, top = 48.dp, bottom = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            val progress = when (val s = state) {
-                HoldState.Idle -> 0f
-                is HoldState.Holding -> s.progress
-                HoldState.Unlocked -> 1f
-            }
-            Canvas(Modifier.size(200.dp)) {
-                val stroke = 14.dp.toPx()
-                val inset = stroke / 2
-                val arc = Size(size.width - stroke, size.height - stroke)
-                drawArc(HoldRingTrack, 0f, 360f, false, Offset(inset, inset), arc, style = Stroke(stroke))
-                drawArc(
-                    colors.sun, -90f, 360f * progress, false, Offset(inset, inset), arc,
-                    style = Stroke(stroke, cap = StrokeCap.Round),
+            LockIcon(color = colors.sun, size = 56.dp)
+            Text(
+                "Grown-ups only",
+                style = HuroofiText.screenTitle,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 14.dp),
+            )
+            Text(
+                "Press and hold the circle for 3 seconds to open settings.",
+                style = HuroofiText.body,
+                color = GateBody,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Box(
+                modifier = Modifier
+                    .padding(top = 56.dp)
+                    .size(200.dp)
+                    .background(HoldPad, CircleShape)
+                    .semantics { contentDescription = "Press and hold for 3 seconds" }
+                    .pointerInput(Unit) {
+                        detectTapGestures(onPress = {
+                            gate.press(withFrameMillis { it })
+                            pressed = true
+                            tryAwaitRelease()
+                            pressed = false
+                            gate.release()
+                            state = gate.state
+                        })
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                val progress = when (val s = state) {
+                    HoldState.Idle -> 0f
+                    is HoldState.Holding -> s.progress
+                    HoldState.Unlocked -> 1f
+                }
+                Canvas(Modifier.size(200.dp)) {
+                    val stroke = 14.dp.toPx()
+                    val inset = stroke / 2
+                    val arc = Size(size.width - stroke, size.height - stroke)
+                    drawArc(HoldRingTrack, 0f, 360f, false, Offset(inset, inset), arc, style = Stroke(stroke))
+                    drawArc(
+                        colors.sun, -90f, 360f * progress, false, Offset(inset, inset), arc,
+                        style = Stroke(stroke, cap = StrokeCap.Round),
+                    )
+                }
+                Text(
+                    when (state) {
+                        HoldState.Idle -> "Hold"
+                        is HoldState.Holding -> "Keep holding…"
+                        HoldState.Unlocked -> "Unlocked"
+                    },
+                    style = HuroofiText.sectionHeading,
+                    color = Color.White,
                 )
             }
-            Text(
-                when (state) {
-                    HoldState.Idle -> "Hold"
-                    is HoldState.Holding -> "Keep holding…"
-                    HoldState.Unlocked -> "Unlocked"
-                },
-                style = HuroofiText.sectionHeading,
-                color = Color.White,
-            )
-        }
-        Column(
-            modifier = Modifier.padding(top = 40.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            for (action in gateActions(state)) {
-                when (action) {
-                    GateAction.OpenParentZone -> PrimaryButton("Open Parent zone", onClick = onOpenParentZone)
-                    GateAction.CloseApp -> PrimaryButton("Close Huroofi", onClick = onCloseApp, kind = ButtonKind.Sun)
+            Column(
+                modifier = Modifier.padding(top = 40.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                for (action in gateActions(state)) {
+                    when (action) {
+                        GateAction.OpenParentZone -> PrimaryButton("Open Parent zone", onClick = onOpenParentZone)
+                        GateAction.CloseApp -> PrimaryButton("Close Huroofi", onClick = onCloseApp, kind = ButtonKind.Sun)
+                    }
                 }
             }
-        }
-        Spacer(Modifier.weight(1f))
-        Box(
-            Modifier.defaultMinSize(minHeight = HuroofiDimens.MinTouch).clickable(role = Role.Button, onClick = onBackToPlay),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("Back to play", style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = colors.sun)
+            Spacer(Modifier.weight(1f))
+            Box(
+                Modifier.defaultMinSize(minHeight = HuroofiDimens.MinTouch).clickable(role = Role.Button, onClick = onBackToPlay),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("Back to play", style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = colors.sun)
+            }
         }
     }
 }

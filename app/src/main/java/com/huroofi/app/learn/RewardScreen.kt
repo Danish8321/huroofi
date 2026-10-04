@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.ButtonIcons
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.StarIcon
 import com.huroofi.app.ui.theme.CenteredLetter
@@ -89,42 +90,44 @@ object RewardSpec {
 fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onNext: () -> Unit) {
     Box(Modifier.fillMaxSize().background(RewardSpec.Background)) {
         Confetti(Modifier.fillMaxSize())
-        Column(
-            Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        CappedWidth(Color.Transparent) {
             Column(
-                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Stars()
-                Spacer(Modifier.height(14.dp))
-                Text(
-                    "Stage ${stage.stage} complete!",
-                    style = HuroofiText.screenTitle.copy(fontSize = RewardSpec.TITLE_SP.sp),
-                    color = HuroofiTokens.Navy,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    "You learned ${letters.size} new letters",
-                    style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
-                    color = HuroofiTokens.Muted,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(18.dp))
-                LetterTiles(letters)
-                Spacer(Modifier.height(26.dp))
-                StickerCard(stage, letters)
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Stars()
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        "Stage ${stage.stage} complete!",
+                        style = HuroofiText.screenTitle.copy(fontSize = RewardSpec.TITLE_SP.sp),
+                        color = HuroofiTokens.Navy,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        "You learned ${letters.size} new letters",
+                        style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
+                        color = HuroofiTokens.Muted,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(18.dp))
+                    LetterTiles(letters)
+                    Spacer(Modifier.height(26.dp))
+                    StickerCard(stage, letters)
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        next?.let { "${it.name} unlocked" } ?: "All letters learned!",
+                        Modifier.background(HuroofiTokens.Card, RoundedCornerShape(50)).padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold),
+                        color = HuroofiTokens.Navy,
+                    )
+                }
                 Spacer(Modifier.height(16.dp))
-                Text(
-                    next?.let { "${it.name} unlocked" } ?: "All letters learned!",
-                    Modifier.background(HuroofiTokens.Card, RoundedCornerShape(50)).padding(horizontal = 16.dp, vertical = 8.dp),
-                    style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold),
-                    color = HuroofiTokens.Navy,
-                )
+                PrimaryButton("Next stage", onClick = onNext, icon = ButtonIcons.Next)
             }
-            Spacer(Modifier.height(16.dp))
-            PrimaryButton("Next stage", onClick = onNext, icon = ButtonIcons.Next)
         }
     }
 }

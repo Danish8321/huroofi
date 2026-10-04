@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.ButtonKind
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.RoundIconButton
@@ -86,6 +87,9 @@ object QuizSpec {
     /** The smallest option tile; option tiles share the space left, so this is their floor. */
     val TileMin = 96.dp
 
+    /** Tall enough for three [TileMin] tiles; a shorter window scrolls (tablet landscape). */
+    val MinHeight = 740.dp
+
     val touchSizes = listOf(Close, Sound, TileMin)
     val colors = listOf(
         HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Sun, HuroofiTokens.SunShadow,
@@ -114,67 +118,69 @@ fun QuizScreen(
 ) {
     val colors = stage.colors()
     val target = game.target
-    Column(
-        Modifier.fillMaxSize().background(HuroofiTokens.Sky).safeDrawingPadding().padding(horizontal = 20.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            RoundIconButton(
-                contentDescription = "Leave game",
-                onClick = onClose,
-                toddler = true,
-                size = QuizSpec.Close,
-                containerColor = HuroofiTokens.Card,
-                shadowColor = QuizSpec.EdgeColor,
-                shadowDepth = 4.dp,
-            ) { LineIcon(CloseIcon, HuroofiTokens.Navy, size = 26.dp, strokeWidth = 2.8f) }
-            Row(
-                Modifier.semantics { contentDescription = "${game.roundsDone} of ${game.rounds} done" },
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                repeat(game.rounds) { i ->
-                    Box(
-                        Modifier
-                            .size(QuizSpec.Dot)
-                            .background(if (i < game.roundsDone) HuroofiTokens.Success else HuroofiTokens.Card, CircleShape),
-                    )
+    CappedWidth(HuroofiTokens.Sky, minHeight = QuizSpec.MinHeight) {
+        Column(
+            Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                RoundIconButton(
+                    contentDescription = "Leave game",
+                    onClick = onClose,
+                    toddler = true,
+                    size = QuizSpec.Close,
+                    containerColor = HuroofiTokens.Card,
+                    shadowColor = QuizSpec.EdgeColor,
+                    shadowDepth = 4.dp,
+                ) { LineIcon(CloseIcon, HuroofiTokens.Navy, size = 26.dp, strokeWidth = 2.8f) }
+                Row(
+                    Modifier.semantics { contentDescription = "${game.roundsDone} of ${game.rounds} done" },
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    repeat(game.rounds) { i ->
+                        Box(
+                            Modifier
+                                .size(QuizSpec.Dot)
+                                .background(if (i < game.roundsDone) HuroofiTokens.Success else HuroofiTokens.Card, CircleShape),
+                        )
+                    }
                 }
             }
-        }
-        val card = RoundedCornerShape(QuizSpec.CardCorner)
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .dropEdge(QuizSpec.EdgeColor, 6.dp, card)
-                .background(HuroofiTokens.Card, card)
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            RoundIconButton(
-                contentDescription = "Hear the question",
-                onClick = onHear,
-                toddler = true,
-                size = QuizSpec.Sound,
-                containerColor = HuroofiTokens.Sun,
-                shadowColor = HuroofiTokens.SunShadow,
-            ) { SoundIcon(HuroofiTokens.Navy, size = 30.dp) }
-            Text("Which one starts with", Modifier.weight(1f), style = HuroofiText.buttonPrimary, color = HuroofiTokens.Navy)
-            Box(Modifier.size(QuizSpec.Chip).background(colors.pastel, RoundedCornerShape(20.dp)), contentAlignment = Alignment.Center) {
-                CenteredLetter(target.letter, size = QuizSpec.CHIP_SP.sp, color = HuroofiTokens.Navy)
+            val card = RoundedCornerShape(QuizSpec.CardCorner)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .dropEdge(QuizSpec.EdgeColor, 6.dp, card)
+                    .background(HuroofiTokens.Card, card)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                RoundIconButton(
+                    contentDescription = "Hear the question",
+                    onClick = onHear,
+                    toddler = true,
+                    size = QuizSpec.Sound,
+                    containerColor = HuroofiTokens.Sun,
+                    shadowColor = HuroofiTokens.SunShadow,
+                ) { SoundIcon(HuroofiTokens.Navy, size = 30.dp) }
+                Text("Which one starts with", Modifier.weight(1f), style = HuroofiText.buttonPrimary, color = HuroofiTokens.Navy)
+                Box(Modifier.size(QuizSpec.Chip).background(colors.pastel, RoundedCornerShape(20.dp)), contentAlignment = Alignment.Center) {
+                    CenteredLetter(target.letter, size = QuizSpec.CHIP_SP.sp, color = HuroofiTokens.Navy)
+                }
             }
-        }
-        OptionGrid(game, Modifier.weight(1f), onPick)
-        Box(Modifier.fillMaxWidth().height(QuizSpec.Panel), contentAlignment = Alignment.BottomCenter) {
-            val wrong = game.wrongPick
-            when {
-                game.solved -> RightPanel(target, colors.accent, showContinue = game.finished, canContinue = canContinue, onContinue = onContinue)
-                wrong != null -> WrongPanel(wrong)
-                else -> Box(
-                    Modifier.fillMaxWidth().height(64.dp).background(HuroofiTokens.Card, RoundedCornerShape(22.dp)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("Listen, then tap a picture", style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Muted)
+            OptionGrid(game, Modifier.weight(1f), onPick)
+            Box(Modifier.fillMaxWidth().height(QuizSpec.Panel), contentAlignment = Alignment.BottomCenter) {
+                val wrong = game.wrongPick
+                when {
+                    game.solved -> RightPanel(target, colors.accent, showContinue = game.finished, canContinue = canContinue, onContinue = onContinue)
+                    wrong != null -> WrongPanel(wrong)
+                    else -> Box(
+                        Modifier.fillMaxWidth().height(64.dp).background(HuroofiTokens.Card, RoundedCornerShape(22.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("Listen, then tap a picture", style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Muted)
+                    }
                 }
             }
         }

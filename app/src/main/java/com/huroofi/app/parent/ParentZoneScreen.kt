@@ -58,6 +58,7 @@ import com.huroofi.app.data.progress.AgeMode
 import com.huroofi.app.data.progress.LIMIT_STEP_MINUTES
 import com.huroofi.app.data.progress.MAX_LIMIT_MINUTES
 import com.huroofi.app.data.progress.MIN_LIMIT_MINUTES
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.ChevronIcon
 import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.HuroofiText
@@ -139,24 +140,25 @@ fun ParentZoneScreen(
     onLimitChange: (Int) -> Unit,
     footer: @Composable ColumnScope.() -> Unit = {},
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LocalHuroofiColors.current.parentBg)
-            .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(ZoneSpec.PagePadding),
-        verticalArrangement = Arrangement.spacedBy(ZoneSpec.Gap),
-    ) {
-        ZoneHeader(onBack)
-        ChildCard(progress, mode)
-        ModeCard(mode, onModeChange)
-        ZoneCard {
-            Text("All ${letters.size} letters", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy)
-            LetterGrid(letters)
+    CappedWidth(LocalHuroofiColors.current.parentBg) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(ZoneSpec.PagePadding),
+            verticalArrangement = Arrangement.spacedBy(ZoneSpec.Gap),
+        ) {
+            ZoneHeader(onBack)
+            ChildCard(progress, mode)
+            ModeCard(mode, onModeChange)
+            ZoneCard {
+                Text("All ${letters.size} letters", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy)
+                LetterGrid(letters)
+            }
+            SettingsCard(voice, onVoiceChange, harakat, onHarakatChange, limitMinutes, onLimitChange)
+            footer()
         }
-        SettingsCard(voice, onVoiceChange, harakat, onHarakatChange, limitMinutes, onLimitChange)
-        footer()
     }
 }
 
