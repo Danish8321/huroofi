@@ -53,12 +53,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
@@ -71,7 +68,7 @@ import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
-import com.huroofi.app.ui.theme.NotoNaskhArabic
+import com.huroofi.app.ui.theme.fitGlyph
 
 /** Sizes and colours of Trace (`Trace.html`, plan 07 decision 3). */
 object TraceSpec {
@@ -88,8 +85,8 @@ object TraceSpec {
     val AgainBorder = Color(0xFFA9CBF2)
     val Guide = HuroofiTokens.Navy.copy(alpha = 0.14f)
 
-    /** Font size as a share of the canvas height. */
-    const val GLYPH_SHARE = 0.62f
+    /** The glyph's ink fills this share of the canvas width or height, whichever binds first. */
+    const val INK_SHARE = 0.7f
 
     val Pink = Color(0xFFFF6FA5)
 
@@ -103,21 +100,6 @@ object TraceSpec {
 
 /** Points are snapshot state, so the canvas redraws as a stroke grows. */
 private class InkStroke(val color: Color, val points: SnapshotStateList<Offset>)
-
-/** Where the glyph sits in a canvas of [size], shared by drawing and sampling so they always agree. */
-private fun glyphLayout(measurer: TextMeasurer, letter: String, size: IntSize, density: Density): Pair<TextLayoutResult, Offset> {
-    val layout = measurer.measure(
-        letter,
-        TextStyle(
-            fontFamily = NotoNaskhArabic,
-            fontWeight = FontWeight.Bold,
-            fontSize = with(density) { (size.height * TraceSpec.GLYPH_SHARE).toSp() },
-            textDirection = TextDirection.Rtl,
-        ),
-    )
-    val topLeft = Offset((size.width - layout.size.width) / 2f, (size.height - layout.size.height) / 2f)
-    return layout to topLeft
-}
 
 /** Draws the glyph offscreen and keeps grid points where it has ink. */
 private fun glyphTargets(layout: TextLayoutResult, topLeft: Offset, size: IntSize, density: Density, direction: LayoutDirection, step: Int): List<Offset> {
@@ -140,7 +122,7 @@ fun TraceScreen(letter: String, onBack: () -> Unit, onDone: () -> Unit) {
     val direction = LocalLayoutDirection.current
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val glyph = remember(letter, canvasSize) {
-        if (canvasSize == IntSize.Zero) null else glyphLayout(measurer, letter, canvasSize, density)
+        if (canvasSize == IntSize.Zero) null else fitGlyph(measurer, letter, Size(canvasSize.width.toFloat(), canvasSize.height.toFloat()), TraceSpec.INK_SHARE, density)
     }
     val check = remember(glyph) {
         glyph?.let { (layout, topLeft) ->
