@@ -233,7 +233,7 @@ private fun ChildCard(progress: ParentProgress, mode: AgeMode) {
     }
 }
 
-/** Mode labels from the prototype. A new mode applies on the next app start (plan 05 decision 12). */
+/** Mode labels from the prototype. A new mode applies on leaving the zone (plan 06 decision 8). */
 private val modeLabels = listOf(
     AgeMode.TODDLER to ("Toddler" to "18m – 3y"),
     AgeMode.PRESCHOOL to ("Preschool" to "3 – 5y"),
