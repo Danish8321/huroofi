@@ -54,6 +54,7 @@ import com.huroofi.app.toddler.ToddlerHomeRoute
 import com.huroofi.app.toddler.cards.LookListenScreen
 import com.huroofi.app.toddler.find.FindScreen
 import com.huroofi.app.toddler.paint.PaintScreen
+import com.huroofi.app.ui.ImmersiveBars
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.LocalHuroofiColors
@@ -111,6 +112,7 @@ private fun HuroofiNavHost(session: AgeMode, onCloseApp: () -> Unit, onModeChang
     // From a toddler screen the gate replaces it, so Back on the gate lands on Toddler Home (decision 6).
     val toddlerToGate: () -> Unit = { nav.navigate(Routes.Gate) { popUpTo(Routes.ToddlerHome) } }
     PlayTimeKeeper(nav, startRoute)
+    ImmersiveBars(nav.currentBackStackEntryAsState().value?.destination?.route)
     NavHost(navController = nav, startDestination = startRoute) {
         learnDestinations(nav)
         composable(Routes.ToddlerHome) {
