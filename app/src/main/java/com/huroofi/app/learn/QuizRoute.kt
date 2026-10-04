@@ -20,6 +20,9 @@ import kotlinx.coroutines.launch
 /** Pause after praise before the next round's question. */
 private const val NEXT_ROUND_PAUSE_MS = 600L
 
+/** The right-answer state stays at least this long, however short the praise clip is. */
+private const val RIGHT_MIN_MS = 1_500L
+
 /**
  * Play for letter [index]: 3 right answers learn it. A new letter is saved, with its stage's
  * sticker when it completes the stage; a review letter writes nothing (decisions 1 and 5).
@@ -88,12 +91,17 @@ fun QuizRoute(index: Int, onClose: () -> Unit, onContinue: (PathNext) -> Unit) {
                 return@QuizScreen
             }
             scope.launch {
+                val shown = launch { delay(RIGHT_MIN_MS) }
                 val praise = prompt.run {
                     play(Clips.praise(n))
                     delay(NEXT_ROUND_PAUSE_MS)
                 }
                 praise.join()
-                if (praise.isCancelled) return@launch
+                if (praise.isCancelled) {
+                    shown.cancel()
+                    return@launch
+                }
+                shown.join()
                 game = game?.nextRound(quizRound(target, content.letters, count, random))
                 prompt.play(question)
             }
