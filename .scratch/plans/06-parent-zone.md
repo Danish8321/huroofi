@@ -12,7 +12,7 @@ Each slice is vertical: UI + state + persistence + tests at the tiers it touches
 ## Slices
 
 1. **Zone shell + child card + letter grid**: replaces `ParentZoneStub`. Card: stage line, progress bar, learned / learning / to-go counts. Grid of all 28 letters from `ContentRepository`, coloured by `LetterProgress`.
-2. **Learning mode switch**: Toddler / Preschool / Early reader. Writes `mode`; next app start opens that mode's home.
+2. **Learning mode switch**: Toddler / Preschool / Early reader. Writes `mode`; leaving the zone opens that mode's home (amended 2026-10-04, was next app start).
 3. **Toggles + offline row**: voice & sounds, vowel marks, static offline row.
 4. **Daily play time**: stepper in the zone, usage counting at the `NavHost`, Rest screen that replaces child screens at the limit.
 5. **Close out**: rule sweep for the zone, statuses, gates.
@@ -33,6 +33,6 @@ Each slice is vertical: UI + state + persistence + tests at the tiers it touches
    - Stepper 5–60 step 5, default 20, effective immediately.
    - New clip `audio/prompts/time_to_rest.mp3` ("وقت الراحة، إلى اللقاء غدًا!"): silent placeholder via `tools/make-placeholders.sh`, in the audio contract, listed for native review.
 7. **Offline row is static**: "Offline pack" / "All content is on this device." No Download button (app has no INTERNET permission).
-8. **Zone back button** ("Back to kid mode", 48 dp) and system Back return to this session's home. The mode subtitle "Changes what your child sees when the app opens" covers that a new mode applies on next start (plan 05 decision 12).
+8. **Zone back button** ("Back to kid mode", 48 dp) and system Back return to home: the new mode's home, on a fresh back stack, when the mode changed, else this session's home (amended 2026-10-04: a mode change no longer waits for the next app start).
 9. **Zone is for adults**: `parentBg`, English text, nothing under 16 sp, AA contrast, touch targets ≥ 48 dp (the prototype's 44 px stepper buttons become 48 dp). Content scrolls.
 10. **Branch**: plan 05 merged to `main` (`1a4a1b0`); plan 06 is built on `feat/parent-zone` from `main`.

@@ -42,5 +42,5 @@ Plans 01–04 are detailed (the agreed scope: steps 1+2). Plans 05–08 are outl
 9. App icon: build the best we can (design pass, user approves).
 10. Audio recordings: user supplies later; silent placeholders until then.
 11. Trace stroke paths: superseded by plan 07 decision 3 (trace over the letter glyph; no path data).
-12. Mode switch: applies on next app start (home chosen from stored mode at every start). No live switch.
+12. Mode switch: applies on leaving the Parent zone, which opens the stored mode's home (amended 2026-10-04, was next app start).
 13. Vowelled data: plan 06 stores the ḥarakāt setting only. Plan 07 defers vowelled data to a later plan (needs a native-reviewed list); the zone notes this under the toggle. Letter shapes: built from tatweel in code (plan 07 decision 2).

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,7 +71,7 @@ object Routes {
     const val Rest = "rest"
 }
 
-/** Home screen for the stored mode. Read once per app start (plan 05 decision 12: no live switch). */
+/** Home screen for the stored mode. Read at app start and on leaving the Parent zone (plan 06 decision 8). */
 fun startRoute(mode: AgeMode): String = when (mode) {
     AgeMode.TODDLER -> Routes.ToddlerHome
     AgeMode.PRESCHOOL, AgeMode.READER -> LearnRoutes.Home
@@ -84,19 +85,29 @@ fun HuroofiApp(onCloseApp: () -> Unit = {}) {
         LaunchedEffect(Unit) {
             if (mode == null) mode = progress.mode.first()
         }
-        when (val start = mode) {
+        when (val session = mode) {
             null -> Box(Modifier.fillMaxSize().background(LocalHuroofiColors.current.sky))
-            else -> HuroofiNavHost(startRoute(start), onCloseApp)
+            // A new mode gets a fresh back stack starting at its own home.
+            else -> key(session) { HuroofiNavHost(session, onCloseApp, onModeChange = { mode = it }) }
         }
     }
 }
 
 @Composable
-private fun HuroofiNavHost(startRoute: String, onCloseApp: () -> Unit) {
+private fun HuroofiNavHost(session: AgeMode, onCloseApp: () -> Unit, onModeChange: (AgeMode) -> Unit) {
+    val progress = LocalAppContainer.current.progress
+    val scope = rememberCoroutineScope()
+    val startRoute = startRoute(session)
     val nav = rememberNavController()
     val toHome: () -> Unit = { nav.popBackStack(Routes.ToddlerHome, inclusive = false) }
-    // The Parent zone always returns to this session's home (plan 06 decision 8).
-    val toStart: () -> Unit = { if (!nav.popBackStack(startRoute, inclusive = false)) nav.navigate(startRoute) }
+    // Leaving the Parent zone opens the stored mode's home: a new mode now, else this session's home (plan 06 decision 8).
+    val leaveZone: () -> Unit = {
+        scope.launch {
+            val stored = progress.mode.first()
+            if (stored != session) onModeChange(stored)
+            else if (!nav.popBackStack(startRoute, inclusive = false)) nav.navigate(startRoute)
+        }
+    }
     // From a toddler screen the gate replaces it, so Back on the gate lands on Toddler Home (decision 6).
     val toddlerToGate: () -> Unit = { nav.navigate(Routes.Gate) { popUpTo(Routes.ToddlerHome) } }
     PlayTimeKeeper(nav, startRoute)
@@ -130,7 +141,7 @@ private fun HuroofiNavHost(startRoute: String, onCloseApp: () -> Unit) {
             )
         }
         composable(Routes.ParentZone) {
-            ParentZoneRoute(onBack = toStart) {
+            ParentZoneRoute(onBack = leaveZone) {
                 DEBUG_GALLERY_ROUTE?.let { route -> PrimaryButton("Component gallery (debug)", onClick = { nav.navigate(route) }) }
             }
         }
