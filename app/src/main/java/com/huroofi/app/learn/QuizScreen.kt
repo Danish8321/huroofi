@@ -35,7 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,6 +54,7 @@ import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.NotoNaskhArabic
 import com.huroofi.app.ui.theme.highlightedWord
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -257,14 +261,18 @@ private fun WrongPanel(pick: Letter) {
         Modifier.fillMaxWidth().background(QuizSpec.WrongBackground, RoundedCornerShape(24.dp)).padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Text("Almost! Try again", style = HuroofiText.buttonPrimary, color = QuizSpec.WrongText)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                "${pick.meaningEn.replaceFirstChar { it.uppercase() }} starts with",
-                style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
-                color = HuroofiTokens.Navy,
-            )
-            ArabicText(pick.wordFirst, size = QuizSpec.INLINE_SP.sp, color = HuroofiTokens.Navy)
-        }
+        // "Lemon (ليمون) starts with ل" as in Quiz.html: the Arabic word, not the English one, has the letter.
+        val arabic = SpanStyle(fontFamily = NotoNaskhArabic, fontWeight = FontWeight.Bold, fontSize = QuizSpec.INLINE_SP.sp)
+        Text(
+            buildAnnotatedString {
+                append("${pick.meaningEn.replaceFirstChar { it.uppercase() }} (")
+                withStyle(arabic) { append(pick.wordAr) }
+                append(") starts with ")
+                withStyle(arabic) { append(pick.wordFirst) }
+            },
+            style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
+            color = HuroofiTokens.Navy,
+        )
     }
 }
 
