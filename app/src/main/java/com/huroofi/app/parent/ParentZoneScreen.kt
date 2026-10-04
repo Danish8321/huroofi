@@ -59,6 +59,7 @@ import com.huroofi.app.data.progress.LIMIT_STEP_MINUTES
 import com.huroofi.app.data.progress.MAX_LIMIT_MINUTES
 import com.huroofi.app.data.progress.MIN_LIMIT_MINUTES
 import com.huroofi.app.ui.components.ChevronIcon
+import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
@@ -479,11 +480,7 @@ private fun LetterCell(letter: GridLetter, modifier: Modifier) {
             .semantics(mergeDescendants = true) { contentDescription = "${letter.name}, $status" },
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            letter.glyph,
-            color = glyph,
-            style = HuroofiText.arabicChip.copy(fontFamily = NotoNaskhArabic, fontSize = ZoneSpec.CellGlyph),
-        )
+        CenteredLetter(letter.glyph, size = ZoneSpec.CellGlyph, color = glyph, style = HuroofiText.arabicChip.copy(fontFamily = NotoNaskhArabic))
     }
 }
 

@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -51,6 +50,7 @@ import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
@@ -161,7 +161,7 @@ fun QuizScreen(
             ) { SoundIcon(HuroofiTokens.Navy, size = 30.dp) }
             Text("Which one starts with", Modifier.weight(1f), style = HuroofiText.buttonPrimary, color = HuroofiTokens.Navy)
             Box(Modifier.size(QuizSpec.Chip).background(colors.pastel, RoundedCornerShape(20.dp)), contentAlignment = Alignment.Center) {
-                ArabicText(target.letter, Modifier.wrapContentHeight(unbounded = true), size = QuizSpec.CHIP_SP.sp, color = HuroofiTokens.Navy)
+                CenteredLetter(target.letter, size = QuizSpec.CHIP_SP.sp, color = HuroofiTokens.Navy)
             }
         }
         OptionGrid(game, Modifier.weight(1f), onPick)

@@ -16,7 +16,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 import com.huroofi.app.ui.theme.StageColors
@@ -50,6 +50,6 @@ fun LetterChip(
             .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier),
         contentAlignment = Alignment.Center,
     ) {
-        ArabicText(letter, color = stage?.accent ?: colors.navy)
+        CenteredLetter(letter, color = stage?.accent ?: colors.navy)
     }
 }
