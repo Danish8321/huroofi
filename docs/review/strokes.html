@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stroke order review</title>
+<!-- Review sheet for data/strokes.json (plan 09 decision 2). Open through a local server; see strokes.md. -->
+<style>
+  @font-face { font-family: "Naskh"; src: url("../../assets/fonts/NotoNaskhArabic-Variable.ttf"); font-weight: 400 700; }
+  @font-face { font-family: "Baloo"; src: url("../../assets/fonts/BalooBhaijaan2-Variable.ttf"); font-weight: 400 800; }
+  :root { --sky: #EAF4FF; --navy: #13294B; --muted: #4A5D7A; --card: #FFFFFF; --edge: #CFE2F7; }
+  body { margin: 0; padding: 16px; background: var(--sky); color: var(--navy); font-family: "Baloo", system-ui, sans-serif; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  p { margin: 0 0 16px; color: var(--muted); }
+  #sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  figure { margin: 0; background: var(--card); border-radius: 20px; box-shadow: 0 6px 0 var(--edge); padding: 8px; }
+  canvas { width: 100%; aspect-ratio: 1; display: block; }
+  figcaption { text-align: center; font-weight: 800; }
+  .missing { color: var(--muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Stroke order review</h1>
+<p>Green 1 is where the child starts. Each line runs from its numbered coin to its arrow. Dots are their own strokes.</p>
+<div id="sheet"></div>
+<script>
+const INK_SHARE = 0.7;
+const SIZE = 440;
+
+function drawLetter(canvas, glyph, strokes) {
+  const ctx = canvas.getContext("2d");
+  canvas.width = SIZE; canvas.height = SIZE;
+  ctx.direction = "rtl";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.font = "700 200px Naskh";
+  const probe = ctx.measureText(glyph);
+  const w = probe.actualBoundingBoxLeft + probe.actualBoundingBoxRight;
+  const h = probe.actualBoundingBoxAscent + probe.actualBoundingBoxDescent;
+  const px = 200 * Math.min(SIZE * INK_SHARE / w, SIZE * INK_SHARE / h);
+  ctx.font = `700 ${px}px Naskh`;
+  const m = ctx.measureText(glyph);
+  const inkW = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+  const inkH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+  // Put the ink box's centre on the canvas centre, as fitGlyph does in the app.
+  const left = (SIZE - inkW) / 2, top = (SIZE - inkH) / 2;
+  ctx.fillStyle = "#DCE8F6";
+  ctx.fillText(glyph, left + m.actualBoundingBoxLeft, top + m.actualBoundingBoxAscent);
+  const at = ([x, y]) => [left + x * inkW, top + y * inkH];
+
+  for (const s of strokes) {
+    const pts = s.points.map(at);
+    if (pts.length > 1) {
+      ctx.strokeStyle = "#FF7A59"; ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.beginPath(); ctx.moveTo(...pts[0]);
+      for (const p of pts.slice(1)) ctx.lineTo(...p);
+      ctx.stroke();
+      const [ax, ay] = pts[pts.length - 1], [bx, by] = pts[pts.length - 2];
+      const a = Math.atan2(ay - by, ax - bx);
+      ctx.fillStyle = "#FF7A59";
+      ctx.beginPath();
+      ctx.moveTo(ax + 16 * Math.cos(a), ay + 16 * Math.sin(a));
+      ctx.lineTo(ax + 16 * Math.cos(a + 2.5), ay + 16 * Math.sin(a + 2.5));
+      ctx.lineTo(ax + 16 * Math.cos(a - 2.5), ay + 16 * Math.sin(a - 2.5));
+      ctx.fill();
+    }
+    const [sx, sy] = pts[0];
+    ctx.fillStyle = s.order === 1 ? "#158048" : "#1F6FE0";
+    ctx.beginPath(); ctx.arc(sx, sy, 20, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = "#FFFFFF"; ctx.direction = "ltr"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = "800 24px Baloo";
+    ctx.fillText(String(s.order), sx, sy + 2);
+    ctx.direction = "rtl"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  }
+}
+
+async function main() {
+  const [letters, strokes] = await Promise.all([
+    fetch("../../data/letters.json").then(r => r.json()),
+    fetch("../../data/strokes.json").then(r => r.json()),
+  ]);
+  await Promise.all([document.fonts.load("700 200px Naskh", "ب"), document.fonts.load("800 24px Baloo", "1")]);
+  const byIndex = new Map(strokes.letters.map(l => [l.index, l.strokes]));
+  const sheet = document.getElementById("sheet");
+  for (const l of letters.letters) {
+    const fig = document.createElement("figure");
+    const cap = document.createElement("figcaption");
+    cap.textContent = `${l.index} ${l.name_latin} ${l.letter}`;
+    const s = byIndex.get(l.index);
+    if (s) {
+      const c = document.createElement("canvas");
+      c.setAttribute("aria-label", `Stroke order for ${l.name_latin}`);
+      fig.append(c);
+      drawLetter(c, l.letter, [...s].sort((a, b) => a.order - b.order));
+    } else {
+      cap.classList.add("missing");
+      cap.textContent += " (no strokes yet)";
+    }
+    fig.append(cap);
+    sheet.append(fig);
+  }
+}
+main();
+</script>
+</body>
+</html>
