@@ -34,7 +34,7 @@ Commit `09-guided-trace.md`, this file, `00-index.md`, issue 014 and `CONTEXT.md
 
 ---
 
-## Slice 1 — Stroke data and review sheet
+## Slice 1 — Stroke data and review sheet (BUILT; emulator checks not run)
 
 After this slice the data exists, is checked by the contract gate, and the review sheet is ready for the maintainer.
 
@@ -64,7 +64,7 @@ Check: `contract.sh`, `test-fast.sh`; screenshot of the full sheet saved beside 
 
 ---
 
-## Slice 2 — Guided trace (Preschool / Early reader)
+## Slice 2 — Guided trace (Preschool / Early reader) (BUILT; emulator checks not run)
 
 ### 2.1 Ink box on the canvas
 Files: `ui/theme/GlyphFit.kt`, `GlyphFitTest` (pure part).
@@ -86,7 +86,7 @@ Check: contrast test green; phone emulator screenshots of baa before, during and
 
 ---
 
-## Slice 3 — Demo ball
+## Slice 3 — Demo ball (BUILT; emulator checks not run)
 
 ### 3.1 Schedule (pure)
 Files: new `learn/TraceDemo.kt`, `learn/TraceDemoTest.kt`.
@@ -100,7 +100,7 @@ Check: emulator: sound then demo on entry (log the clip call; sound is silent pl
 
 ---
 
-## Slice 4 — Toddler Paint ball
+## Slice 4 — Toddler Paint ball (BUILT; emulator checks not run)
 
 ### 4.1
 Files: `toddler/paint/PaintScreen.kt` (and a shared ball composable from 3.2 moved to `ui/`).
@@ -109,7 +109,7 @@ Check: emulator screenshots mid-demo; `a11y.sh` PASS in Toddler.
 
 ---
 
-## Slice 5 — Close out
+## Slice 5 — Close out (docs done; emulator checklist still TO DO)
 
 - Phone and both tablet emulators, portrait and landscape: Trace for at least alif, baa, jiim, siin, kaaf, haa (26) and yaa; `a11y.sh` on Trace and Paint; text size 1.3x.
 - `00-index.md` row 09: "built, stroke order pending review", with what was and was not verified (sound, real devices).
