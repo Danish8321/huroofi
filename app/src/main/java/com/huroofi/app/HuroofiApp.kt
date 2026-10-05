@@ -129,7 +129,7 @@ private fun HuroofiNavHost(session: AgeMode, onCloseApp: () -> Unit, onModeChang
         }
         composable(Routes.ToddlerPaint) {
             ToddlerBackHandler(Routes.ToddlerPaint, startRoute, onPopToToddlerHome = toHome)
-            PaintScreen(onHome = toHome, onRequestParentZone = toddlerToGate)
+            PaintScreen(strokesOf = LocalAppContainer.current.content::strokes, onHome = toHome, onRequestParentZone = toddlerToGate)
         }
         composable(Routes.Rest) {
             ToddlerBackHandler(Routes.Rest, startRoute, onPopToToddlerHome = toHome)
