@@ -21,7 +21,7 @@ import com.huroofi.app.ui.theme.fitGlyph
 /** The letter to paint over: pale pink fill, dashed pink edge. Drawn from the font (plan 05 decision 4). */
 object LetterOutlineSpec {
     val FillColor = Color(0xFFFFF0F5)
-    val EdgeColor = Color(0xFFF5A9C6)
+    val EdgeColor = Color(0xFFEC4F8C)
     val EdgeWidth = 4.dp
     val Dash = 10.dp
 

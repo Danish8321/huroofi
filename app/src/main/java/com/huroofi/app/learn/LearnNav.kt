@@ -21,6 +21,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.huroofi.app.ui.components.LineIcon
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTokens
 
@@ -38,6 +39,14 @@ object NavSpec {
     val Active = HuroofiTokens.Primary
     val Idle = HuroofiTokens.Muted
     val colors = listOf(HuroofiTokens.Card, Active, Idle)
+
+    /** Labels are 16 sp, so normal text. */
+    val textPairs = listOf(
+        ContrastPair(Active, HuroofiTokens.Card, large = false, "current tab label"),
+        ContrastPair(Active, HuroofiTokens.Card, large = true, "current tab icon"),
+        ContrastPair(Idle, HuroofiTokens.Card, large = false, "other tab label"),
+        ContrastPair(Idle, HuroofiTokens.Card, large = true, "other tab icon"),
+    )
 }
 
 @Composable

@@ -1,0 +1,13 @@
+# Release runtime dependencies allowed in Huroofi (plan 08 decision 12). One group:artifact glob per line.
+# Anything else on releaseRuntimeClasspath fails apk-audit.sh. Add a line only with the user's approval.
+androidx.*:*
+org.jetbrains.kotlin:*
+org.jetbrains.kotlinx:*
+org.jetbrains:annotations
+# Pulled by androidx (concurrent-futures):
+com.google.guava:listenablefuture
+# Pulled by androidx.datastore for file I/O; no network code is used:
+com.squareup.okio:okio
+com.squareup.okio:okio-jvm
+# Nullness annotations pulled by androidx:
+org.jspecify:jspecify

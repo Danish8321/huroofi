@@ -51,9 +51,13 @@ import com.huroofi.app.toddler.ToddlerHeader
 import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ChevronIcon
 import com.huroofi.app.ui.components.RoundIconButton
+import com.huroofi.app.ui.components.ToddlerHomeButtonSpec
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.CenteredLetter
+import com.huroofi.app.ui.theme.ContrastPair
+import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
@@ -80,6 +84,19 @@ object CardsSpec {
     const val CHOICES = 3
     val touchSizes = listOf(NavButton, PictureButtonMin)
     val colors = listOf(ShadowColor)
+
+    /** The card ring is decoration; Arabic is bold and at least 88 sp, so large. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "word"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "previous chevron"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Primary, large = true, "next chevron"),
+    ) + ToddlerHomeButtonSpec.textPairs + parentLockPairs
+
+    fun stagePairs(stage: StageColors) = listOf(
+        ContrastPair(HuroofiTokens.Navy, stage.pastel, large = true, "big letter"),
+        ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "word first letter"),
+        ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "talking bars"),
+    )
 }
 
 /** Look & listen: one letter card at a time, alphabet order, wrapping both ways (plan 05 decisions 8, 9). */
@@ -178,7 +195,7 @@ private fun LetterCard(
                             .padding(horizontal = 16.dp),
                         contentAlignment = Alignment.Center,
                     ) { CenteredLetter(letter.letter, size = spec.LETTER_SP.sp, color = colors.navy) }
-                    if (speaking) TalkingBars(stage.border, Modifier.align(Alignment.TopStart).padding(top = 6.dp))
+                    if (speaking) TalkingBars(stage.accent, Modifier.align(Alignment.TopStart).padding(top = 6.dp))
                 }
                 WigglingPicture(letter, stage, picture, wiggles, onPictureTap)
                 ArabicText(

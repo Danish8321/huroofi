@@ -26,7 +26,9 @@ import com.huroofi.app.toddler.PARENT_LOCK_DESCRIPTION
 import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ParentLock
+import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
@@ -39,6 +41,10 @@ object RestSpec {
     val touchSizes = emptyList<Dp>()
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Navy, HuroofiTokens.Muted)
     const val CHOICES = 0
+    val textPairs = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "rest Arabic"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "rest English"),
+    ) + parentLockPairs
 }
 
 /** Plays the rest line once when shown, cutting whatever was playing. */

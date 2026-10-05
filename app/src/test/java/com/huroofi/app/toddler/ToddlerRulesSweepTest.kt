@@ -6,6 +6,8 @@ import androidx.compose.ui.unit.dp
 import com.huroofi.app.parent.RestSpec
 import com.huroofi.app.toddler.cards.CardsSpec
 import com.huroofi.app.toddler.find.FindSpec
+import com.huroofi.app.toddler.find.FindTabletSpec
+import com.huroofi.app.toddler.find.tabletFindScale
 import com.huroofi.app.toddler.paint.Crayon
 import com.huroofi.app.toddler.paint.LetterOutlineSpec
 import com.huroofi.app.toddler.paint.PaintSpec
@@ -32,6 +34,12 @@ class ToddlerRulesSweepTest {
         Screen("Home button", listOf(ToddlerHomeButtonSpec.Size), listOf(ToddlerHomeButtonSpec.ShadowColor), 0),
         Screen("Look & listen", CardsSpec.touchSizes, CardsSpec.colors, CardsSpec.CHOICES),
         Screen("Find it", FindSpec.touchSizes, FindSpec.colors, FindSpec.CHOICES),
+        Screen(
+            "Find it (tablet, smallest landscape tablet)",
+            FindTabletSpec.touchSizes(tabletFindScale(960f, 600f)),
+            FindTabletSpec.colors,
+            FindSpec.CHOICES,
+        ),
         Screen(
             "Paint",
             PaintSpec.touchSizes,

@@ -32,10 +32,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -65,11 +66,14 @@ import com.huroofi.app.data.progress.unlockedStage
 import com.huroofi.app.parent.LetterState
 import com.huroofi.app.parent.parentProgress
 import com.huroofi.app.toddler.PromptPlayer
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.RoundIconButton
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.StageColors
 
 /** Sizes and colours of the Letter Map (`StageMap.html`, plan 07 decision 8). */
 object MapSpec {
@@ -96,6 +100,24 @@ object MapSpec {
         HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Primary,
         HuroofiTokens.PrimaryShadow, HuroofiTokens.Success, PathColor, QuietBorder, LockedChip,
     ) + NavSpec.colors
+
+    /** The dotted path is decoration; a locked card also shows a lock. Names are 20 sp ExtraBold, so large. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "title"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "subtitle"),
+        ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "finished card ring"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "stage name"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = true, "locked stage name"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Primary, large = true, "play triangle"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "finished tick"),
+        ContrastPair(HuroofiTokens.Muted, LockedChip, large = true, "lock icon"),
+        ContrastPair(HuroofiTokens.Muted, LockedChip, large = true, "locked chip letter"),
+    ) + HomeSpec.chipPairs + NavSpec.textPairs
+
+    fun stagePairs(stage: StageColors) = listOf(
+        ContrastPair(stage.accent, HuroofiTokens.Sky, large = true, "current card ring"),
+        ContrastPair(HuroofiTokens.Navy, stage.pastel, large = false, "stage number"),
+    ) + HomeSpec.chipStagePairs(stage)
 }
 
 /** One card of the map: the stage, how it shows, and its 4 chips. */
@@ -115,45 +137,47 @@ fun MapScreen(
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().background(HuroofiTokens.Sky).safeDrawingPadding()) {
-        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp)) {
-            Text("Letter Map", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
-            Text(
-                subtitle(stages),
-                // Balanced lines, so the wrap never leaves one word alone.
-                style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold, lineBreak = LineBreak.Heading),
-                color = HuroofiTokens.Muted,
-            )
-        }
-        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-            val cardWidth = min(MapSpec.CardWidth, maxWidth - MapSpec.Inset * 2)
-            val starts = listOf(MapSpec.Inset, maxWidth - MapSpec.Inset - cardWidth)
-            val scroll = rememberScrollState()
-            val step = with(LocalDensity.current) { (MapSpec.CardHeight + MapSpec.Gap).roundToPx() }
-            val current = stages.indexOfFirst { it.state == StageState.CURRENT }
-            LaunchedEffect(current) { if (current > 0) scroll.scrollTo(current * step) }
-            Box(Modifier.fillMaxSize().verticalScroll(scroll).padding(vertical = 24.dp)) {
-                DottedPath(stages.size, starts, cardWidth, Modifier.matchParentSize())
-                Column(verticalArrangement = Arrangement.spacedBy(MapSpec.Gap)) {
-                    stages.forEachIndexed { i, s ->
-                        MapCard(
-                            s,
-                            Modifier.padding(start = starts[i % 2]).width(cardWidth).height(MapSpec.CardHeight),
-                            onPlay = onPlay,
-                            onLocked = onLocked,
-                        )
+    CappedWidth(HuroofiTokens.Sky) {
+        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp)) {
+                Text("Letter Map", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
+                Text(
+                    subtitle(stages),
+                    // Balanced lines, so the wrap never leaves one word alone.
+                    style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold, lineBreak = LineBreak.Heading),
+                    color = HuroofiTokens.Muted,
+                )
+            }
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                val cardWidth = min(MapSpec.CardWidth, maxWidth - MapSpec.Inset * 2)
+                val starts = listOf(MapSpec.Inset, maxWidth - MapSpec.Inset - cardWidth)
+                val scroll = rememberScrollState()
+                val step = with(LocalDensity.current) { (MapSpec.CardHeight + MapSpec.Gap).roundToPx() }
+                val current = stages.indexOfFirst { it.state == StageState.CURRENT }
+                LaunchedEffect(current) { if (current > 0) scroll.scrollTo(current * step) }
+                Box(Modifier.fillMaxSize().verticalScroll(scroll).padding(vertical = 24.dp)) {
+                    DottedPath(stages.size, starts, cardWidth, Modifier.matchParentSize())
+                    Column(verticalArrangement = Arrangement.spacedBy(MapSpec.Gap)) {
+                        stages.forEachIndexed { i, s ->
+                            MapCard(
+                                s,
+                                Modifier.padding(start = starts[i % 2]).width(cardWidth).height(MapSpec.CardHeight),
+                                onPlay = onPlay,
+                                onLocked = onLocked,
+                            )
+                        }
                     }
                 }
+                // Cards scrolled under the header fade out instead of being cut sharply.
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(MapSpec.TopFade)
+                        .background(Brush.verticalGradient(listOf(HuroofiTokens.Sky, HuroofiTokens.Sky.copy(alpha = 0f)))),
+                )
             }
-            // Cards scrolled under the header fade out instead of being cut sharply.
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(MapSpec.TopFade)
-                    .background(Brush.verticalGradient(listOf(HuroofiTokens.Sky, HuroofiTokens.Sky.copy(alpha = 0f)))),
-            )
+            LearnNav(NavTab.MAP, navTabs, onTab)
         }
-        LearnNav(NavTab.MAP, navTabs, onTab)
     }
 }
 
@@ -189,7 +213,7 @@ private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onLocke
     val shape = RoundedCornerShape(MapSpec.CardCorner)
     val locked = s.state == StageState.LOCKED
     val (ring, ringWidth, edge) = when (s.state) {
-        StageState.CURRENT -> Triple(colors.border, MapSpec.Ring, colors.pastel)
+        StageState.CURRENT -> Triple(colors.accent, MapSpec.Ring, colors.pastel)
         StageState.FINISHED -> Triple(HuroofiTokens.Success, MapSpec.Ring, MapSpec.QuietBorder)
         StageState.LOCKED -> Triple(MapSpec.QuietBorder, MapSpec.QuietRing, MapSpec.QuietBorder)
     }
@@ -229,12 +253,13 @@ private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onLocke
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(Modifier.fillMaxWidth().height(MapSpec.Play + 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(Modifier.size(MapSpec.NumberCircle).background(colors.pastel, CircleShape), contentAlignment = Alignment.Center) {
+            // Number and name are in the card's label; hidden here so TalkBack does not read them twice (plan 08 task 6.2).
+            Box(Modifier.size(MapSpec.NumberCircle).background(colors.pastel, CircleShape).clearAndSetSemantics {}, contentAlignment = Alignment.Center) {
                 Text("${s.stage.stage}", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
             }
             Text(
                 s.stage.name,
-                Modifier.weight(1f),
+                Modifier.weight(1f).clearAndSetSemantics {},
                 style = HuroofiText.sectionHeading.copy(fontSize = MapSpec.NAME_SP.sp, lineHeight = 22.sp),
                 color = if (locked) HuroofiTokens.Muted else HuroofiTokens.Navy,
                 maxLines = 2,

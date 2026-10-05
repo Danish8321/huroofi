@@ -5,9 +5,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
-import kotlin.math.max
-import kotlin.math.min
 
 /** Raw colour values from HANDOFF section 5. */
 object HuroofiTokens {
@@ -78,9 +75,3 @@ data class StageColors(val border: Color, val pastel: Color, val accent: Color) 
     }
 }
 
-/** WCAG 2.x contrast ratio between two opaque colours. */
-fun contrastRatio(a: Color, b: Color): Double {
-    val la = a.luminance().toDouble()
-    val lb = b.luminance().toDouble()
-    return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
-}

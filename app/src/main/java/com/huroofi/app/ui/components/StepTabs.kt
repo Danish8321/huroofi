@@ -17,11 +17,22 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
+import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 
 /** Done-step pill fill, from the prototype. */
 private val DoneFill = Color(0xFFD6F2C8)
+
+/** For the contrast sweep: Lesson and Trace add these. Labels are 16 sp, so normal text. */
+val stepTabsPairs = listOf(
+    ContrastPair(HuroofiTokens.Card, HuroofiTokens.Primary, large = false, "current step label"),
+    ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = true, "current step pill on the bar"),
+    ContrastPair(HuroofiTokens.Navy, DoneFill, large = false, "done step label"),
+    ContrastPair(HuroofiTokens.Success, DoneFill, large = true, "done step tick"),
+    ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "to-do step label"),
+)
 
 /** Tick path from `Trace.html`, 24-unit box. */
 private const val TICK = "M5 12l5 5 9-10"

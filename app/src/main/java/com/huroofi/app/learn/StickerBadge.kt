@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -26,9 +27,11 @@ import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.StageColors
 
 /** Sizes of the stage sticker (`Reward.html` sticker card, plan 07 decision 5). */
 object StickerSpec {
@@ -36,6 +39,15 @@ object StickerSpec {
     const val RING_FRACTION = 5f / 116f
     const val PICTURE_FRACTION = 0.34f
     const val QUESTION_SP = 40f
+
+    /** Discs and rings are decoration: an earned sticker shows its pictures, an empty one a "?". Names are 18 sp. */
+    val textPairs = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "earned sticker name"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "empty sticker name"),
+    )
+
+    fun stagePairs(stage: StageColors) =
+        listOf(ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "empty sticker question mark"))
 }
 
 /** The sticker's name (decision 5). */
@@ -71,7 +83,7 @@ fun EmptyStickerBadge(stage: Stage, modifier: Modifier = Modifier, size: Dp = St
         modifier
             .size(size)
             .stickerDisc(HuroofiTokens.Card, colors.pastel, dashed = false)
-            .semantics { contentDescription = "${stickerName(stage)}, not yet" },
+            .clearAndSetSemantics { contentDescription = "${stickerName(stage)}, not yet" },
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -89,7 +101,13 @@ fun EmptyStickerBadge(stage: Stage, modifier: Modifier = Modifier, size: Dp = St
  */
 @Composable
 fun StickerSlot(stage: Stage, letters: List<Letter>, earned: Boolean, modifier: Modifier = Modifier) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    // One TalkBack stop per slot; the caption repeats the badge's name (plan 08 task 6.2).
+    val label = if (earned) stickerName(stage) else "${stickerName(stage)}, not yet"
+    Column(
+        modifier.clearAndSetSemantics { contentDescription = label },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         if (earned) StickerBadge(stage, letters) else EmptyStickerBadge(stage)
         Text(
             stickerName(stage),

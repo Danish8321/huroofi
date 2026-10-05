@@ -6,11 +6,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiColors
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
@@ -36,6 +37,15 @@ private fun ButtonKind.colors(c: HuroofiColors) = when (this) {
     ButtonKind.Primary -> ButtonColors(c.primary, c.primaryShadow, c.card)
     ButtonKind.Success -> ButtonColors(c.success, c.successShadow, c.card)
     ButtonKind.Sun -> ButtonColors(c.sun, c.sunShadow, c.navy)
+}
+
+/** For the contrast sweep: the label is 22 sp ExtraBold, so large text, and the icon follows it. */
+fun ButtonKind.contrastPairs(): List<ContrastPair> {
+    val c = colors(HuroofiColors())
+    return listOf(
+        ContrastPair(c.label, c.face, large = true, "$name button label"),
+        ContrastPair(c.label, c.face, large = true, "$name button icon"),
+    )
 }
 
 /**

@@ -24,9 +24,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.huroofi.app.LocalAppContainer
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
+import com.huroofi.app.ui.components.CappedWidth
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.StageColors
 
 /** Sizes and colours of the Sticker book (plan 07 decision 5). Slots are not tappable. */
 object StickerBookSpec {
@@ -35,6 +38,10 @@ object StickerBookSpec {
     val touchSizes = listOf(NavSpec.Item)
     val textSizes = listOf(StickerSpec.QUESTION_SP)
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, CardEdge) + NavSpec.colors
+    val textPairs = listOf(ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "title")) +
+        StickerSpec.textPairs + NavSpec.textPairs
+
+    fun stagePairs(stage: StageColors) = StickerSpec.stagePairs(stage)
 }
 
 /** One slot per stage, in stage order, two per row. */
@@ -45,33 +52,35 @@ fun StickerBookScreen(
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().background(HuroofiTokens.Sky).safeDrawingPadding()) {
-        Column(
-            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 22.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
-        ) {
-            Text("Sticker book", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
-            for (row in stages.chunked(2)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    for ((stage, letters) in row) {
-                        val shape = RoundedCornerShape(StickerBookSpec.CardCorner)
-                        Box(
-                            Modifier
-                                .weight(1f)
-                                .dropEdge(StickerBookSpec.CardEdge, 6.dp, shape)
-                                .background(HuroofiTokens.Card, shape)
-                                .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 8.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            StickerSlot(stage, letters, earned = stage.stage in earned)
+    CappedWidth(HuroofiTokens.Sky) {
+        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            Column(
+                Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 22.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+            ) {
+                Text("Sticker book", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
+                for (row in stages.chunked(2)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        for ((stage, letters) in row) {
+                            val shape = RoundedCornerShape(StickerBookSpec.CardCorner)
+                            Box(
+                                Modifier
+                                    .weight(1f)
+                                    .dropEdge(StickerBookSpec.CardEdge, 6.dp, shape)
+                                    .background(HuroofiTokens.Card, shape)
+                                    .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 8.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                StickerSlot(stage, letters, earned = stage.stage in earned)
+                            }
                         }
+                        // An odd last row keeps its slot at half width.
+                        if (row.size == 1) Box(Modifier.weight(1f))
                     }
-                    // An odd last row keeps its slot at half width.
-                    if (row.size == 1) Box(Modifier.weight(1f))
                 }
             }
+            LearnNav(NavTab.STICKERS, navTabs, onTab)
         }
-        LearnNav(NavTab.STICKERS, navTabs, onTab)
     }
 }
 

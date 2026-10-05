@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -26,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -40,20 +43,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.CompositionLocalProvider
 import com.huroofi.app.R
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.parent.LetterState
-import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.ButtonIcons
+import com.huroofi.app.ui.components.ButtonKind
+import com.huroofi.app.ui.components.CappedWidth
+import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
+import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.CenteredLetter
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.IgnoreFontScale
+import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
 
 /** Sizes and colours of Home (`Main.html`, plan 07 decision 7). */
@@ -89,6 +97,38 @@ object HomeSpec {
     val touchSizes = listOf(TileHeight, StripMinHeight, NavSpec.Item)
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, CardShadow) +
         tileColors.values.flatMap { it.toList() } + NavSpec.colors
+
+    /** Letter chips, shared with the Map. Arabic is bold 28 sp, so large. */
+    val chipPairs = listOf(
+        ContrastPair(HuroofiTokens.Card, ChipLearned, large = true, "learned chip letter"),
+        ContrastPair(ChipLearned, HuroofiTokens.Card, large = true, "learned chip fill on the strip"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "learning chip letter"),
+        ContrastPair(ChipLearningRing, HuroofiTokens.Card, large = true, "learning chip ring"),
+    )
+
+    fun chipStagePairs(stage: StageColors) =
+        listOf(ContrastPair(stage.accent, stage.pastel, large = true, "to-go chip letter"))
+
+    /** 18 sp ExtraBold is under the 18.66 sp bold line, so normal text. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "greeting"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "greeting subtitle"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = false, "TODAY'S LETTER"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "today's letter"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "letter name"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "word"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "stage strip title"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = false, "strip Map link"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = true, "strip chevron"),
+    ) + tileColors.flatMap { (step, c) ->
+        listOf(
+            ContrastPair(c.third, HuroofiTokens.Card, large = true, "$step tile icon"),
+            ContrastPair(HuroofiTokens.Navy, c.first, large = false, "$step tile label"),
+        )
+    } + ButtonKind.Primary.contrastPairs() + chipPairs + NavSpec.textPairs
+
+    fun stagePairs(stage: StageColors) =
+        listOf(ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "word first letter")) + chipStagePairs(stage)
 }
 
 /** One chip of the stage strip: the open stage's letters (decision 7). */
@@ -107,22 +147,24 @@ fun HomeScreen(
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().background(HuroofiTokens.Sky).safeDrawingPadding()) {
-        BoxWithConstraints(Modifier.weight(1f)) {
-            // At least the screen tall, so spare height is shared between the gaps instead of pooling above the nav.
-            Column(Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(horizontal = 20.dp, vertical = 20.dp)) {
-                Greeting(review)
-                SectionGap()
-                TodayCard(today, todayStage, onGo = { onStep(PathStep.MEET) })
-                SectionGap()
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    for (step in steps) StepTile(step, Modifier.weight(1f)) { onStep(step) }
+    CappedWidth(HuroofiTokens.Sky) {
+        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            BoxWithConstraints(Modifier.weight(1f)) {
+                // At least the screen tall, so spare height is shared between the gaps instead of pooling above the nav.
+                Column(Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(horizontal = 20.dp, vertical = 20.dp)) {
+                    Greeting(review)
+                    SectionGap()
+                    TodayCard(today, todayStage, onGo = { onStep(PathStep.MEET) })
+                    SectionGap()
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        for (step in steps) StepTile(step, Modifier.weight(1f)) { onStep(step) }
+                    }
+                    SectionGap()
+                    StageStrip(strip, stripStage, onStrip)
                 }
-                SectionGap()
-                StageStrip(strip, stripStage, onStrip)
             }
+            LearnNav(NavTab.HOME, navTabs, onTab)
         }
-        LearnNav(NavTab.HOME, navTabs, onTab)
     }
 }
 
@@ -181,7 +223,9 @@ private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Box(Modifier.height(HomeSpec.LetterBox), contentAlignment = Alignment.Center) {
-                            ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = HomeSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
+                            IgnoreFontScale {
+                                ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = HomeSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
+                            }
                         }
                         Text(letter.nameLatin, style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
                     }
@@ -249,6 +293,7 @@ private fun StageStrip(chips: List<StageChip>, stage: Stage, onClick: (() -> Uni
             }
         }
         if (onClick != null) {
+            Spacer(Modifier.width(8.dp))
             Text("Map", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Primary)
             LineIcon(LearnIcons.Next, HuroofiTokens.Primary, size = 22.dp, strokeWidth = 2.6f)
         }
@@ -277,7 +322,8 @@ fun StageLetterChip(chip: StageChip, stage: Stage, locked: Boolean = false) {
             .size(HomeSpec.Chip)
             .background(fill, shape)
             .then(if (!locked && chip.state == LetterState.LEARNING) Modifier.border(3.dp, HomeSpec.ChipLearningRing, shape) else Modifier)
-            .semantics { contentDescription = "${chip.letter.nameLatin}, $state" },
+            // One TalkBack stop per chip: the name and state, not the glyph again (plan 08 task 6.2).
+            .clearAndSetSemantics { contentDescription = "${chip.letter.nameLatin}, $state" },
         contentAlignment = Alignment.Center,
     ) {
         CenteredLetter(chip.letter.letter, size = HomeSpec.CHIP_SP.sp, color = text, style = HuroofiText.arabicChip)

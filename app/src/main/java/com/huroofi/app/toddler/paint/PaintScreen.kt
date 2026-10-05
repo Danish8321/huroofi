@@ -55,8 +55,12 @@ import com.huroofi.app.ui.components.ChevronIcon
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarIcon
+import com.huroofi.app.ui.components.ToddlerHomeButtonSpec
 import com.huroofi.app.ui.components.WipeIcon
+import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.ContrastPair
+import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 import kotlin.random.Random
 
@@ -93,6 +97,19 @@ object PaintSpec {
 
     /** Every colour except the crayons, which are an allow-list (plan 05 decision 2). */
     val colors = listOf(Pink, PinkShadow, WipeBorderColor, CrayonShadowColor)
+
+    /**
+     * The earned star is a reward, not a cue. A crayon's colour is the content itself, like a
+     * picture, so only the picked ring is checked.
+     */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "prompt Arabic"),
+        ContrastPair(Pink, HuroofiTokens.Card, large = true, "prompt speaker icon"),
+        ContrastPair(LetterOutlineSpec.EdgeColor, HuroofiTokens.Card, large = true, "dashed edge of the letter to paint"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "next chevron"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "wipe icon"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "picked crayon ring"),
+    ) + ToddlerHomeButtonSpec.textPairs + parentLockPairs
 }
 
 /** Finger paint: a random letter to paint over, a star after 400 dp (plan 05 slice 5). */

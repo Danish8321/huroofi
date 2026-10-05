@@ -46,13 +46,18 @@ import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.ButtonIcons
+import com.huroofi.app.ui.components.ButtonKind
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.StarIcon
+import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.theme.CenteredLetter
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.StageColors
 import kotlin.random.Random
 
 /** Sizes and colours of Reward (`Reward.html`, plan 07 decision 5). */
@@ -79,6 +84,19 @@ object RewardSpec {
         Background, StickerEdge, NewSticker, StarOutline, HuroofiTokens.Sun, HuroofiTokens.Success,
         HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted,
     ) + confetti
+
+    /** Stars and confetti are celebration, not cues. Text is checked on the page colour. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, Background, large = true, "Stage complete"),
+        ContrastPair(HuroofiTokens.Muted, Background, large = false, "letters learned"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "learned letter tile"),
+        ContrastPair(NewSticker, HuroofiTokens.Card, large = false, "NEW STICKER"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "sticker name"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "Added to your sticker book"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "next stage unlocked"),
+    ) + ButtonKind.Primary.contrastPairs() + StickerSpec.textPairs
+
+    fun stagePairs(stage: StageColors) = StickerSpec.stagePairs(stage)
 }
 
 /**
@@ -89,42 +107,44 @@ object RewardSpec {
 fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onNext: () -> Unit) {
     Box(Modifier.fillMaxSize().background(RewardSpec.Background)) {
         Confetti(Modifier.fillMaxSize())
-        Column(
-            Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        CappedWidth(Color.Transparent) {
             Column(
-                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Stars()
-                Spacer(Modifier.height(14.dp))
-                Text(
-                    "Stage ${stage.stage} complete!",
-                    style = HuroofiText.screenTitle.copy(fontSize = RewardSpec.TITLE_SP.sp),
-                    color = HuroofiTokens.Navy,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    "You learned ${letters.size} new letters",
-                    style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
-                    color = HuroofiTokens.Muted,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(18.dp))
-                LetterTiles(letters)
-                Spacer(Modifier.height(26.dp))
-                StickerCard(stage, letters)
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Stars()
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        "Stage ${stage.stage} complete!",
+                        style = HuroofiText.screenTitle.copy(fontSize = RewardSpec.TITLE_SP.sp),
+                        color = HuroofiTokens.Navy,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        "You learned ${letters.size} new letters",
+                        style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
+                        color = HuroofiTokens.Muted,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(18.dp))
+                    LetterTiles(letters)
+                    Spacer(Modifier.height(26.dp))
+                    StickerCard(stage, letters)
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        next?.let { "${it.name} unlocked" } ?: "All letters learned!",
+                        Modifier.background(HuroofiTokens.Card, RoundedCornerShape(50)).padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold),
+                        color = HuroofiTokens.Navy,
+                    )
+                }
                 Spacer(Modifier.height(16.dp))
-                Text(
-                    next?.let { "${it.name} unlocked" } ?: "All letters learned!",
-                    Modifier.background(HuroofiTokens.Card, RoundedCornerShape(50)).padding(horizontal = 16.dp, vertical = 8.dp),
-                    style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold),
-                    color = HuroofiTokens.Navy,
-                )
+                PrimaryButton("Next stage", onClick = onNext, icon = ButtonIcons.Next)
             }
-            Spacer(Modifier.height(16.dp))
-            PrimaryButton("Next stage", onClick = onNext, icon = ButtonIcons.Next)
         }
     }
 }

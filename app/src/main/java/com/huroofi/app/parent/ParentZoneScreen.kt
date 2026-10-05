@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -58,8 +59,10 @@ import com.huroofi.app.data.progress.AgeMode
 import com.huroofi.app.data.progress.LIMIT_STEP_MINUTES
 import com.huroofi.app.data.progress.MAX_LIMIT_MINUTES
 import com.huroofi.app.data.progress.MIN_LIMIT_MINUTES
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.ChevronIcon
 import com.huroofi.app.ui.theme.CenteredLetter
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
@@ -81,7 +84,8 @@ object ZoneSpec {
     val Legend = 12.dp
     val Learned = HuroofiTokens.Success
     val Learning = HuroofiTokens.Primary
-    val ToGoLegend = Color(0xFFC9D6E6)
+    /** Outlines the bar and the to-go swatch, so the light track still shows on white. */
+    val ToGoOutline = Color(0xFF7D8FA8)
     val Cell = 42.dp
     val CellGap = 6.dp
     val CellRadius = 12.dp
@@ -98,7 +102,8 @@ object ZoneSpec {
     val SwitchHeight = 34.dp
     val Knob = 26.dp
     val SwitchOn = HuroofiTokens.Success
-    val SwitchOff = Color(0xFFC9D6E6)
+    val SwitchOff = Color(0xFF7D8FA8)
+    val DisabledSymbol = Color(0xFFC9D6E6)
     const val DISABLED_ALPHA = 0.5f
     val Stepper = 48.dp
     val StepperRadius = 12.dp
@@ -110,14 +115,25 @@ object ZoneSpec {
 
     val touchSizes = listOf(BackButton, ModeButton, Row, Stepper)
 
-    /** Text colour on background, for the contrast sweep. */
+    /** Disabled rows and steppers are inactive, so they are not checked. Text up to 18 sp counts as normal. */
     val textPairs = listOf(
-        HuroofiTokens.Navy to HuroofiTokens.ParentBg,
-        HuroofiTokens.Navy to Color.White,
-        HuroofiTokens.Muted to Color.White,
-        Color.White to Learned,
-        Color.White to HuroofiTokens.Primary,
-        HuroofiTokens.Muted to ToGoCell,
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.ParentBg, large = false, "title, unselected mode"),
+        ContrastPair(HuroofiTokens.Navy, Color.White, large = false, "card text"),
+        ContrastPair(HuroofiTokens.Muted, Color.White, large = false, "captions"),
+        ContrastPair(Color.White, Learned, large = false, "learned grid letter"),
+        ContrastPair(Color.White, HuroofiTokens.Primary, large = false, "selected mode"),
+        ContrastPair(HuroofiTokens.Muted, ToGoCell, large = false, "to-go grid letter"),
+        ContrastPair(HuroofiTokens.Navy, Color.White, large = true, "back chevron"),
+        ContrastPair(Learned, BarTrack, large = true, "progress bar, learned"),
+        ContrastPair(Learning, BarTrack, large = true, "progress bar, learning"),
+        ContrastPair(ToGoOutline, Color.White, large = true, "progress bar and to-go swatch outline"),
+        ContrastPair(Learned, Color.White, large = true, "legend swatch, learned"),
+        ContrastPair(Learning, Color.White, large = true, "legend swatch, learning"),
+        ContrastPair(Learning, Color.White, large = true, "learning grid ring"),
+        ContrastPair(SwitchOn, Color.White, large = true, "switch track, on"),
+        ContrastPair(SwitchOff, Color.White, large = true, "switch track, off"),
+        ContrastPair(Color.White, SwitchOn, large = true, "switch knob, on"),
+        ContrastPair(Color.White, SwitchOff, large = true, "switch knob, off"),
     )
 }
 
@@ -139,24 +155,25 @@ fun ParentZoneScreen(
     onLimitChange: (Int) -> Unit,
     footer: @Composable ColumnScope.() -> Unit = {},
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LocalHuroofiColors.current.parentBg)
-            .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(ZoneSpec.PagePadding),
-        verticalArrangement = Arrangement.spacedBy(ZoneSpec.Gap),
-    ) {
-        ZoneHeader(onBack)
-        ChildCard(progress, mode)
-        ModeCard(mode, onModeChange)
-        ZoneCard {
-            Text("All ${letters.size} letters", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy)
-            LetterGrid(letters)
+    CappedWidth(LocalHuroofiColors.current.parentBg) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(ZoneSpec.PagePadding),
+            verticalArrangement = Arrangement.spacedBy(ZoneSpec.Gap),
+        ) {
+            ZoneHeader(onBack)
+            ChildCard(progress, mode)
+            ModeCard(mode, onModeChange)
+            ZoneCard {
+                Text("All ${letters.size} letters", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy)
+                LetterGrid(letters)
+            }
+            SettingsCard(voice, onVoiceChange, harakat, onHarakatChange, limitMinutes, onLimitChange)
+            footer()
         }
-        SettingsCard(voice, onVoiceChange, harakat, onHarakatChange, limitMinutes, onLimitChange)
-        footer()
     }
 }
 
@@ -224,7 +241,7 @@ private fun ChildCard(progress: ParentProgress, mode: AgeMode) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             LegendItem(ZoneSpec.Learned, "${progress.learned} learned")
             LegendItem(ZoneSpec.Learning, "${progress.learning} learning")
-            LegendItem(ZoneSpec.ToGoLegend, "${progress.toGo} to go")
+            LegendItem(ZoneSpec.BarTrack, "${progress.toGo} to go", outline = true)
         }
         if (mode == AgeMode.TODDLER) {
             Text(
@@ -254,9 +271,10 @@ private fun ModeCard(mode: AgeMode, onModeChange: (AgeMode) -> Unit) {
                 color = HuroofiTokens.Muted,
             )
         }
-        Row(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Equal heights when a label wraps at a large text size (plan 08 task 5.2).
+        Row(Modifier.height(IntrinsicSize.Min).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for ((value, label) in modeLabels) {
-                ModeButton(label.first, label.second, value == mode, Modifier.weight(1f)) { onModeChange(value) }
+                ModeButton(label.first, label.second, value == mode, Modifier.weight(1f).fillMaxHeight()) { onModeChange(value) }
             }
         }
     }
@@ -317,6 +335,13 @@ private fun SettingsCard(
         }
         ZoneDivider()
         SettingRow("Offline pack", AnnotatedString("All content is on this device."))
+        // Plan 08 decision 8: apps cannot block the home gesture; Android's App pinning can.
+        Text(
+            "To keep your child in Huroofi, turn on App pinning in your phone's Settings.",
+            Modifier.padding(bottom = 12.dp),
+            style = HuroofiText.caption,
+            color = HuroofiTokens.Muted,
+        )
     }
 }
 
@@ -409,7 +434,7 @@ private fun StepButton(symbol: String, label: String, enabled: Boolean, onClick:
         Text(
             symbol,
             style = HuroofiText.buttonPrimary,
-            color = if (enabled) HuroofiTokens.Navy else ZoneSpec.SwitchOff,
+            color = if (enabled) HuroofiTokens.Navy else ZoneSpec.DisabledSymbol,
         )
     }
 }
@@ -422,7 +447,8 @@ private fun ProgressBar(progress: ParentProgress) {
             .fillMaxWidth()
             .height(ZoneSpec.BarHeight)
             .clip(CircleShape)
-            .background(ZoneSpec.BarTrack),
+            .background(ZoneSpec.BarTrack)
+            .border(1.dp, ZoneSpec.ToGoOutline, CircleShape),
     ) {
         val learned = progress.learned / total
         val learning = progress.learning / total
@@ -434,9 +460,13 @@ private fun ProgressBar(progress: ParentProgress) {
 }
 
 @Composable
-private fun LegendItem(color: Color, label: String) {
+private fun LegendItem(color: Color, label: String, outline: Boolean = false) {
+    val shape = RoundedCornerShape(4.dp)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(Modifier.size(ZoneSpec.Legend).background(color, RoundedCornerShape(4.dp)))
+        Box(
+            Modifier.size(ZoneSpec.Legend).background(color, shape)
+                .then(if (outline) Modifier.border(1.dp, ZoneSpec.ToGoOutline, shape) else Modifier),
+        )
         Text(label, style = HuroofiText.caption, color = HuroofiTokens.Muted)
     }
 }

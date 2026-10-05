@@ -9,8 +9,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,18 +45,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huroofi.app.LocalAppContainer
 import com.huroofi.app.data.content.Letter
+import com.huroofi.app.toddler.PARENT_LOCK_DESCRIPTION
 import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.toddler.ToddlerHeader
 import com.huroofi.app.toddler.ToddlerPhrases
 import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ChevronIcon
+import com.huroofi.app.ui.components.ParentLock
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarIcon
+import com.huroofi.app.ui.components.ToddlerHomeButton
+import com.huroofi.app.ui.components.ToddlerHomeButtonSpec
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.ContrastPair
+import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
+import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
+import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
 import kotlin.random.Random
 import kotlinx.coroutines.delay
@@ -74,7 +85,7 @@ object FindSpec {
     const val WORD_SP = 50f
     val IdleShadow = Color(0xFFCFE2F7)
     val SolvedBackground = Color(0xFFDFF5D5)
-    val SolvedBorder = Color(0xFF3BAA5C)
+    val SolvedBorder = HuroofiTokens.Success
     val SolvedShadow = Color(0xFF9FD58A)
     val PartyPink = Color(0xFFFF6FA5)
     val PartyBlue = Color(0xFF3B8CF0)
@@ -83,9 +94,118 @@ object FindSpec {
     const val CHOICES = 2
     val touchSizes = listOf(SunButton, NextButton, TileHeight)
     val colors = listOf(IdleShadow, SolvedBackground, SolvedBorder, SolvedShadow, PartyPink, PartyBlue)
+
+    /**
+     * Party stars and the header stars' fill are reward decoration (a toddler loses nothing if
+     * they are missed); the English line is 18 sp, so normal text.
+     */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Outline, HuroofiTokens.Sky, large = true, "header star outline"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sun, large = true, "speaker icon"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "question Arabic"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "question English"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "tile word"),
+        ContrastPair(HuroofiTokens.Navy, SolvedBackground, large = true, "found tile word"),
+        ContrastPair(SolvedBorder, HuroofiTokens.Sky, large = true, "found tile border"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "next chevron"),
+    ) + ToddlerHomeButtonSpec.textPairs + parentLockPairs
+
+    fun stagePairs(stage: StageColors) = listOf(
+        ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "tile word first letter"),
+        ContrastPair(stage.accent, SolvedBackground, large = true, "found tile word first letter"),
+    )
+
+    val tile = FindTileStyle(
+        corner = TileCorner, border = TileBorder, shadow = TileShadow, picture = PictureSize, wordSp = WORD_SP,
+        stars = listOf(
+            PartyStarSpot(64.dp, Alignment.TopStart, start = 18.dp, top = 14.dp),
+            PartyStarSpot(48.dp, Alignment.TopEnd, end = 22.dp, top = 28.dp),
+            PartyStarSpot(54.dp, Alignment.BottomEnd, end = 34.dp, bottom = 26.dp),
+        ),
+    )
 }
 
-/** Where's the…?: two pictures, find the one asked for. Endless sets of three (plan 05 decisions 5, 13). */
+/**
+ * Where's the…? landscape tablet layout (`ToddlerFindTablet.html`, plan 08 decisions 3 and 5).
+ * Sizes are the prototype's at 1180 x 820; [FindTablet] multiplies them by one scale.
+ */
+object FindTabletSpec {
+    val PadTop = 28.dp
+    val PadSide = 40.dp
+    val PadBottom = 36.dp
+    val HomeButton = 84.dp
+    val HomeIcon = 40.dp
+    val HomeShadow = 6.dp
+    val Speaker = 104.dp
+    val SpeakerIcon = 50.dp
+    val SpeakerShadow = 7.dp
+    val SpeakerGap = 24.dp
+    val HeaderStar = 40.dp
+    val StarGap = 12.dp
+    val SentenceTop = 6.dp
+    val SentenceCorner = 32.dp
+    val SentencePadSide = 40.dp
+    val SentencePadTop = 4.dp
+    val SentencePadBottom = 10.dp
+    const val SENTENCE_SP = 60f
+    const val ENGLISH_SP = 20f
+    val TilesTop = 16.dp
+    val TilesSide = 60.dp
+    val TileGap = 48.dp
+    val TileHeight = 380.dp
+    val NextButton = 104.dp
+    val NextIcon = 52.dp
+    val NextShadow = 7.dp
+
+    val tile = FindTileStyle(
+        corner = 48.dp, border = 8.dp, shadow = 10.dp, picture = 250.dp, wordSp = 72f,
+        stars = listOf(
+            PartyStarSpot(84.dp, Alignment.TopStart, start = 26.dp, top = 22.dp),
+            PartyStarSpot(64.dp, Alignment.TopEnd, end = 30.dp, top = 40.dp),
+            PartyStarSpot(72.dp, Alignment.BottomEnd, end = 44.dp, bottom = 26.dp),
+        ),
+    )
+
+    /** Touch sizes after scaling: buttons go through [minTouch]; tiles stay far above 64 dp. */
+    fun touchSizes(scale: Float): List<Dp> =
+        listOf(HomeButton, Speaker, NextButton).map { minTouch(it.value, scale).dp } + TileHeight * scale
+
+    val colors = FindSpec.colors
+
+    /** Same colours as the phone layout; the English line scales below 20 sp, so normal text there too. */
+    val textPairs = FindSpec.textPairs
+
+    fun stagePairs(stage: StageColors) = FindSpec.stagePairs(stage)
+}
+
+/** Where a party star sits on a solved tile. */
+class PartyStarSpot(
+    val size: Dp,
+    val alignment: Alignment,
+    val start: Dp = 0.dp,
+    val top: Dp = 0.dp,
+    val end: Dp = 0.dp,
+    val bottom: Dp = 0.dp,
+) {
+    fun scaled(s: Float) = PartyStarSpot(size * s, alignment, start * s, top * s, end * s, bottom * s)
+}
+
+/** Sizes of one picture tile; the phone and tablet layouts differ only in these. */
+class FindTileStyle(
+    val corner: Dp,
+    val border: Dp,
+    val shadow: Dp,
+    val picture: Dp,
+    val wordSp: Float,
+    val stars: List<PartyStarSpot>,
+) {
+    fun scaled(s: Float) = FindTileStyle(corner * s, border * s, shadow * s, picture * s, wordSp * s, stars.map { it.scaled(s) })
+}
+
+/**
+ * Where's the…?: two pictures, find the one asked for. Endless sets of three (plan 05 decisions 5, 13).
+ * A wide landscape window gets the tablet layout; everything else the phone layout (plan 08 decision 3).
+ */
 @Composable
 fun FindScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     val container = LocalAppContainer.current
@@ -94,26 +214,45 @@ fun FindScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     val audio = remember { FindAudio(PromptPlayer(container.sound, scope), Random.Default) }
     var set by remember { mutableStateOf(game.start()) }
     val round = set.round
-    val colors = LocalHuroofiColors.current
 
     LaunchedEffect(round.target) { audio.ask(round.target) }
     DisposableEffect(Unit) { onDispose { audio.stop() } }
 
+    val ask = { audio.ask(round.target) }
+    val pick = { option: Letter ->
+        val (after, result) = game.tap(set, option)
+        set = after
+        audio.onTap(result, after)
+    }
+    val next = { set = game.next(set) }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        if (useTabletFind(maxWidth.value, maxHeight.value)) {
+            FindTablet(set, tabletFindScale(maxWidth.value, maxHeight.value), onHome, onRequestParentZone, ask, pick, next)
+        } else {
+            FindPhone(set, onHome, onRequestParentZone, ask, pick, next)
+        }
+    }
+}
+
+@Composable
+private fun FindPhone(
+    set: FindSet,
+    onHome: () -> Unit,
+    onRequestParentZone: () -> Unit,
+    onAsk: () -> Unit,
+    onPick: (Letter) -> Unit,
+    onNext: () -> Unit,
+) {
+    val round = set.round
+    val colors = LocalHuroofiColors.current
     ToddlerScaffold {
         ToddlerHeader(onHome = onHome, onRequestParentZone = onRequestParentZone) {
-            Row(
-                Modifier.semantics { contentDescription = "${set.stars} of ${FindGame.ROUNDS_PER_SET} stars" },
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                repeat(FindGame.ROUNDS_PER_SET) { i ->
-                    StarIcon(fill = if (i < set.stars) colors.sun else colors.card, size = FindSpec.HeaderStar)
-                }
-            }
+            Stars(set, FindSpec.HeaderStar, 10.dp)
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             RoundIconButton(
                 contentDescription = ToddlerPhrases.whereIsEn(round.target),
-                onClick = { audio.ask(round.target) },
+                onClick = onAsk,
                 toddler = true,
                 size = FindSpec.SunButton,
                 containerColor = colors.sun,
@@ -139,43 +278,154 @@ fun FindScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
             FindTile(
                 letter = option,
                 round = round,
-                onClick = {
-                    val (after, result) = game.tap(set, option)
-                    set = after
-                    audio.onTap(result, after)
-                },
+                onClick = { onPick(option) },
+                style = FindSpec.tile,
                 modifier = Modifier.weight(1f).heightIn(max = FindSpec.TileHeight),
             )
         }
         Box(Modifier.fillMaxWidth().height(FindSpec.NextButton + 6.dp), contentAlignment = Alignment.Center) {
-            if (round.solved) {
-                val pop = remember(round) { Animatable(0f) }
-                LaunchedEffect(pop) { pop.animateTo(1f, tween(400)) }
-                RoundIconButton(
-                    contentDescription = "Next",
-                    onClick = { set = game.next(set) },
-                    toddler = true,
-                    size = FindSpec.NextButton,
-                    containerColor = colors.success,
-                    shadowColor = colors.successShadow,
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = pop.value
-                        scaleY = pop.value
-                        alpha = pop.value
-                    },
-                ) { ChevronIcon(colors.card, pointsRight = true, size = 46.dp) }
+            if (round.solved) NextButton(round, FindSpec.NextButton, 46.dp, HuroofiDimens.ButtonShadow, onNext)
+        }
+    }
+}
+
+/** The landscape tablet layout: the prototype at 1180 x 820, scaled by [scale] and centred. */
+@Composable
+private fun FindTablet(
+    set: FindSet,
+    scale: Float,
+    onHome: () -> Unit,
+    onRequestParentZone: () -> Unit,
+    onAsk: () -> Unit,
+    onPick: (Letter) -> Unit,
+    onNext: () -> Unit,
+) {
+    val spec = FindTabletSpec
+    val s = scale
+    val round = set.round
+    val colors = LocalHuroofiColors.current
+    Box(Modifier.fillMaxSize().background(colors.sky), contentAlignment = Alignment.Center) {
+        Column(
+            Modifier
+                .size(TABLET_FIND_DESIGN_WIDTH.dp * s, TABLET_FIND_DESIGN_HEIGHT.dp * s)
+                .padding(start = spec.PadSide * s, end = spec.PadSide * s, top = spec.PadTop * s, bottom = spec.PadBottom * s),
+        ) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                ToddlerHomeButton(
+                    onClick = onHome,
+                    size = minTouch(spec.HomeButton.value, s).dp,
+                    iconSize = spec.HomeIcon * s,
+                    shadow = spec.HomeShadow * s,
+                )
+                Row(
+                    Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(spec.SpeakerGap * s, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RoundIconButton(
+                        contentDescription = ToddlerPhrases.whereIsEn(round.target),
+                        onClick = onAsk,
+                        toddler = true,
+                        size = minTouch(spec.Speaker.value, s).dp,
+                        containerColor = colors.sun,
+                        shadowColor = colors.sunShadow,
+                        shadowDepth = spec.SpeakerShadow * s,
+                    ) { SoundIcon(color = colors.navy, size = spec.SpeakerIcon * s) }
+                    Stars(set, spec.HeaderStar * s, spec.StarGap * s)
+                }
+                ParentLock(onRequestParentZone = onRequestParentZone, contentDescription = PARENT_LOCK_DESCRIPTION)
+            }
+            Column(
+                Modifier
+                    .padding(top = spec.SentenceTop * s)
+                    .align(Alignment.CenterHorizontally)
+                    .background(colors.card, RoundedCornerShape(spec.SentenceCorner * s))
+                    .padding(
+                        start = spec.SentencePadSide * s,
+                        end = spec.SentencePadSide * s,
+                        top = spec.SentencePadTop * s,
+                        bottom = spec.SentencePadBottom * s,
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                ArabicText(ToddlerPhrases.whereIsAr(round.target), size = (spec.SENTENCE_SP * s).sp, color = colors.navy)
+                Text(
+                    ToddlerPhrases.whereIsEn(round.target),
+                    style = HuroofiText.body.copy(fontWeight = FontWeight.Bold, fontSize = (spec.ENGLISH_SP * s).sp),
+                    color = colors.muted,
+                )
+            }
+            val tile = spec.tile.scaled(s)
+            // The tiles take what is left above Next, up to their designed height, so a taller
+            // sentence (large text setting) shrinks them instead of pushing Next off the screen.
+            Box(Modifier.weight(1f).fillMaxWidth().padding(top = spec.TilesTop * s, start = spec.TilesSide * s, end = spec.TilesSide * s)) {
+                Row(
+                    Modifier.fillMaxWidth().height(spec.TileHeight * s + tile.shadow),
+                    horizontalArrangement = Arrangement.spacedBy(spec.TileGap * s),
+                ) {
+                    for (option in round.options) {
+                        FindTile(
+                            letter = option,
+                            round = round,
+                            onClick = { onPick(option) },
+                            style = tile,
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                        )
+                    }
+                }
+            }
+            Box(Modifier.fillMaxWidth().height((spec.NextButton + spec.NextShadow) * s), contentAlignment = Alignment.Center) {
+                if (round.solved) {
+                    NextButton(round, minTouch(spec.NextButton.value, s).dp, spec.NextIcon * s, spec.NextShadow * s, onNext)
+                }
             }
         }
     }
 }
 
+/** The set's progress as header stars. */
 @Composable
-private fun FindTile(letter: Letter, round: FindRound, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun Stars(set: FindSet, size: Dp, gap: Dp) {
+    val colors = LocalHuroofiColors.current
+    Row(
+        Modifier.semantics { contentDescription = "${set.stars} of ${FindGame.ROUNDS_PER_SET} stars" },
+        horizontalArrangement = Arrangement.spacedBy(gap),
+    ) {
+        repeat(FindGame.ROUNDS_PER_SET) { i ->
+            StarIcon(fill = if (i < set.stars) colors.sun else colors.card, size = size)
+        }
+    }
+}
+
+/** The green Next button that pops in once the round is solved. */
+@Composable
+private fun NextButton(round: FindRound, size: Dp, iconSize: Dp, shadow: Dp, onNext: () -> Unit) {
+    val colors = LocalHuroofiColors.current
+    val pop = remember(round) { Animatable(0f) }
+    LaunchedEffect(pop) { pop.animateTo(1f, tween(400)) }
+    RoundIconButton(
+        contentDescription = "Next",
+        onClick = onNext,
+        toddler = true,
+        size = size,
+        containerColor = colors.success,
+        shadowColor = colors.successShadow,
+        shadowDepth = shadow,
+        modifier = Modifier.graphicsLayer {
+            scaleX = pop.value
+            scaleY = pop.value
+            alpha = pop.value
+        },
+    ) { ChevronIcon(colors.card, pointsRight = true, size = iconSize) }
+}
+
+@Composable
+private fun FindTile(letter: Letter, round: FindRound, onClick: () -> Unit, style: FindTileStyle, modifier: Modifier = Modifier) {
     val content = LocalAppContainer.current.content
     val colors = LocalHuroofiColors.current
     val isTarget = letter == round.target
     val solvedHere = round.solved && isTarget
-    val shape = RoundedCornerShape(FindSpec.TileCorner)
+    val shape = RoundedCornerShape(style.corner)
     val nudge = remember { Animatable(0f) }
     val tilt = remember { Animatable(0f) }
     val scale = remember { Animatable(1f) }
@@ -231,15 +481,15 @@ private fun FindTile(letter: Letter, round: FindRound, onClick: () -> Unit, modi
         Box(
             Modifier
                 .matchParentSize()
-                .padding(top = FindSpec.TileShadow)
+                .padding(top = style.shadow)
                 .background(shadow, shape),
         )
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(bottom = FindSpec.TileShadow)
+                .padding(bottom = style.shadow)
                 .background(background, shape)
-                .border(FindSpec.TileBorder, border, shape),
+                .border(style.border, border, shape),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -248,7 +498,7 @@ private fun FindTile(letter: Letter, round: FindRound, onClick: () -> Unit, modi
                 contentDescription = null,
                 modifier = Modifier
                     .weight(1f, fill = false)
-                    .size(FindSpec.PictureSize)
+                    .size(style.picture)
                     .graphicsLayer {
                         rotationZ = tilt.value
                         scaleX = scale.value
@@ -257,17 +507,25 @@ private fun FindTile(letter: Letter, round: FindRound, onClick: () -> Unit, modi
             )
             ArabicText(
                 highlightedWord(letter.wordFirst, letter.wordRest, content.stageColors(letter).accent),
-                size = FindSpec.WORD_SP.sp,
+                size = style.wordSp.sp,
                 color = colors.navy,
             )
         }
         if (solvedHere) {
-            PartyStar(colors.sun, 64.dp, 0, Modifier.align(Alignment.TopStart).padding(start = 18.dp, top = 14.dp))
-            PartyStar(FindSpec.PartyPink, 48.dp, 150, Modifier.align(Alignment.TopEnd).padding(end = 22.dp, top = 28.dp))
-            PartyStar(FindSpec.PartyBlue, 54.dp, 300, Modifier.align(Alignment.BottomEnd).padding(end = 34.dp, bottom = 26.dp))
+            val fills = listOf(colors.sun, FindSpec.PartyPink, FindSpec.PartyBlue)
+            style.stars.forEachIndexed { i, spot ->
+                PartyStar(
+                    fills[i],
+                    spot.size,
+                    i * PARTY_STAR_STAGGER_MS,
+                    Modifier.align(spot.alignment).padding(start = spot.start, top = spot.top, end = spot.end, bottom = spot.bottom),
+                )
+            }
         }
     }
 }
+
+private const val PARTY_STAR_STAGGER_MS = 150
 
 /** A star that pops in after [delayMs]. Decorative. */
 @Composable
