@@ -25,3 +25,12 @@ Approved 2026-10-04 (decisions 1–14 below). Task list: `08-polish-tasks.md`. T
 12. Families: `docs/families-check.md` records current policy text with links and date read, Huroofi's answer per requirement, suggested Data safety answers and the target-audience declaration (draft; the user fills Play Console). `check.sh` gains an aapt2 step on the built APK that fails on INTERNET, AD_ID, location, camera, microphone or contacts permissions, or on a dependency outside the allow-list.
 13. Illustrations stay PNG (no SVG sources supplied). Release build turns on R8 and resource shrinking; the release APK size is measured and recorded. Lossless WebP only if art is a large share, with numbers shown to the user first.
 14. Release prep in plan 08 is only the release build config (R8, resource shrinking, kotlinx-serialization keep rules), checked running on the emulator. Signing, store listing and Play Console move to a later plan 09 after the demo. The launcher icon stays.
+
+## Release size (task 7.2, measured 2026-10-05 at 35ee241)
+
+| APK | File | Code (dex) | Images | Audio | Fonts |
+|---|---|---|---|---|---|
+| debug | 37.1 MB | 32.0 MB (88%) | 3.1 MB (9%) | 391 KB (1%) | 287 KB (1%) |
+| release (R8 + resource shrinking) | 3.9 MB | 2.2 MB (57%) | 821 KB (21%) | 391 KB (10%) | 287 KB (7%) |
+
+Sizes are compressed bytes inside the APK. The release drops the 28 unused `card_*` images (2.4 MB in source); the 28 `pic_*` pictures and launcher icons are the 821 KB. Art is about a fifth of the release, so no WebP change (decision 13).
