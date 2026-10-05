@@ -22,6 +22,18 @@ Then open <http://127.0.0.1:8765/docs/review/strokes.html>.
 
 The app does not enforce order or direction (plan 09 decision 3); the numbers and the demo ball only teach them. A wrong start or order would still teach the wrong habit, so please mark anything that looks unusual.
 
+## Least certain
+
+Claude is least sure about these; please look at them first:
+
+- **أ alif:** the hamza's path (head, then the tail to the left).
+- **ك kaaf:** the small mark inside, drawn as one stroke after the body.
+- **ه haa:** where it starts and how the eye is drawn.
+- **ع ayn, غ ghayn:** the head goes out to the right before the lower curve starts.
+- **ط taa, ظ zaa:** the loop and base come first, then the upright stroke from the top.
+
+`strokes-sheet.png` beside this file is the sheet as drafted (2026-10-05).
+
 ## Sign-off
 
 Write OK, or what to change, in the Check column, and your initials in Signed.

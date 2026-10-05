@@ -102,12 +102,9 @@ class ContentContractTest {
         )
     }
 
-    /** Plan 09 task 1.4 tightens this to exactly 1..28. */
     @Test
-    fun strokeLettersExistOnceEach() {
-        val indices = strokes.letters.map { it.index }
-        assertEquals(indices.distinct(), indices)
-        assertTrue("unknown index in $indices", indices.all { i -> content.letters.any { it.index == i } })
+    fun everyLetterHasStrokesExactlyOnce() {
+        assertEquals(content.letters.map { it.index }, strokes.letters.map { it.index })
     }
 
     @Test
