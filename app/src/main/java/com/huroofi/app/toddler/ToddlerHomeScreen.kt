@@ -24,9 +24,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,6 +63,7 @@ import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
+import com.huroofi.app.ui.theme.IgnoreFontScale
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 
 const val PARENT_LOCK_DESCRIPTION = "Grown-ups: press and hold to open settings"
@@ -239,7 +240,7 @@ private fun FindArt() {
 @Composable
 private fun PaintArt() {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        ArabicText("ب", size = 110.sp, color = ToddlerHomeSpec.PaintLetter, modifier = Modifier.offset(y = (-10).dp))
+        IgnoreFontScale { ArabicText("ب", size = 110.sp, color = ToddlerHomeSpec.PaintLetter, modifier = Modifier.offset(y = (-10).dp)) }
         Canvas(Modifier.size(104.dp)) {
             val u = size.width / 120f
             val outline = Stroke(4 * u, join = StrokeJoin.Round)

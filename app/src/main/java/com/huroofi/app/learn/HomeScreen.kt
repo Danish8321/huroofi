@@ -58,6 +58,7 @@ import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.IgnoreFontScale
 import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
 
@@ -220,7 +221,9 @@ private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Box(Modifier.height(HomeSpec.LetterBox), contentAlignment = Alignment.Center) {
-                            ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = HomeSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
+                            IgnoreFontScale {
+                                ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = HomeSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
+                            }
                         }
                         Text(letter.nameLatin, style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
                     }

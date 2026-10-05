@@ -51,6 +51,7 @@ import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.IgnoreFontScale
 import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
 
@@ -169,7 +170,9 @@ fun LessonScreen(
                             contentAlignment = Alignment.Center,
                         ) {
                             val letterSp = if (showShapes) LessonSpec.LETTER_WITH_SHAPES_SP else LessonSpec.LETTER_SP
-                            ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = letterSp.sp, color = HuroofiTokens.Navy)
+                            IgnoreFontScale {
+                                ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = letterSp.sp, color = HuroofiTokens.Navy)
+                            }
                         }
                         Row(
                             Modifier
@@ -226,7 +229,7 @@ private fun LetterShapesGrid(letter: Letter) {
                         Modifier.weight(1f).background(HuroofiTokens.Card, RoundedCornerShape(LessonSpec.ShapeCorner)).padding(top = 6.dp, bottom = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        ArabicText(text, size = LessonSpec.SHAPE_SP.sp, color = HuroofiTokens.Navy)
+                        IgnoreFontScale { ArabicText(text, size = LessonSpec.SHAPE_SP.sp, color = HuroofiTokens.Navy) }
                         Text(kind.label, style = HuroofiText.caption.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Muted)
                     }
                 }

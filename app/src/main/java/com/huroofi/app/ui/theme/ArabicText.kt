@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -12,11 +13,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -44,6 +46,17 @@ fun ArabicText(
     )
 }
 
+/**
+ * Draws [content] as if the system text size were 100 %. A single letter in a fixed tile keeps its
+ * designed size so it never outgrows the tile; words and sentences still follow the setting (plan 08
+ * decision 10).
+ */
+@Composable
+fun IgnoreFontScale(content: @Composable () -> Unit) {
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f), content = content)
+}
+
 /** The style a plain [ArabicText] run is drawn with. */
 private fun arabicStyle(style: TextStyle, size: TextUnit): TextStyle =
     style.copy(fontSize = size, textDirection = TextDirection.Rtl, lineHeight = size * 1.5f)
@@ -60,7 +73,7 @@ fun CenteredLetter(
     size: TextUnit = TypeScale.ArabicChip.default.sp,
     color: Color = LocalContentColor.current,
     style: TextStyle = TextStyle(fontFamily = NotoNaskhArabic),
-) {
+) = IgnoreFontScale {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     // Ink is measured once per letter, size and density, not per frame.
