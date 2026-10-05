@@ -11,7 +11,7 @@ Source of truth: `HANDOFF.md`. Plans follow its §9 build order. Each plan is on
 | 05 | [Toddler mode](05-toddler.md) — [task list](05-toddler-tasks.md) | 3 | built (slices 1–6 on `feat/toddler-mode`); checked on a phone emulator (no sound), phrases pending native review, daily limit in 06 |
 | 06 | [Parent zone](06-parent-zone.md) — [task list](06-parent-zone-tasks.md) | 4 | built (slices 1–5 on `feat/parent-zone`); checked on a phone emulator (no sound), rest phrase pending native review |
 | 07 | [Preschool / reader flow](07-preschool-reader.md) — [task list](07-preschool-reader-tasks.md) | 5 | built (slices 1–6 on `feat/preschool-reader`); checked on a phone emulator (no sound) |
-| 08 | [Tablet, immersive, a11y, Families check](08-polish.md) — [task list](08-polish-tasks.md) | 6 | approved (decisions 1–14); not built |
+| 08 | [Tablet, immersive, a11y, Families check](08-polish.md) — [task list](08-polish-tasks.md) | 6 | built (slices 1–8 on `feat/polish`); checked on phone and two tablet emulators: `a11y.sh` on every screen in all three modes, text size 1.3x, release build (Toddler and Preschool, lesson to quiz, gate, zone), `apk-audit.sh` in `check.sh`. Not verified: sound, real devices, Reward screen and Early reader on the release build, TalkBack walked by hand (focus order read from the accessibility tree). Families answers are a draft; privacy policy open (plan 09) |
 
 Plans 01–04 are detailed (the agreed scope: steps 1+2). Plans 05–08 are outlines, to be sharpened with `grill-with-docs` before their step starts.
 
