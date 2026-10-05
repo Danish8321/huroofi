@@ -111,8 +111,10 @@ fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit) {
     val letter = remember(index) { container.content.letter(index) }
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
+    val strokes = remember(index) { container.content.strokes(index) }
     TraceScreen(
         letter = letter.letter,
+        strokes = strokes,
         onBack = {
             prompt.stop()
             onBack()
