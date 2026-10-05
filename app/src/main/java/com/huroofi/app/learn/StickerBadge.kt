@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -82,7 +83,7 @@ fun EmptyStickerBadge(stage: Stage, modifier: Modifier = Modifier, size: Dp = St
         modifier
             .size(size)
             .stickerDisc(HuroofiTokens.Card, colors.pastel, dashed = false)
-            .semantics { contentDescription = "${stickerName(stage)}, not yet" },
+            .clearAndSetSemantics { contentDescription = "${stickerName(stage)}, not yet" },
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -100,7 +101,13 @@ fun EmptyStickerBadge(stage: Stage, modifier: Modifier = Modifier, size: Dp = St
  */
 @Composable
 fun StickerSlot(stage: Stage, letters: List<Letter>, earned: Boolean, modifier: Modifier = Modifier) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    // One TalkBack stop per slot; the caption repeats the badge's name (plan 08 task 6.2).
+    val label = if (earned) stickerName(stage) else "${stickerName(stage)}, not yet"
+    Column(
+        modifier.clearAndSetSemantics { contentDescription = label },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         if (earned) StickerBadge(stage, letters) else EmptyStickerBadge(stage)
         Text(
             stickerName(stage),

@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -321,7 +322,8 @@ fun StageLetterChip(chip: StageChip, stage: Stage, locked: Boolean = false) {
             .size(HomeSpec.Chip)
             .background(fill, shape)
             .then(if (!locked && chip.state == LetterState.LEARNING) Modifier.border(3.dp, HomeSpec.ChipLearningRing, shape) else Modifier)
-            .semantics { contentDescription = "${chip.letter.nameLatin}, $state" },
+            // One TalkBack stop per chip: the name and state, not the glyph again (plan 08 task 6.2).
+            .clearAndSetSemantics { contentDescription = "${chip.letter.nameLatin}, $state" },
         contentAlignment = Alignment.Center,
     ) {
         CenteredLetter(chip.letter.letter, size = HomeSpec.CHIP_SP.sp, color = text, style = HuroofiText.arabicChip)

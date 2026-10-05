@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -252,12 +253,13 @@ private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onLocke
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(Modifier.fillMaxWidth().height(MapSpec.Play + 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(Modifier.size(MapSpec.NumberCircle).background(colors.pastel, CircleShape), contentAlignment = Alignment.Center) {
+            // Number and name are in the card's label; hidden here so TalkBack does not read them twice (plan 08 task 6.2).
+            Box(Modifier.size(MapSpec.NumberCircle).background(colors.pastel, CircleShape).clearAndSetSemantics {}, contentAlignment = Alignment.Center) {
                 Text("${s.stage.stage}", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
             }
             Text(
                 s.stage.name,
-                Modifier.weight(1f),
+                Modifier.weight(1f).clearAndSetSemantics {},
                 style = HuroofiText.sectionHeading.copy(fontSize = MapSpec.NAME_SP.sp, lineHeight = 22.sp),
                 color = if (locked) HuroofiTokens.Muted else HuroofiTokens.Navy,
                 maxLines = 2,
