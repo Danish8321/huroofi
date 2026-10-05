@@ -21,12 +21,15 @@ import kotlin.math.min
 /** Font size, in px, of the glyph drawn offscreen to find its ink. Layout scales linearly from it. */
 private const val PROBE_PX = 200f
 
+/** A fitted glyph: its [layout], where to draw it ([topLeft]) and the box its ink covers on the canvas, in pixels. */
+data class FittedGlyph(val layout: TextLayoutResult, val topLeft: Offset, val ink: Rect)
+
 /**
  * One Naskh letter laid out so its drawn ink, not its line box, fills [share] of [size] and sits
  * centred. Short letters (د ر و) then fill a canvas as well as tall ones (أ ل). Draws offscreen, so
- * call it once per size, not every frame.
+ * call it once per size, not every frame. Destructures as (layout, topLeft, ink).
  */
-fun fitGlyph(measurer: TextMeasurer, letter: String, size: Size, share: Float, density: Density): Pair<TextLayoutResult, Offset> {
+fun fitGlyph(measurer: TextMeasurer, letter: String, size: Size, share: Float, density: Density): FittedGlyph {
     fun measure(fontPx: Float) = measurer.measure(
         letter,
         TextStyle(
@@ -36,11 +39,18 @@ fun fitGlyph(measurer: TextMeasurer, letter: String, size: Size, share: Float, d
         ),
     )
     val probe = measure(PROBE_PX)
-    val ink = inkBounds(probe, density)
-        ?: return probe to Offset((size.width - probe.size.width) / 2f, (size.height - probe.size.height) / 2f)
+    val ink = inkBounds(probe, density) ?: run {
+        val topLeft = Offset((size.width - probe.size.width) / 2f, (size.height - probe.size.height) / 2f)
+        return FittedGlyph(probe, topLeft, Rect(topLeft, Size(probe.size.width.toFloat(), probe.size.height.toFloat())))
+    }
     val scale = min(size.width * share / ink.width, size.height * share / ink.height)
-    return measure(PROBE_PX * scale) to Offset(size.width / 2f - ink.center.x * scale, size.height / 2f - ink.center.y * scale)
+    val topLeft = Offset(size.width / 2f - ink.center.x * scale, size.height / 2f - ink.center.y * scale)
+    val inkOnCanvas = Rect(topLeft.x + ink.left * scale, topLeft.y + ink.top * scale, topLeft.x + ink.right * scale, topLeft.y + ink.bottom * scale)
+    return FittedGlyph(measure(PROBE_PX * scale), topLeft, inkOnCanvas)
 }
+
+/** A stroke point, as fractions (0..1) of the glyph's ink box, mapped into [ink] on the canvas (plan 09 decision 1). */
+fun toCanvas(point: List<Float>, ink: Rect): Offset = Offset(ink.left + point[0] * ink.width, ink.top + point[1] * ink.height)
 
 /** How far to move a laid-out glyph so the centre of its [ink] lands on the centre of its [box]. */
 fun inkShift(box: IntSize, ink: Rect): Offset = Offset(box.width / 2f - ink.center.x, box.height / 2f - ink.center.y)
