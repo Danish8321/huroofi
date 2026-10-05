@@ -64,12 +64,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import com.huroofi.app.R
 import com.huroofi.app.data.content.TraceStroke
 import com.huroofi.app.toddler.paint.Crayon
 import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
+import com.huroofi.app.ui.components.DemoBall
+import com.huroofi.app.ui.components.DemoBallSpec
+import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.contrastPairs
@@ -84,6 +88,8 @@ import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.sin
+
+private const val IDLE_TICK_MS = 100L
 
 /** Sizes and colours of Trace (`Trace.html`, plan 07 decision 3). */
 object TraceSpec {
@@ -136,6 +142,7 @@ object TraceSpec {
         ContrastPair(FirstCoin, Band, large = true, "coin edge 1"),
         ContrastPair(OtherCoin, Band, large = true, "coin edge"),
         ContrastPair(StarEdge, Band, large = true, "finished star edge"),
+        ContrastPair(DemoBallSpec.Edge, Band, large = true, "demo ball edge"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "picked crayon ring"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "Again icon"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "Again label"),
@@ -241,7 +248,7 @@ private fun DrawScope.drawArrow(dots: List<Offset>, color: Color, towards: Offse
  * as soon as there is any ink (decision 3). Order, direction and ink outside the letter are never punished.
  */
 @Composable
-fun TraceScreen(letter: String, strokes: List<TraceStroke>, onBack: () -> Unit, onDone: () -> Unit) {
+fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, onBack: () -> Unit, onDone: () -> Unit) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -273,6 +280,30 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, onBack: () -> Unit, 
     }
     var crayon by remember { mutableStateOf(TraceSpec.crayons.first().first) }
     var finished by remember { mutableStateOf(false) }
+    // Demo ball (plan 09 decision 4): the pure schedule decides, the overlay plays.
+    val demoPaths = remember(glyph, strokes) { glyph?.let { g -> strokes.map { s -> s.points.map { toCanvas(it, g.ink) } } }.orEmpty() }
+    var demoState by remember { mutableStateOf(DemoState()) }
+    var demoRun by remember { mutableStateOf<DemoRun?>(null) }
+    var demoCount by remember { mutableIntStateOf(0) }
+    fun send(event: DemoEvent) {
+        val (state, play) = reduceDemo(demoState, event)
+        demoState = state
+        when (play) {
+            DemoPlay.Keep -> Unit
+            DemoPlay.Stop -> demoRun = null
+            DemoPlay.All -> demoRun = DemoRun(strokes.indices.toList(), ++demoCount)
+            DemoPlay.Next -> demoRun = check?.nextStroke()?.let { DemoRun(listOf(it), ++demoCount) }
+        }
+    }
+    LaunchedEffect(Unit) { send(DemoEvent.Enter) }
+    LaunchedEffect(introDone) { if (introDone) send(DemoEvent.SoundDone) }
+    // The wait only counts while the ball is still.
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(IDLE_TICK_MS)
+            if (demoRun == null) send(DemoEvent.Idle(IDLE_TICK_MS))
+        }
+    }
     // The gesture loop outlives recompositions; it reads the latest check and crayon through these.
     val currentCheck by rememberUpdatedState(check)
     val currentCrayon by rememberUpdatedState(crayon)
@@ -280,6 +311,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, onBack: () -> Unit, 
     fun finish() {
         if (!finished) {
             finished = true
+            send(DemoEvent.Done)
             onDone()
         }
     }
@@ -291,7 +323,14 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, onBack: () -> Unit, 
         ) {
             PathHeader(PathStep.TRACE, "Back to lesson", onBack)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.size(TraceSpec.Helper))
+                Box(
+                    Modifier
+                        .size(TraceSpec.Helper)
+                        .semantics { contentDescription = "Show me how" }
+                        .clickable(role = Role.Button) { send(DemoEvent.HelperTap) },
+                ) {
+                    Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.fillMaxSize())
+                }
                 Text(
                     "Start at the green 1, then follow the dots!",
                     Modifier.weight(1f).background(HuroofiTokens.Card, RoundedCornerShape(20.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
@@ -314,14 +353,17 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, onBack: () -> Unit, 
                         awaitEachGesture {
                             val down = awaitFirstDown()
                             down.consume()
+                            send(DemoEvent.Touch)
                             val stroke = InkStroke(currentCrayon, mutableStateListOf(down.position))
                             inkStrokes += stroke
                             currentCheck?.addInk(down.position)
+                            send(DemoEvent.Ink)
                             while (true) {
                                 val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
                                 if (!change.pressed) break
                                 change.consume()
                                 currentCheck?.addSegment(stroke.points.last(), change.position, stepPx)
+                                send(DemoEvent.Ink)
                                 stroke.points += change.position
                             }
                             if (currentCheck?.done == true) finish()
@@ -367,6 +409,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, onBack: () -> Unit, 
                         drawText(number, topLeft = Offset(dots[0].x - number.size.width / 2f, dots[0].y - number.size.height / 2f))
                     }
                 }
+                DemoBall(demoPaths, demoRun, onFinished = { demoRun = null })
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 for ((color, label) in TraceSpec.crayons) {
@@ -401,6 +444,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, onBack: () -> Unit, 
                         .clickable(role = Role.Button) {
                             inkStrokes.clear()
                             check?.clear()
+                            send(DemoEvent.Again)
                         },
                     contentAlignment = Alignment.Center,
                 ) {
@@ -420,5 +464,5 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, onBack: () -> Unit, 
 @Preview(widthDp = 390, heightDp = 844)
 @Composable
 private fun TracePreview() {
-    HuroofiTheme { TraceScreen("ب", strokes = emptyList(), onBack = {}, onDone = {}) }
+    HuroofiTheme { TraceScreen("ب", strokes = emptyList(), introDone = false, onBack = {}, onDone = {}) }
 }
