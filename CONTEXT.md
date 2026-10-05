@@ -39,3 +39,7 @@
 **Daily play time**: the minutes per day the parent allows on child screens (5–60, step 5, default 20). Time on the Parent gate, the Parent zone and the Rest screen does not count. A new day starts at local midnight.
 
 **Rest screen**: the calm screen that replaces any child screen once today's play time is used up. No countdown, no red; only the Parent lock leads anywhere.
+
+**Stroke**: one continuous finger movement from touch-down to lift-off while tracing a letter. Each dot is a stroke of its own (ب has two strokes, ث four).
+
+**Stroke order**: the numbered sequence of a letter's strokes, each drawn in one direction. Every stroke order is checked by a person who knows how Arabic is taught before release.
