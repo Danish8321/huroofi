@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -270,9 +271,10 @@ private fun ModeCard(mode: AgeMode, onModeChange: (AgeMode) -> Unit) {
                 color = HuroofiTokens.Muted,
             )
         }
-        Row(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Equal heights when a label wraps at a large text size (plan 08 task 5.2).
+        Row(Modifier.height(IntrinsicSize.Min).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for ((value, label) in modeLabels) {
-                ModeButton(label.first, label.second, value == mode, Modifier.weight(1f)) { onModeChange(value) }
+                ModeButton(label.first, label.second, value == mode, Modifier.weight(1f).fillMaxHeight()) { onModeChange(value) }
             }
         }
     }

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -291,6 +292,7 @@ private fun StageStrip(chips: List<StageChip>, stage: Stage, onClick: (() -> Uni
             }
         }
         if (onClick != null) {
+            Spacer(Modifier.width(8.dp))
             Text("Map", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Primary)
             LineIcon(LearnIcons.Next, HuroofiTokens.Primary, size = 22.dp, strokeWidth = 2.6f)
         }
