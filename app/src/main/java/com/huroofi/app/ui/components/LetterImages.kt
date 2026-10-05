@@ -10,7 +10,7 @@ import com.huroofi.app.data.content.Letter
 
 /**
  * The letter's picture illustration. Names come from letters.json; `ContentContractTest` proves each
- * file exists. Looked up by name, so enabling resource shrinking needs a keep rule for `pic_*`.
+ * file exists. Looked up by name, so resource shrinking keeps `pic_*` through `res/raw/keep.xml`.
  */
 @Composable
 fun letterPicture(letter: Letter): Painter {

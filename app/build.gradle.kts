@@ -18,7 +18,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 and resource shrinking (plan 08 decision 14). Signed with the debug key for local
+            // installs only; real signing comes with plan 09.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

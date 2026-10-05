@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Letter pictures are looked up by name from letters.json (LetterImages.kt), which the
+     resource shrinker cannot trace (plan 08 task 7.1). -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/pic_*" />
