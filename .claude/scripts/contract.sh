@@ -1,6 +1,6 @@
 #!/bin/sh
 # Gate: content contract (plan 04). data/letters.json is the contract between content and app.
-#  1. app copy of letters.json == pack copy (line endings ignored)
+#  1. app copies of letters.json and strokes.json == data/ copies (line endings ignored)
 #  2. every pack card/illustration/font has its app resource (names per plan 01)
 #  3. every audio path in letters.json has a file under app/src/main/assets
 #  4. strict-decode + consistency unit tests pass
@@ -13,6 +13,9 @@ pack_sum=$(tr -d '\r' < data/letters.json | md5sum)
 app_sum=$(tr -d '\r' < $APP/assets/letters.json | md5sum)
 if [ "$pack_sum" != "$app_sum" ]; then
   echo "FAIL: $APP/assets/letters.json differs from data/letters.json"; fail=1
+fi
+if [ "$(tr -d '\r' < data/strokes.json | md5sum)" != "$(tr -d '\r' < $APP/assets/strokes.json | md5sum)" ]; then
+  echo "FAIL: $APP/assets/strokes.json differs from data/strokes.json"; fail=1
 fi
 
 for f in assets/cards/*.png; do
