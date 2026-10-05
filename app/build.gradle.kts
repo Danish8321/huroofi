@@ -38,6 +38,12 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = false
+        // Contract tests read content straight from disk; declare it so a data-only change re-runs them.
+        unitTests.all { test ->
+            test.inputs.dir("../data").withPropertyName("contentData").withPathSensitivity(PathSensitivity.RELATIVE)
+            test.inputs.dir("src/main/assets").withPropertyName("appAssets").withPathSensitivity(PathSensitivity.RELATIVE)
+            test.inputs.dir("src/main/res").withPropertyName("appRes").withPathSensitivity(PathSensitivity.RELATIVE)
+        }
     }
 }
 
