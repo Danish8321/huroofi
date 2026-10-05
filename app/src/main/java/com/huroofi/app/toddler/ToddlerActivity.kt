@@ -4,6 +4,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.huroofi.app.Routes
 import com.huroofi.app.ui.components.ParentLockSize
+import com.huroofi.app.ui.components.parentLockPairs
+import com.huroofi.app.ui.theme.ContrastPair
+import com.huroofi.app.ui.theme.HuroofiTokens
 
 /** Fill, border, bottom edge and label colour of one Toddler Home tile. */
 data class TileColors(val background: Color, val border: Color, val shadow: Color, val text: Color)
@@ -49,4 +52,15 @@ object ToddlerHomeSpec {
     val MagnifierHandle = Color(0xFF8D5A2B)
     val CrayonCollar = Color(0xFFB0BEC5)
     val colors: List<Color> = listOf(MiniCardBorder, PaintLetter, ArtOutline, MagnifierHandle, CrayonCollar)
+
+    /** Tile art is decoration: each tile is named by its label. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "prompt bubble Arabic"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = true, "prompt speaker icon"),
+    ) + ToddlerActivity.entries.flatMap {
+        listOf(
+            ContrastPair(it.tile.text, it.tile.background, large = true, "${it.name} tile Arabic label"),
+            ContrastPair(it.tile.text, it.tile.background, large = false, "${it.name} tile English label"),
+        )
+    } + parentLockPairs
 }

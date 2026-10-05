@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toPixelMap
@@ -64,9 +65,12 @@ import androidx.compose.ui.unit.dp
 import com.huroofi.app.R
 import com.huroofi.app.toddler.paint.Crayon
 import com.huroofi.app.ui.components.ButtonIcons
+import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
+import com.huroofi.app.ui.components.contrastPairs
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
@@ -102,6 +106,16 @@ object TraceSpec {
     val touchSizes = listOf(Helper, CrayonSize, Again, LessonSpec.Back)
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, EdgeColor, AgainBorder) +
         crayons.map { it.first }
+
+    /** The guide is the shape to trace, so it counts as a cue. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "helper bubble"),
+        ContrastPair(Guide.compositeOver(HuroofiTokens.Card), HuroofiTokens.Card, large = true, "letter guide"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "picked crayon ring"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "Again icon"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "Again label"),
+    ) + crayons.map { (color, label) -> ContrastPair(color, HuroofiTokens.Sky, large = true, label) } +
+        LessonSpec.headerPairs + ButtonKind.Primary.contrastPairs()
 }
 
 /** Points are snapshot state, so the canvas redraws as a stroke grows. */

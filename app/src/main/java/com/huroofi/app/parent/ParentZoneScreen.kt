@@ -61,6 +61,7 @@ import com.huroofi.app.data.progress.MIN_LIMIT_MINUTES
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.ChevronIcon
 import com.huroofi.app.ui.theme.CenteredLetter
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
@@ -111,14 +112,25 @@ object ZoneSpec {
 
     val touchSizes = listOf(BackButton, ModeButton, Row, Stepper)
 
-    /** Text colour on background, for the contrast sweep. */
+    /** Disabled rows and steppers are inactive, so they are not checked. Text up to 18 sp counts as normal. */
     val textPairs = listOf(
-        HuroofiTokens.Navy to HuroofiTokens.ParentBg,
-        HuroofiTokens.Navy to Color.White,
-        HuroofiTokens.Muted to Color.White,
-        Color.White to Learned,
-        Color.White to HuroofiTokens.Primary,
-        HuroofiTokens.Muted to ToGoCell,
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.ParentBg, large = false, "title, unselected mode"),
+        ContrastPair(HuroofiTokens.Navy, Color.White, large = false, "card text"),
+        ContrastPair(HuroofiTokens.Muted, Color.White, large = false, "captions"),
+        ContrastPair(Color.White, Learned, large = false, "learned grid letter"),
+        ContrastPair(Color.White, HuroofiTokens.Primary, large = false, "selected mode"),
+        ContrastPair(HuroofiTokens.Muted, ToGoCell, large = false, "to-go grid letter"),
+        ContrastPair(HuroofiTokens.Navy, Color.White, large = true, "back chevron"),
+        ContrastPair(Learned, BarTrack, large = true, "progress bar, learned"),
+        ContrastPair(Learning, BarTrack, large = true, "progress bar, learning"),
+        ContrastPair(BarTrack, Color.White, large = true, "progress bar, to go"),
+        ContrastPair(Learned, Color.White, large = true, "legend swatch, learned"),
+        ContrastPair(Learning, Color.White, large = true, "legend swatch, learning"),
+        ContrastPair(ToGoLegend, Color.White, large = true, "legend swatch, to go"),
+        ContrastPair(Learning, Color.White, large = true, "learning grid ring"),
+        ContrastPair(SwitchOn, Color.White, large = true, "switch track, on"),
+        ContrastPair(SwitchOff, Color.White, large = true, "switch track, off"),
+        ContrastPair(Color.White, SwitchOn, large = true, "switch knob, on"),
     )
 }
 

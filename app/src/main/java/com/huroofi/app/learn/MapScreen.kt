@@ -32,10 +32,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -68,9 +68,11 @@ import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.RoundIconButton
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.StageColors
 
 /** Sizes and colours of the Letter Map (`StageMap.html`, plan 07 decision 8). */
 object MapSpec {
@@ -97,6 +99,24 @@ object MapSpec {
         HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Primary,
         HuroofiTokens.PrimaryShadow, HuroofiTokens.Success, PathColor, QuietBorder, LockedChip,
     ) + NavSpec.colors
+
+    /** The dotted path is decoration; a locked card also shows a lock. Names are 20 sp ExtraBold, so large. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "title"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "subtitle"),
+        ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "finished card ring"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "stage name"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = true, "locked stage name"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Primary, large = true, "play triangle"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "finished tick"),
+        ContrastPair(HuroofiTokens.Muted, LockedChip, large = true, "lock icon"),
+        ContrastPair(HuroofiTokens.Muted, LockedChip, large = true, "locked chip letter"),
+    ) + HomeSpec.chipPairs + NavSpec.textPairs
+
+    fun stagePairs(stage: StageColors) = listOf(
+        ContrastPair(stage.border, HuroofiTokens.Sky, large = true, "current card ring"),
+        ContrastPair(HuroofiTokens.Navy, stage.pastel, large = false, "stage number"),
+    ) + HomeSpec.chipStagePairs(stage)
 }
 
 /** One card of the map: the stage, how it shows, and its 4 chips. */

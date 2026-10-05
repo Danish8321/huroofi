@@ -56,11 +56,16 @@ import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarIcon
 import com.huroofi.app.ui.components.ToddlerHomeButton
+import com.huroofi.app.ui.components.ToddlerHomeButtonSpec
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
+import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
+import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
 import kotlin.random.Random
 import kotlinx.coroutines.delay
@@ -89,6 +94,24 @@ object FindSpec {
     const val CHOICES = 2
     val touchSizes = listOf(SunButton, NextButton, TileHeight)
     val colors = listOf(IdleShadow, SolvedBackground, SolvedBorder, SolvedShadow, PartyPink, PartyBlue)
+
+    /** Party stars are decoration; the English line is 18 sp, so normal text. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Outline, HuroofiTokens.Sky, large = true, "header star outline"),
+        ContrastPair(HuroofiTokens.Sun, HuroofiTokens.Card, large = true, "earned header star fill against an empty star"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sun, large = true, "speaker icon"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "question Arabic"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "question English"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "tile word"),
+        ContrastPair(HuroofiTokens.Navy, SolvedBackground, large = true, "found tile word"),
+        ContrastPair(SolvedBorder, HuroofiTokens.Sky, large = true, "found tile border"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "next chevron"),
+    ) + ToddlerHomeButtonSpec.textPairs + parentLockPairs
+
+    fun stagePairs(stage: StageColors) = listOf(
+        ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "tile word first letter"),
+        ContrastPair(stage.accent, SolvedBackground, large = true, "found tile word first letter"),
+    )
 
     val tile = FindTileStyle(
         corner = TileCorner, border = TileBorder, shadow = TileShadow, picture = PictureSize, wordSp = WORD_SP,
@@ -146,6 +169,11 @@ object FindTabletSpec {
         listOf(HomeButton, Speaker, NextButton).map { minTouch(it.value, scale).dp } + TileHeight * scale
 
     val colors = FindSpec.colors
+
+    /** Same colours as the phone layout; the English line scales below 20 sp, so normal text there too. */
+    val textPairs = FindSpec.textPairs
+
+    fun stagePairs(stage: StageColors) = FindSpec.stagePairs(stage)
 }
 
 /** Where a party star sits on a solved tile. */

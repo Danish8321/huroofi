@@ -35,18 +35,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
+import com.huroofi.app.ui.components.ButtonIcons
+import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.ChevronIcon
-import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StepTabs
+import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.components.stepTabsPairs
 import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
 
 /** Sizes and colours of Meet (`Lesson.html`, plan 07 decisions 2 and 9). */
@@ -74,6 +79,30 @@ object LessonSpec {
 
     val touchSizes = listOf(Back, Sound, Picture)
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Sun, EdgeColor)
+
+    /** The back button and step tabs, shared with Trace. */
+    val headerPairs = listOf(ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "back chevron")) + stepTabsPairs
+
+    /** "Say it with me!" is 22 sp ExtraBold, so large; 18 sp English is normal. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "letter name"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "big letter"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sun, large = true, "sound icon"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "Say it with me!"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "Tap to hear again"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "shapes heading letter"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "shapes heading"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "shape glyph"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "shape label"),
+    ) + headerPairs + ButtonKind.Primary.contrastPairs()
+
+    fun stagePairs(stage: StageColors) = listOf(
+        ContrastPair(HuroofiTokens.Navy, stage.border, large = false, "letter index number"),
+        ContrastPair(HuroofiTokens.Navy, stage.pastel, large = true, "Arabic letter name"),
+        ContrastPair(stage.accent, stage.pastel, large = true, "word first letter"),
+        ContrastPair(HuroofiTokens.Navy, stage.pastel, large = true, "word"),
+        ContrastPair(HuroofiTokens.Muted, stage.pastel, large = false, "word meaning"),
+    )
 }
 
 val PathTabs = PathStep.entries.map { it.tab }

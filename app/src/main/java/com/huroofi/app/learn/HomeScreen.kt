@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,21 +41,24 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.CompositionLocalProvider
 import com.huroofi.app.R
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.parent.LetterState
+import com.huroofi.app.ui.components.ButtonIcons
+import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
-import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.PrimaryButton
+import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.CenteredLetter
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
 
 /** Sizes and colours of Home (`Main.html`, plan 07 decision 7). */
@@ -90,6 +94,38 @@ object HomeSpec {
     val touchSizes = listOf(TileHeight, StripMinHeight, NavSpec.Item)
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, CardShadow) +
         tileColors.values.flatMap { it.toList() } + NavSpec.colors
+
+    /** Letter chips, shared with the Map. Arabic is bold 28 sp, so large. */
+    val chipPairs = listOf(
+        ContrastPair(HuroofiTokens.Card, ChipLearned, large = true, "learned chip letter"),
+        ContrastPair(ChipLearned, HuroofiTokens.Card, large = true, "learned chip fill on the strip"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "learning chip letter"),
+        ContrastPair(ChipLearningRing, HuroofiTokens.Card, large = true, "learning chip ring"),
+    )
+
+    fun chipStagePairs(stage: StageColors) =
+        listOf(ContrastPair(stage.accent, stage.pastel, large = true, "to-go chip letter"))
+
+    /** 18 sp ExtraBold is under the 18.66 sp bold line, so normal text. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "greeting"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "greeting subtitle"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = false, "TODAY'S LETTER"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "today's letter"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "letter name"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "word"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "stage strip title"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = false, "strip Map link"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = true, "strip chevron"),
+    ) + tileColors.flatMap { (step, c) ->
+        listOf(
+            ContrastPair(c.third, HuroofiTokens.Card, large = true, "$step tile icon"),
+            ContrastPair(HuroofiTokens.Navy, c.first, large = false, "$step tile label"),
+        )
+    } + ButtonKind.Primary.contrastPairs() + chipPairs + NavSpec.textPairs
+
+    fun stagePairs(stage: StageColors) =
+        listOf(ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "word first letter")) + chipStagePairs(stage)
 }
 
 /** One chip of the stage strip: the open stage's letters (decision 7). */

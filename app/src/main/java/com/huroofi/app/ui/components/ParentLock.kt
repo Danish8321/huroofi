@@ -12,6 +12,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.huroofi.app.ui.theme.ContrastPair
+import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 
 /**
@@ -22,6 +24,9 @@ object ParentLockSize {
     val Visible = 44.dp
     val Hit = 48.dp
 }
+
+/** For the contrast sweep: every screen with a lock adds these. */
+val parentLockPairs = listOf(ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = true, "parent lock icon"))
 
 /**
  * Small lock button. It only reports [onRequestParentZone]; it never opens anything itself.

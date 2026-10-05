@@ -46,14 +46,18 @@ import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.ButtonIcons
+import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.StarIcon
+import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.theme.CenteredLetter
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.StageColors
 import kotlin.random.Random
 
 /** Sizes and colours of Reward (`Reward.html`, plan 07 decision 5). */
@@ -80,6 +84,19 @@ object RewardSpec {
         Background, StickerEdge, NewSticker, StarOutline, HuroofiTokens.Sun, HuroofiTokens.Success,
         HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted,
     ) + confetti
+
+    /** Stars and confetti are celebration, not cues. Text is checked on the page colour. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, Background, large = true, "Stage complete"),
+        ContrastPair(HuroofiTokens.Muted, Background, large = false, "letters learned"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "learned letter tile"),
+        ContrastPair(NewSticker, HuroofiTokens.Card, large = false, "NEW STICKER"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "sticker name"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "Added to your sticker book"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "next stage unlocked"),
+    ) + ButtonKind.Primary.contrastPairs() + StickerSpec.textPairs
+
+    fun stagePairs(stage: StageColors) = StickerSpec.stagePairs(stage)
 }
 
 /**

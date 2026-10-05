@@ -5,6 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.huroofi.app.ui.theme.ContrastPair
+import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 
 /** Sizes and colours of the toddler Home button, from the toddler prototypes. */
@@ -13,6 +15,7 @@ object ToddlerHomeButtonSpec {
     val Shadow = 5.dp
     val IconSize = 34.dp
     val ShadowColor = Color(0xFFCFE2F7)
+    val textPairs = listOf(ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "home icon"))
 }
 
 /** Big round Home button on every toddler activity. The tablet Find layout passes scaled sizes. */

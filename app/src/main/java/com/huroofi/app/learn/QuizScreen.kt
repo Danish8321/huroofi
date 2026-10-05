@@ -49,13 +49,16 @@ import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
+import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.CenteredLetter
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.NotoNaskhArabic
+import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -94,6 +97,28 @@ object QuizSpec {
     val colors = listOf(
         HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Sun, HuroofiTokens.SunShadow,
         HuroofiTokens.Success, EdgeColor, RightShadow, RightBackground, RightText, WrongBackground, WrongText,
+    )
+
+    /** A dimmed wrong tile is inactive, so it is not checked. 22 sp ExtraBold is large; 18 sp is normal. */
+    val textPairs: List<ContrastPair> = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "close icon"),
+        ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "progress dot, done"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Sky, large = true, "progress dot, to do"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sun, large = true, "sound icon"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "Which one starts with"),
+        ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "right tile border"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "right tile tick"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "idle panel"),
+        ContrastPair(WrongText, WrongBackground, large = true, "Almost! Try again"),
+        ContrastPair(HuroofiTokens.Navy, WrongBackground, large = false, "wrong explanation"),
+        ContrastPair(RightText, RightBackground, large = true, "Great job!"),
+        ContrastPair(HuroofiTokens.Navy, RightBackground, large = true, "right word"),
+        ContrastPair(HuroofiTokens.Navy, RightBackground, large = false, "starts with"),
+    ) + ButtonKind.Success.contrastPairs()
+
+    fun stagePairs(stage: StageColors) = listOf(
+        ContrastPair(HuroofiTokens.Navy, stage.pastel, large = true, "target letter chip"),
+        ContrastPair(stage.accent, RightBackground, large = true, "right word first letter"),
     )
 }
 

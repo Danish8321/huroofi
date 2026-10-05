@@ -26,9 +26,11 @@ import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
+import com.huroofi.app.ui.theme.StageColors
 
 /** Sizes of the stage sticker (`Reward.html` sticker card, plan 07 decision 5). */
 object StickerSpec {
@@ -36,6 +38,15 @@ object StickerSpec {
     const val RING_FRACTION = 5f / 116f
     const val PICTURE_FRACTION = 0.34f
     const val QUESTION_SP = 40f
+
+    /** Discs and rings are decoration: an earned sticker shows its pictures, an empty one a "?". Names are 18 sp. */
+    val textPairs = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "earned sticker name"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "empty sticker name"),
+    )
+
+    fun stagePairs(stage: StageColors) =
+        listOf(ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "empty sticker question mark"))
 }
 
 /** The sticker's name (decision 5). */
