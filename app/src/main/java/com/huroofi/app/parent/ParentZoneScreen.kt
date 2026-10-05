@@ -83,7 +83,8 @@ object ZoneSpec {
     val Legend = 12.dp
     val Learned = HuroofiTokens.Success
     val Learning = HuroofiTokens.Primary
-    val ToGoLegend = Color(0xFFC9D6E6)
+    /** Outlines the bar and the to-go swatch, so the light track still shows on white. */
+    val ToGoOutline = Color(0xFF7D8FA8)
     val Cell = 42.dp
     val CellGap = 6.dp
     val CellRadius = 12.dp
@@ -100,7 +101,8 @@ object ZoneSpec {
     val SwitchHeight = 34.dp
     val Knob = 26.dp
     val SwitchOn = HuroofiTokens.Success
-    val SwitchOff = Color(0xFFC9D6E6)
+    val SwitchOff = Color(0xFF7D8FA8)
+    val DisabledSymbol = Color(0xFFC9D6E6)
     const val DISABLED_ALPHA = 0.5f
     val Stepper = 48.dp
     val StepperRadius = 12.dp
@@ -123,14 +125,14 @@ object ZoneSpec {
         ContrastPair(HuroofiTokens.Navy, Color.White, large = true, "back chevron"),
         ContrastPair(Learned, BarTrack, large = true, "progress bar, learned"),
         ContrastPair(Learning, BarTrack, large = true, "progress bar, learning"),
-        ContrastPair(BarTrack, Color.White, large = true, "progress bar, to go"),
+        ContrastPair(ToGoOutline, Color.White, large = true, "progress bar and to-go swatch outline"),
         ContrastPair(Learned, Color.White, large = true, "legend swatch, learned"),
         ContrastPair(Learning, Color.White, large = true, "legend swatch, learning"),
-        ContrastPair(ToGoLegend, Color.White, large = true, "legend swatch, to go"),
         ContrastPair(Learning, Color.White, large = true, "learning grid ring"),
         ContrastPair(SwitchOn, Color.White, large = true, "switch track, on"),
         ContrastPair(SwitchOff, Color.White, large = true, "switch track, off"),
         ContrastPair(Color.White, SwitchOn, large = true, "switch knob, on"),
+        ContrastPair(Color.White, SwitchOff, large = true, "switch knob, off"),
     )
 }
 
@@ -238,7 +240,7 @@ private fun ChildCard(progress: ParentProgress, mode: AgeMode) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             LegendItem(ZoneSpec.Learned, "${progress.learned} learned")
             LegendItem(ZoneSpec.Learning, "${progress.learning} learning")
-            LegendItem(ZoneSpec.ToGoLegend, "${progress.toGo} to go")
+            LegendItem(ZoneSpec.BarTrack, "${progress.toGo} to go", outline = true)
         }
         if (mode == AgeMode.TODDLER) {
             Text(
@@ -430,7 +432,7 @@ private fun StepButton(symbol: String, label: String, enabled: Boolean, onClick:
         Text(
             symbol,
             style = HuroofiText.buttonPrimary,
-            color = if (enabled) HuroofiTokens.Navy else ZoneSpec.SwitchOff,
+            color = if (enabled) HuroofiTokens.Navy else ZoneSpec.DisabledSymbol,
         )
     }
 }
@@ -443,7 +445,8 @@ private fun ProgressBar(progress: ParentProgress) {
             .fillMaxWidth()
             .height(ZoneSpec.BarHeight)
             .clip(CircleShape)
-            .background(ZoneSpec.BarTrack),
+            .background(ZoneSpec.BarTrack)
+            .border(1.dp, ZoneSpec.ToGoOutline, CircleShape),
     ) {
         val learned = progress.learned / total
         val learning = progress.learning / total
@@ -455,9 +458,13 @@ private fun ProgressBar(progress: ParentProgress) {
 }
 
 @Composable
-private fun LegendItem(color: Color, label: String) {
+private fun LegendItem(color: Color, label: String, outline: Boolean = false) {
+    val shape = RoundedCornerShape(4.dp)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(Modifier.size(ZoneSpec.Legend).background(color, RoundedCornerShape(4.dp)))
+        Box(
+            Modifier.size(ZoneSpec.Legend).background(color, shape)
+                .then(if (outline) Modifier.border(1.dp, ZoneSpec.ToGoOutline, shape) else Modifier),
+        )
         Text(label, style = HuroofiText.caption, color = HuroofiTokens.Muted)
     }
 }

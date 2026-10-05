@@ -97,7 +97,7 @@ object LessonSpec {
     ) + headerPairs + ButtonKind.Primary.contrastPairs()
 
     fun stagePairs(stage: StageColors) = listOf(
-        ContrastPair(HuroofiTokens.Navy, stage.border, large = false, "letter index number"),
+        ContrastPair(HuroofiTokens.Navy, stage.pastel, large = false, "letter index number"),
         ContrastPair(HuroofiTokens.Navy, stage.pastel, large = true, "Arabic letter name"),
         ContrastPair(stage.accent, stage.pastel, large = true, "word first letter"),
         ContrastPair(HuroofiTokens.Navy, stage.pastel, large = true, "word"),
@@ -155,7 +155,7 @@ fun LessonScreen(
                         Modifier.fillMaxWidth().background(HuroofiTokens.Card, RoundedCornerShape(LessonSpec.InnerCorner)).padding(14.dp),
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(Modifier.size(LessonSpec.IndexCircle).background(colors.border, CircleShape), contentAlignment = Alignment.Center) {
+                            Box(Modifier.size(LessonSpec.IndexCircle).background(colors.pastel, CircleShape), contentAlignment = Alignment.Center) {
                                 Text("${letter.index}", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
                             }
                             Text(letter.nameLatin, Modifier.weight(1f), style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)

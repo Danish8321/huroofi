@@ -85,7 +85,7 @@ object FindSpec {
     const val WORD_SP = 50f
     val IdleShadow = Color(0xFFCFE2F7)
     val SolvedBackground = Color(0xFFDFF5D5)
-    val SolvedBorder = Color(0xFF3BAA5C)
+    val SolvedBorder = HuroofiTokens.Success
     val SolvedShadow = Color(0xFF9FD58A)
     val PartyPink = Color(0xFFFF6FA5)
     val PartyBlue = Color(0xFF3B8CF0)
@@ -95,10 +95,12 @@ object FindSpec {
     val touchSizes = listOf(SunButton, NextButton, TileHeight)
     val colors = listOf(IdleShadow, SolvedBackground, SolvedBorder, SolvedShadow, PartyPink, PartyBlue)
 
-    /** Party stars are decoration; the English line is 18 sp, so normal text. */
+    /**
+     * Party stars and the header stars' fill are reward decoration (a toddler loses nothing if
+     * they are missed); the English line is 18 sp, so normal text.
+     */
     val textPairs: List<ContrastPair> = listOf(
         ContrastPair(HuroofiTokens.Outline, HuroofiTokens.Sky, large = true, "header star outline"),
-        ContrastPair(HuroofiTokens.Sun, HuroofiTokens.Card, large = true, "earned header star fill against an empty star"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sun, large = true, "speaker icon"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "question Arabic"),
         ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "question English"),

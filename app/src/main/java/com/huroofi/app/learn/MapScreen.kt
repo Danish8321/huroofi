@@ -114,7 +114,7 @@ object MapSpec {
     ) + HomeSpec.chipPairs + NavSpec.textPairs
 
     fun stagePairs(stage: StageColors) = listOf(
-        ContrastPair(stage.border, HuroofiTokens.Sky, large = true, "current card ring"),
+        ContrastPair(stage.accent, HuroofiTokens.Sky, large = true, "current card ring"),
         ContrastPair(HuroofiTokens.Navy, stage.pastel, large = false, "stage number"),
     ) + HomeSpec.chipStagePairs(stage)
 }
@@ -212,7 +212,7 @@ private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onLocke
     val shape = RoundedCornerShape(MapSpec.CardCorner)
     val locked = s.state == StageState.LOCKED
     val (ring, ringWidth, edge) = when (s.state) {
-        StageState.CURRENT -> Triple(colors.border, MapSpec.Ring, colors.pastel)
+        StageState.CURRENT -> Triple(colors.accent, MapSpec.Ring, colors.pastel)
         StageState.FINISHED -> Triple(HuroofiTokens.Success, MapSpec.Ring, MapSpec.QuietBorder)
         StageState.LOCKED -> Triple(MapSpec.QuietBorder, MapSpec.QuietRing, MapSpec.QuietBorder)
     }

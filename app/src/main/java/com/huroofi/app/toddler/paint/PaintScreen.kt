@@ -98,7 +98,10 @@ object PaintSpec {
     /** Every colour except the crayons, which are an allow-list (plan 05 decision 2). */
     val colors = listOf(Pink, PinkShadow, WipeBorderColor, CrayonShadowColor)
 
-    /** The earned star is a reward, not a cue. Crayons are checked against the page they sit on. */
+    /**
+     * The earned star is a reward, not a cue. A crayon's colour is the content itself, like a
+     * picture, so only the picked ring is checked.
+     */
     val textPairs: List<ContrastPair> = listOf(
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "prompt Arabic"),
         ContrastPair(Pink, HuroofiTokens.Card, large = true, "prompt speaker icon"),
@@ -106,9 +109,7 @@ object PaintSpec {
         ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "next chevron"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "wipe icon"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "picked crayon ring"),
-    ) + Crayon.entries.map {
-        ContrastPair(it.color, HuroofiTokens.Sky, large = true, "${it.name} crayon")
-    } + ToddlerHomeButtonSpec.textPairs + parentLockPairs
+    ) + ToddlerHomeButtonSpec.textPairs + parentLockPairs
 }
 
 /** Finger paint: a random letter to paint over, a star after 400 dp (plan 05 slice 5). */

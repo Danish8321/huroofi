@@ -69,6 +69,7 @@ object QuizSpec {
     val Sound = 64.dp
     val Chip = 64.dp
     val Dot = 18.dp
+    val DotRing = 2.dp
     val CardCorner = 28.dp
     val TileCorner = 30.dp
     val TileBorder = 5.dp
@@ -103,7 +104,7 @@ object QuizSpec {
     val textPairs: List<ContrastPair> = listOf(
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "close icon"),
         ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "progress dot, done"),
-        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Sky, large = true, "progress dot, to do"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = true, "progress dot ring, to do"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sun, large = true, "sound icon"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "Which one starts with"),
         ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "right tile border"),
@@ -166,7 +167,8 @@ fun QuizScreen(
                         Box(
                             Modifier
                                 .size(QuizSpec.Dot)
-                                .background(if (i < game.roundsDone) HuroofiTokens.Success else HuroofiTokens.Card, CircleShape),
+                                .background(if (i < game.roundsDone) HuroofiTokens.Success else HuroofiTokens.Card, CircleShape)
+                                .then(if (i < game.roundsDone) Modifier else Modifier.border(QuizSpec.DotRing, HuroofiTokens.Muted, CircleShape)),
                         )
                     }
                 }

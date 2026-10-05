@@ -95,7 +95,7 @@ object CardsSpec {
     fun stagePairs(stage: StageColors) = listOf(
         ContrastPair(HuroofiTokens.Navy, stage.pastel, large = true, "big letter"),
         ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "word first letter"),
-        ContrastPair(stage.border, HuroofiTokens.Card, large = true, "talking bars"),
+        ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "talking bars"),
     )
 }
 
@@ -195,7 +195,7 @@ private fun LetterCard(
                             .padding(horizontal = 16.dp),
                         contentAlignment = Alignment.Center,
                     ) { CenteredLetter(letter.letter, size = spec.LETTER_SP.sp, color = colors.navy) }
-                    if (speaking) TalkingBars(stage.border, Modifier.align(Alignment.TopStart).padding(top = 6.dp))
+                    if (speaking) TalkingBars(stage.accent, Modifier.align(Alignment.TopStart).padding(top = 6.dp))
                 }
                 WigglingPicture(letter, stage, picture, wiggles, onPictureTap)
                 ArabicText(

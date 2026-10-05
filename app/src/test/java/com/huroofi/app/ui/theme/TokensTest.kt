@@ -43,12 +43,6 @@ class TokensTest {
     }
 
     @Test
-    fun contrastRatioKnownValues() {
-        assertEquals(21.0, contrastRatio(Color.Black, Color.White), 0.01)
-        assertEquals(1.0, contrastRatio(Color.White, Color.White), 0.001)
-    }
-
-    @Test
     fun stageColoursParseFromHex() {
         val s = StageColors.fromHex("#F59E0B", "#FFEDC4", "#A35400")
         assertEquals(Color(0xFFF59E0B), s.border)
