@@ -54,3 +54,26 @@ data class ContentFile(
     val letters: List<Letter>,
     val stages: List<Stage>,
 )
+
+/*
+ * data/strokes.json: how each isolated letter is written (plan 09 decision 1).
+ * A point is [x, y] as fractions (0..1) of the glyph's ink box in Noto Naskh Arabic Bold, x right, y down.
+ */
+
+@Serializable
+data class TraceStroke(
+    val order: Int,
+    val dot: Boolean,
+    val points: List<List<Float>>,
+)
+
+@Serializable
+data class LetterStrokes(
+    val index: Int,
+    val strokes: List<TraceStroke>,
+)
+
+@Serializable
+data class StrokeFile(
+    val letters: List<LetterStrokes>,
+)

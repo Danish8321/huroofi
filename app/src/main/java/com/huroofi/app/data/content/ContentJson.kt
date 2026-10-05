@@ -7,4 +7,6 @@ object ContentJson {
     private val strict = Json { ignoreUnknownKeys = false }
 
     fun decode(text: String): ContentFile = strict.decodeFromString(ContentFile.serializer(), text)
+
+    fun decodeStrokes(text: String): StrokeFile = strict.decodeFromString(StrokeFile.serializer(), text)
 }

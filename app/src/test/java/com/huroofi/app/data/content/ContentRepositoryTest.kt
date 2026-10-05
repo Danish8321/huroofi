@@ -47,6 +47,31 @@ class ContentRepositoryTest {
     }
 
     @Test
+    fun strokesComeInWritingOrder() {
+        val baa = repo.strokes(2)
+        assertEquals(listOf(1, 2), baa.map { it.order })
+        assertEquals(listOf(false, true), baa.map { it.dot })
+        assertEquals(1, baa[1].points.size)
+    }
+
+    @Test
+    fun strokesAreSortedByOrderWhateverTheFileOrder() {
+        val loaded = ContentRepository.load(object : AssetReader {
+            override fun read(path: String): String {
+                val text = File("src/main/assets/$path").readText(Charsets.UTF_8)
+                return if (path == ContentRepository.STROKES_PATH) """{"letters":[{"index":2,"strokes":[""" +
+                    """{"order":2,"dot":true,"points":[[0.5,0.9]]},{"order":1,"dot":false,"points":[[0.9,0.1],[0.1,0.2]]}]}]}""" else text
+            }
+        })
+        assertEquals(listOf(1, 2), loaded.strokes(2).map { it.order })
+    }
+
+    @Test
+    fun letterWithoutStrokesGivesEmptyList() {
+        assertEquals(emptyList<TraceStroke>(), repo.strokes(29))
+    }
+
+    @Test
     fun missingAssetPropagatesReaderError() {
         val broken = object : AssetReader {
             override fun read(path: String): String = throw FileNotFoundException(path)

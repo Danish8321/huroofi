@@ -2,6 +2,7 @@ package com.huroofi.app.toddler.paint
 
 import androidx.compose.ui.graphics.Color
 import com.huroofi.app.data.content.Letter
+import com.huroofi.app.data.content.TraceStroke
 import com.huroofi.app.toddler.pickExcept
 import kotlin.math.hypot
 import kotlin.random.Random
@@ -59,3 +60,6 @@ class PaintSession(private val letters: List<Letter>, private val random: Random
     fun next(page: PaintPage): PaintPage =
         PaintPage(pickExcept(letters, page.letter, random), page.painting.wipe())
 }
+
+/** The strokes the demo ball travels in Finger paint: the lines, in writing order. A dot has nothing to travel. */
+fun demoStrokes(strokes: List<TraceStroke>): List<Int> = strokes.indices.filter { strokes[it].points.size >= 2 }

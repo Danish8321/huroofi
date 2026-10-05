@@ -18,8 +18,11 @@ class ContentContractTest {
     private val assetsJson = File("src/main/assets/letters.json")
     private val packJson = File("../data/letters.json")
     private val drawables = File("src/main/res/drawable-nodpi")
+    private val assetsStrokes = File("src/main/assets/strokes.json")
+    private val packStrokes = File("../data/strokes.json")
 
     private val content: ContentFile by lazy { ContentJson.decode(assetsJson.readText(Charsets.UTF_8)) }
+    private val strokes: StrokeFile by lazy { ContentJson.decodeStrokes(assetsStrokes.readText(Charsets.UTF_8)) }
 
     @Test
     fun shippedJsonIsByteIdenticalToThePack() {
@@ -88,6 +91,59 @@ class ContentContractTest {
     fun bothFontsHaveAnAppResource() {
         assertTrue(File("src/main/res/font/baloo_bhaijaan_2.ttf").exists())
         assertTrue(File("src/main/res/font/noto_naskh_arabic.ttf").exists())
+    }
+
+    @Test
+    fun shippedStrokesAreByteIdenticalToData() {
+        assertTrue(assetsStrokes.exists() && packStrokes.exists())
+        assertEquals(
+            packStrokes.readBytes().toList().filterNot { it == '\r'.code.toByte() },
+            assetsStrokes.readBytes().toList().filterNot { it == '\r'.code.toByte() },
+        )
+    }
+
+    @Test
+    fun everyLetterHasStrokesExactlyOnce() {
+        assertEquals(content.letters.map { it.index }, strokes.letters.map { it.index })
+    }
+
+    @Test
+    fun strokeOrderIsOneToNWithoutGaps() {
+        strokes.letters.forEach { l ->
+            assertEquals("letter ${l.index}", (1..l.strokes.size).toList(), l.strokes.map { it.order }.sorted())
+        }
+    }
+
+    @Test
+    fun strokePointsArePairsInsideTheInkBox() {
+        strokes.letters.forEach { l ->
+            l.strokes.forEach { s ->
+                s.points.forEach { p ->
+                    assertEquals("letter ${l.index} stroke ${s.order}", 2, p.size)
+                    assertTrue("letter ${l.index} stroke ${s.order} point $p", p.all { it in 0f..1f })
+                }
+            }
+        }
+    }
+
+    @Test
+    fun aDotIsOnePointAndAnyOtherStrokeAtLeastTwo() {
+        strokes.letters.forEach { l ->
+            l.strokes.forEach { s ->
+                if (s.dot) {
+                    assertEquals("letter ${l.index} stroke ${s.order}", 1, s.points.size)
+                } else {
+                    assertTrue("letter ${l.index} stroke ${s.order}", s.points.size >= 2)
+                }
+            }
+            assertTrue("letter ${l.index} has no body stroke", l.strokes.any { !it.dot })
+        }
+    }
+
+    @Test
+    fun unknownStrokeKeysFailTheDecoder() {
+        val withExtra = assetsStrokes.readText(Charsets.UTF_8).replaceFirst("\"order\": 1,", "\"order\": 1, \"surprise\": true,")
+        assertThrows(SerializationException::class.java) { ContentJson.decodeStrokes(withExtra) }
     }
 
     @Test

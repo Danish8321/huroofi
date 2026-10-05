@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -39,19 +40,26 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huroofi.app.LocalAppContainer
+import com.huroofi.app.data.content.TraceStroke
 import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.toddler.ToddlerActivity
 import com.huroofi.app.toddler.ToddlerHeader
 import com.huroofi.app.toddler.ToddlerPhrases
 import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ChevronIcon
+import com.huroofi.app.ui.components.DemoBall
+import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarIcon
@@ -62,6 +70,8 @@ import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
+import com.huroofi.app.ui.theme.fitGlyph
+import com.huroofi.app.ui.theme.toCanvas
 import kotlin.random.Random
 
 /** Sizes and colours of Finger paint (`ToddlerPaint.html`, phone layout). */
@@ -114,7 +124,7 @@ object PaintSpec {
 
 /** Finger paint: a random letter to paint over, a star after 400 dp (plan 05 slice 5). */
 @Composable
-fun PaintScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
+fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     val container = LocalAppContainer.current
     val scope = rememberCoroutineScope()
     val session = remember { PaintSession(container.content.letters, Random.Default) }
@@ -122,6 +132,20 @@ fun PaintScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     var page by remember { mutableStateOf(session.start()) }
     val colors = LocalHuroofiColors.current
     val star = page.painting.starEarned
+    // Demo ball: once per page over the outline, never repeated, stopped by the first touch.
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    var canvasSize by remember { mutableStateOf(IntSize.Zero) }
+    val strokes = remember(page.letter) { strokesOf(page.letter.index) }
+    val demoPaths = remember(page.letter, canvasSize, strokes) {
+        if (canvasSize == IntSize.Zero) {
+            emptyList()
+        } else {
+            val ink = fitGlyph(measurer, page.letter.letter, Size(canvasSize.width.toFloat(), canvasSize.height.toFloat()), LetterOutlineSpec.INK_SHARE, density).ink
+            strokes.map { s -> s.points.map { toCanvas(it, ink) } }
+        }
+    }
+    var demoRun by remember(page.letter) { mutableStateOf<DemoRun?>(DemoRun(demoStrokes(strokes), 0)) }
 
     LaunchedEffect(page.letter) { audio.ask(page.letter) }
     LaunchedEffect(star) { if (star) audio.star() }
@@ -159,17 +183,22 @@ fun PaintScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
                         .padding(bottom = PaintSpec.CanvasShadow)
                         .clip(shape)
                         .background(colors.card)
-                        .border(PaintSpec.CanvasBorder, PaintSpec.Pink, shape),
+                        .border(PaintSpec.CanvasBorder, PaintSpec.Pink, shape)
+                        .onSizeChanged { canvasSize = it },
                 ) {
                     LetterOutline(page.letter.letter, Modifier.matchParentSize())
                     PaintLayer(
                         painting = page.painting,
-                        onStart = { page = page.copy(painting = page.painting.start(it)) },
+                        onStart = {
+                            demoRun = null
+                            page = page.copy(painting = page.painting.start(it))
+                        },
                         onMove = { page = page.copy(painting = page.painting.moveTo(it)) },
                         modifier = Modifier
                             .matchParentSize()
                             .semantics { contentDescription = "Paint over the letter ${page.letter.nameLatin} with your finger" },
                     )
+                    DemoBall(demoPaths, demoRun, onFinished = { demoRun = null })
                     if (star) {
                         PopIn(page.letter, Modifier.align(Alignment.TopEnd).padding(14.dp)) {
                             StarIcon(fill = colors.sun, size = PaintSpec.Star, outlineWidth = 1.1f)

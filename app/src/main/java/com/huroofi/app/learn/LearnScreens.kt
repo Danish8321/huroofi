@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -111,8 +113,17 @@ fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit) {
     val letter = remember(index) { container.content.letter(index) }
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
+    val strokes = remember(index) { container.content.strokes(index) }
+    // Sound first: the letter clip plays on entry, and the demo ball starts when it ends (plan 09 decision 4).
+    var introDone by remember(index) { mutableStateOf(false) }
+    LaunchedEffect(index) {
+        prompt.play(Clips.letter(letter)).join()
+        introDone = true
+    }
     TraceScreen(
         letter = letter.letter,
+        strokes = strokes,
+        introDone = introDone,
         onBack = {
             prompt.stop()
             onBack()

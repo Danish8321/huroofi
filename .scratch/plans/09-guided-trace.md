@@ -1,0 +1,20 @@
+# 09 Guided tracing — numbered starts, dotted strokes, demo ball
+
+Approved 2026-10-05 from issue 014 (decisions 1–8 below). Task list: `09-guided-trace-tasks.md`. Reference pictures: `.scratch/issues/014-ref-*.jpg` (mechanic only, not their art).
+
+Supersedes plan 07 decision 3 ("no stroke-path data, no start dot or arrow") and the plan 07 out-of-scope line "stroke-order teaching". The store work (signing, listing, Play Console, privacy policy) planned as 09 in plan 08 decision 14 moves to plan 10.
+
+## Decisions
+
+1. **Stroke data.** Claude drafts the stroke order for all 28 isolated letters in `data/strokes.json` (app copy `app/src/main/assets/strokes.json`, kept identical by `contract.sh`), keyed by the letter's `index` from `letters.json`. Each stroke has an order number, `dot: true|false`, and its points in drawing direction. Points are fractions (0–1) of the glyph's ink box as the Noto Naskh Arabic Bold font draws it, x to the right, y down, so they land on the same glyph as the guide at any canvas size. `letters.json` is not changed.
+2. **Review.** Claude renders `docs/review/strokes.html` (the font plus `strokes.json`, numbered coins and arrows per letter) and checks every letter against standard Arabic handwriting order. `docs/review/strokes.md` lists the 28 letters with a sign-off box each. The maintainer or a teacher signs it off before release; until then plan 09 is "built, stroke order pending review" in `00-index.md`.
+3. **Completion.** The targets are dots spaced along each stroke. A dot counts once ink lands within the trace tolerance (30 dp). The trace is done when every stroke is at least 70 % covered, in any order and direction. Order and direction are never enforced; there is no fail state. "I did it!" stays as the fallback once there is any ink.
+4. **Demo.** The letter sound plays on entry (sound first), then the demo ball travels every stroke once, in order, about 1.5 s per stroke. The first touch on the canvas stops it. After 5 s with no new ink, while not done, the ball shows only the next unfinished stroke (lowest order number), and again after each further 5 s idle. Tapping the helper picture or "Again" replays the full demo.
+5. **Modes.** Preschool and Early reader get the guided trace. Toddler Paint keeps free painting with no check; it gains only the demo ball, once per page, over its existing outline, with no numbers, dots or idle repeat.
+6. **Look.** The flat 55 % Navy guide is replaced by a pale wide band (the glyph filled pale, as `Trace.html`'s `#EEF3F9` band) with each stroke's dots on its centre line. Start coins are numbered circles: stroke 1 Green `#158048`, the rest Blue `#1F6FE0` (prototype), white number, each with a short arrow pointing along its stroke. The next unfinished stroke's coin pulses gently. A covered dot shrinks away; a finished stroke's coin turns into a star. The demo ball is a bright circle with a short fading trail, drawn in code (no new art). Every new colour pair goes into `TraceSpec.textPairs` and passes the contrast test.
+7. **Helper.** The helper picture becomes a button (≥ 64 dp, label "Show me how") that replays the demo. The bubble reads "Start at the green 1, then follow the dots!".
+8. **Prototype.** `Trace.html` stays the reference: it already shows coin 1, the dotted path, the arrow and coin 2. New beyond it: the demo ball, fading dots, star coins, the pulsing next coin. No designer file is edited.
+
+## Out of scope
+
+Letter shapes other than isolated; teaching in Toddler beyond the ball; strict order or direction checking; per-stroke sounds; a hand illustration; any `letters.json`, DataStore or colour-token change.
