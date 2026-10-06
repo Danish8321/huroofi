@@ -104,8 +104,8 @@ object TraceSpec {
     val Again = 64.dp
     val AgainWidth = 120.dp
     val AgainBorder = Color(0xFFA9CBF2)
-    /** The pale band: the glyph filled pale, as `Trace.html`'s `#EEF3F9` (plan 09 decision 6). */
-    val Band = Color(0xFFEEF3F9)
+    /** The band: the glyph filled pale blue. Darker than `Trace.html`'s `#EEF3F9`, which toddlers could not see (kid review, 2026-10-07). */
+    val Band = Color(0xFFC8DCF4)
     val Dot = HuroofiTokens.Muted
     val FirstCoin = HuroofiTokens.Success
     val OtherCoin = HuroofiTokens.Primary
@@ -115,7 +115,7 @@ object TraceSpec {
     const val SHRINK_MS = 180f
 
     /** The glyph's ink fills this share of the canvas width or height, whichever binds first. */
-    const val INK_SHARE = 0.7f
+    const val INK_SHARE = 0.8f
 
     /** Keeps the canvas about 320 dp tall; a shorter window scrolls (tablet landscape). */
     val MinHeight = 680.dp
@@ -253,6 +253,13 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
     }
     val check = remember(glyph, strokes) {
         glyph?.let { with(density) { GuideState(guideDots(strokes, it.ink, TraceSpec.DotSpacing.toPx()), TraceSpec.Tolerance.toPx()) } }
+    }
+    val coins = remember(glyph, check) {
+        if (glyph == null || check == null) emptyList()
+        else with(density) {
+            val canvas = Rect(Offset.Zero, Size(canvasSize.width.toFloat(), canvasSize.height.toFloat()))
+            coinSpots(check.dots, glyph.ink.center, TraceSpec.CoinRadius.toPx(), TraceSpec.DotStrokeRadius.toPx(), canvas)
+        }
     }
     val inkStrokes = remember { mutableStateListOf<InkStroke>() }
     val coinNumbers = remember(strokes.size) {
@@ -397,13 +404,13 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
                         val color = if (i == 0) TraceSpec.FirstCoin else TraceSpec.OtherCoin
                         val radius = TraceSpec.CoinRadius.toPx() * (if (i == next) pulse else 1f)
                         if (guide.finished(i)) {
-                            drawStar(dots[0], radius * 1.15f)
+                            drawStar(coins[i], radius * 1.15f)
                             continue
                         }
                         drawArrow(dots, color, glyph.ink.center)
-                        drawCircle(color, radius, dots[0])
+                        drawCircle(color, radius, coins[i])
                         val number = coinNumbers[i]
-                        drawText(number, topLeft = Offset(dots[0].x - number.size.width / 2f, dots[0].y - number.size.height / 2f))
+                        drawText(number, topLeft = Offset(coins[i].x - number.size.width / 2f, coins[i].y - number.size.height / 2f))
                     }
                 }
                 DemoBall(demoPaths, demoRun, onFinished = { demoRun = null })
