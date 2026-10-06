@@ -23,7 +23,7 @@ sealed interface DemoEvent {
     /** "Again" cleared the canvas. */
     data object Again : DemoEvent
 
-    /** Every stroke is finished, or "I did it!" was tapped. */
+    /** Every stroke is finished. */
     data object Done : DemoEvent
 }
 

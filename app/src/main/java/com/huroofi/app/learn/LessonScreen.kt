@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,10 +23,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -68,6 +75,9 @@ object LessonSpec {
 
     /** Early reader: a smaller big letter leaves room for the shapes row above "Next" on a phone. */
     val LetterBoxWithShapes = 146.dp
+
+    /** Spare height on a tall screen goes to the letter box; the letter grows with it up to this much. */
+    const val MAX_LETTER_GROWTH = 1.6f
     val ShapeCorner = 18.dp
     val EdgeColor = Color(0xFFCFE2F7)
     const val LETTER_SP = 170f
@@ -140,73 +150,83 @@ fun LessonScreen(
             Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 20.dp, vertical = 18.dp),
         ) {
             PathHeader(PathStep.MEET, "Back to home", onBack)
-            Column(
-                Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-            ) {
-                val outer = RoundedCornerShape(LessonSpec.OuterCorner)
-                Box(
+            // The letter box takes whatever height the window has spare, so a tall phone shows a bigger card
+            // instead of an empty gap; a short window keeps the base size and scrolls.
+            BoxWithConstraints(Modifier.weight(1f)) {
+                val viewport = constraints.maxHeight
+                var naturalPx by remember { mutableIntStateOf(0) }
+                val extraPx = if (naturalPx == 0) 0 else (viewport - naturalPx).coerceAtLeast(0)
+                Column(
                     Modifier
-                        .fillMaxWidth()
-                        .dropEdge(LessonSpec.EdgeColor, 8.dp, outer)
-                        .background(colors.border, outer)
-                        .padding(LessonSpec.Ring),
+                        .verticalScroll(rememberScrollState())
+                        .onSizeChanged { naturalPx = it.height - extraPx }
+                        .padding(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
-                    Column(
-                        Modifier.fillMaxWidth().background(HuroofiTokens.Card, RoundedCornerShape(LessonSpec.InnerCorner)).padding(14.dp),
+                    val outer = RoundedCornerShape(LessonSpec.OuterCorner)
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .dropEdge(LessonSpec.EdgeColor, 8.dp, outer)
+                            .background(colors.border, outer)
+                            .padding(LessonSpec.Ring),
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(Modifier.size(LessonSpec.IndexCircle).background(colors.pastel, CircleShape), contentAlignment = Alignment.Center) {
-                                Text("${letter.index}", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
-                            }
-                            Text(letter.nameLatin, Modifier.weight(1f), style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
-                            Box(Modifier.background(colors.pastel, RoundedCornerShape(999.dp)).padding(horizontal = 16.dp)) {
-                                ArabicText(letter.nameAr, size = LessonSpec.NAME_SP.sp, color = HuroofiTokens.Navy)
-                            }
-                        }
-                        // Naskh line metrics are much taller than the glyph; a fixed box keeps the card compact.
-                        Box(
-                            Modifier.fillMaxWidth().height(if (showShapes) LessonSpec.LetterBoxWithShapes else LessonSpec.LetterBox),
-                            contentAlignment = Alignment.Center,
+                        Column(
+                            Modifier.fillMaxWidth().background(HuroofiTokens.Card, RoundedCornerShape(LessonSpec.InnerCorner)).padding(14.dp),
                         ) {
-                            val letterSp = if (showShapes) LessonSpec.LETTER_WITH_SHAPES_SP else LessonSpec.LETTER_SP
-                            IgnoreFontScale {
-                                ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = letterSp.sp, color = HuroofiTokens.Navy)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Box(Modifier.size(LessonSpec.IndexCircle).background(colors.pastel, CircleShape), contentAlignment = Alignment.Center) {
+                                    Text("${letter.index}", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
+                                }
+                                Text(letter.nameLatin, Modifier.weight(1f), style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
+                                Box(Modifier.background(colors.pastel, RoundedCornerShape(999.dp)).padding(horizontal = 16.dp)) {
+                                    ArabicText(letter.nameAr, size = LessonSpec.NAME_SP.sp, color = HuroofiTokens.Navy)
+                                }
                             }
-                        }
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(22.dp))
-                                .background(colors.pastel)
-                                .clickable(role = Role.Button, onClickLabel = "Hear it again", onClick = onHear)
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Image(letterPicture(letter), contentDescription = letter.meaningEn, modifier = Modifier.size(LessonSpec.Picture))
-                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                                ArabicText(highlightedWord(letter.wordFirst, letter.wordRest, colors.accent), size = LessonSpec.WORD_SP.sp, color = HuroofiTokens.Navy)
-                                Text(letter.meaningEn, style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold), color = HuroofiTokens.Muted)
+                            // Naskh line metrics are much taller than the glyph; a fixed box keeps the card compact.
+                            val baseBox = if (showShapes) LessonSpec.LetterBoxWithShapes else LessonSpec.LetterBox
+                            val box = baseBox + with(LocalDensity.current) { extraPx.toDp() }
+                            Box(Modifier.fillMaxWidth().height(box), contentAlignment = Alignment.Center) {
+                                val growth = (box / baseBox).coerceAtMost(LessonSpec.MAX_LETTER_GROWTH)
+                                val letterSp = growth * if (showShapes) LessonSpec.LETTER_WITH_SHAPES_SP else LessonSpec.LETTER_SP
+                                IgnoreFontScale {
+                                    ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = letterSp.sp, color = HuroofiTokens.Navy)
+                                }
+                            }
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(22.dp))
+                                    .background(colors.pastel)
+                                    .clickable(role = Role.Button, onClickLabel = "Hear it again", onClick = onHear)
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                Image(letterPicture(letter), contentDescription = letter.meaningEn, modifier = Modifier.size(LessonSpec.Picture))
+                                Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                                    ArabicText(highlightedWord(letter.wordFirst, letter.wordRest, colors.accent), size = LessonSpec.WORD_SP.sp, color = HuroofiTokens.Navy)
+                                    Text(letter.meaningEn, style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold), color = HuroofiTokens.Muted)
+                                }
                             }
                         }
                     }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    RoundIconButton(
-                        contentDescription = "Hear the letter",
-                        onClick = onHear,
-                        toddler = true,
-                        size = LessonSpec.Sound,
-                        containerColor = HuroofiTokens.Sun,
-                        shadowColor = HuroofiTokens.SunShadow,
-                    ) { SoundIcon(HuroofiTokens.Navy) }
-                    Column {
-                        Text("Say it with me!", style = HuroofiText.buttonPrimary, color = HuroofiTokens.Navy)
-                        Text("Tap to hear “${letter.nameLatin}” again", style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold), color = HuroofiTokens.Muted)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        RoundIconButton(
+                            contentDescription = "Hear the letter",
+                            onClick = onHear,
+                            toddler = true,
+                            size = LessonSpec.Sound,
+                            containerColor = HuroofiTokens.Sun,
+                            shadowColor = HuroofiTokens.SunShadow,
+                        ) { SoundIcon(HuroofiTokens.Navy) }
+                        Column {
+                            Text("Say it with me!", style = HuroofiText.buttonPrimary, color = HuroofiTokens.Navy)
+                            Text("Tap to hear “${letter.nameLatin}” again", style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold), color = HuroofiTokens.Muted)
+                        }
                     }
+                    if (showShapes) LetterShapesGrid(letter)
                 }
-                if (showShapes) LetterShapesGrid(letter)
             }
             if (onNext != null) PrimaryButton("Next: Trace it", onClick = onNext, icon = ButtonIcons.Next)
         }

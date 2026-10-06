@@ -2,6 +2,10 @@
 
 **Status: pending review.** Claude drafted `data/strokes.json` (plan 09 decision 2). Before release the maintainer or a teacher checks every letter below and signs it off. Until all 28 rows are signed, plan 09 stays "built, stroke order pending review".
 
+## Fit to the font
+
+On 2026-10-06 the points were snapped onto Noto Naskh Arabic Bold with `python tools/strokes_fit.py --write`: line strokes onto the glyph's centre line, dot strokes onto the centre of the letter's own dots. Start points, direction and order were kept. Run the script without `--write` to see how far each stroke sits from the centre line (needs Pillow and numpy on the developer machine). Stroke order still needs the sign-off below.
+
 ## How to open the sheet
 
 The sheet reads the font and the JSON files, which browsers block from `file://`. From the repo root:
