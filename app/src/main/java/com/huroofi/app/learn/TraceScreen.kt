@@ -285,6 +285,8 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
     var demoState by remember { mutableStateOf(DemoState()) }
     var demoRun by remember { mutableStateOf<DemoRun?>(null) }
     var demoCount by remember { mutableIntStateOf(0) }
+    // The idle loop below outlives recompositions; it must see the check built once the glyph is measured.
+    val currentCheck by rememberUpdatedState(check)
     fun send(event: DemoEvent) {
         val (state, play) = reduceDemo(demoState, event)
         demoState = state
@@ -292,7 +294,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
             DemoPlay.Keep -> Unit
             DemoPlay.Stop -> demoRun = null
             DemoPlay.All -> demoRun = DemoRun(strokes.indices.toList(), ++demoCount)
-            DemoPlay.Next -> demoRun = check?.nextStroke()?.let { DemoRun(listOf(it), ++demoCount) }
+            DemoPlay.Next -> demoRun = currentCheck?.nextStroke()?.let { DemoRun(listOf(it), ++demoCount) }
         }
     }
     LaunchedEffect(Unit) { send(DemoEvent.Enter) }
@@ -305,7 +307,6 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
         }
     }
     // The gesture loop outlives recompositions; it reads the latest check and crayon through these.
-    val currentCheck by rememberUpdatedState(check)
     val currentCrayon by rememberUpdatedState(crayon)
 
     fun finish() {
