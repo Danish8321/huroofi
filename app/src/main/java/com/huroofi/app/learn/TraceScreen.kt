@@ -69,16 +69,12 @@ import com.huroofi.app.R
 import com.huroofi.app.data.content.TraceStroke
 import com.huroofi.app.toddler.paint.Crayon
 import com.huroofi.app.ui.components.ButtonIcons
-import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.DemoBall
 import com.huroofi.app.ui.components.DemoBallSpec
 import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.LineIcon
-import com.huroofi.app.ui.components.PrimaryButton
-import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.theme.ContrastPair
-import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
@@ -146,7 +142,7 @@ object TraceSpec {
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "picked crayon ring"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "Again icon"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "Again label"),
-    ) + LessonSpec.headerPairs + ButtonKind.Primary.contrastPairs()
+    ) + LessonSpec.headerPairs
 }
 
 /** Points are snapshot state, so the canvas redraws as a stroke grows. */
@@ -244,8 +240,8 @@ private fun DrawScope.drawArrow(dots: List<Offset>, color: Color, towards: Offse
 
 /**
  * Trace over the pale band with dotted strokes and numbered start coins (plan 09 decision 6).
- * Completes once on its own when every stroke is at [STROKE_NEED] coverage, or with "I did it!"
- * as soon as there is any ink (decision 3). Order, direction and ink outside the letter are never punished.
+ * Completes on its own once every stroke is at [STROKE_NEED] coverage; there is no button to skip it
+ * (plan 09 decision 3, 2026-10-06). Order, direction and ink outside the letter are never punished.
  */
 @Composable
 fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, onBack: () -> Unit, onDone: () -> Unit) {
@@ -429,33 +425,23 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
                     )
                 }
             }
-            // Fixed height, so "I did it!" appearing never resizes the canvas.
-            Row(
-                Modifier.height(HuroofiDimens.PrimaryButtonHeight + HuroofiDimens.ButtonShadow),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.Top,
+            Box(
+                Modifier
+                    .width(TraceSpec.AgainWidth)
+                    .height(TraceSpec.Again)
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(HuroofiTokens.Card)
+                    .border(3.dp, TraceSpec.AgainBorder, RoundedCornerShape(22.dp))
+                    .clickable(role = Role.Button) {
+                        inkStrokes.clear()
+                        check?.clear()
+                        send(DemoEvent.Again)
+                    },
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    Modifier
-                        .width(TraceSpec.AgainWidth)
-                        .height(TraceSpec.Again)
-                        .clip(RoundedCornerShape(22.dp))
-                        .background(HuroofiTokens.Card)
-                        .border(3.dp, TraceSpec.AgainBorder, RoundedCornerShape(22.dp))
-                        .clickable(role = Role.Button) {
-                            inkStrokes.clear()
-                            check?.clear()
-                            send(DemoEvent.Again)
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        LineIcon(ButtonIcons.Again, HuroofiTokens.Navy, size = 22.dp, strokeWidth = 2.4f)
-                        Text("Again", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
-                    }
-                }
-                if (inkStrokes.isNotEmpty()) {
-                    Box(Modifier.weight(1f)) { PrimaryButton("I did it!", onClick = ::finish, icon = ButtonIcons.Done) }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    LineIcon(ButtonIcons.Again, HuroofiTokens.Navy, size = 22.dp, strokeWidth = 2.4f)
+                    Text("Again", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
                 }
             }
         }
