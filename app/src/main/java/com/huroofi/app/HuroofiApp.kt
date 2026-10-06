@@ -41,7 +41,6 @@ import com.huroofi.app.learn.RewardRoute
 import com.huroofi.app.learn.StickerBookRoute
 import com.huroofi.app.learn.TraceRoute
 import com.huroofi.app.learn.NavTab
-import com.huroofi.app.learn.PathStep
 import com.huroofi.app.parent.ChildRoutes
 import com.huroofi.app.parent.ParentZoneRoute
 import com.huroofi.app.parent.RestMove
@@ -221,19 +220,7 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
     }
     composable(LearnRoutes.Home) {
         LearnBackHandler(LearnRoutes.Home, onToGate = toGate)
-        HomeRoute(
-            steps = PathStep.entries,
-            navTabs = navTabs,
-            onStep = { step, index ->
-                when (step) {
-                    PathStep.MEET -> nav.navigate(LearnRoutes.lesson(index), overHome)
-                    PathStep.TRACE -> nav.navigate(LearnRoutes.trace(index), overHome)
-                    PathStep.PLAY -> nav.navigate(LearnRoutes.quiz(index), overHome)
-                }
-            },
-            onMap = toMap,
-            onTab = onTab,
-        )
+        HomeRoute(navTabs, onGo = { index -> nav.navigate(LearnRoutes.lesson(index), overHome) }, onTab = onTab)
     }
     composable(LearnRoutes.Stickers) { StickerBookRoute(navTabs, onTab) }
     composable(LearnRoutes.Lesson, arguments = indexArg) { entry ->

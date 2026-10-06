@@ -51,7 +51,7 @@ Glossary terms used here (see `CONTEXT.md`): Letter path, Learned letter, Learni
 ### 7. Home and bottom nav
 - Lion avatar + "Hi there!". No name, no star pill.
 - Today card: "TODAY'S LETTER", big letter, Latin name, picture, picture word with its first letter highlighted, "Let's go!" → Meet.
-- One row of 3 tiles: Learn, Trace, Play. No Songs.
+- One row of 3 tiles: Learn, Trace, Play. No Songs. *Removed 2026-10-07 (plan 11 decision 3): Home has one main action, "Let's go!".*
 - Stage strip: the open stage's 4 chips (learned green, learning white + blue ring, rest pastel). Tap → Map.
 - Bottom nav: Home, Map, Stickers, Parents (active `#1F6FE0`). Parents opens the Parent gate; it is never a tab. Nav shows on Home, Map, Stickers only.
 - Preschool and Reader start on Home; the `Placeholder` route is deleted.

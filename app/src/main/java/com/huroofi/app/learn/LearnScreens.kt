@@ -47,10 +47,8 @@ internal fun Loading() {
 
 @Composable
 fun HomeRoute(
-    steps: List<PathStep>,
     navTabs: List<NavTab>,
-    onStep: (PathStep, Int) -> Unit,
-    onMap: (() -> Unit)?,
+    onGo: (Int) -> Unit,
     onTab: (NavTab) -> Unit,
 ) {
     val container = LocalAppContainer.current
@@ -69,9 +67,7 @@ fun HomeRoute(
         review = today.index in done,
         strip = content.lettersInStage(open).sortedBy { it.index }.map { StageChip(it, states.getValue(it.index)) },
         stripStage = content.stage(open),
-        steps = steps,
-        onStep = { onStep(it, today.index) },
-        onStrip = onMap,
+        onGo = { onGo(today.index) },
         navTabs = navTabs,
         onTab = onTab,
     )
