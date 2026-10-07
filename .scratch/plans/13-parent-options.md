@@ -14,3 +14,7 @@ Grilled 2026-10-07 ("review the plans"): Q1 practice, not learning; Q2 alphabet 
 ## Out of scope
 
 A browse-all-letters screen; practice tracing without progress; resetting settings.
+
+## Built
+
+On `feat/parent-options`: decision 1 `90fc951`, 2 `f1ffa66`, 3 `ad1595e`, 4 `f3598d7`. Gates `check.sh`, `test-fast.sh`, `contract.sh` pass; `a11y.sh --parent` passes on the Parent zone (top, Lessons and Start over, and the confirm dialog). Emulator: Start over cleared learned letters and kept the 60 min limit; Unlock all shows later stages open and stage 3 opens Meet for ذ; Trace only opens أ with no step track, a finished trace moves to ب, nothing is learned, and a Map card opens ذ. The Reward pill rule (`rewardNext`) is covered by unit tests only, not walked on the emulator. Under Unlock all the Map subtitle reads "start any stage".
