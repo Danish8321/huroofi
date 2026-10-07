@@ -44,6 +44,7 @@ fun ParentZoneRoute(onBack: () -> Unit, footer: @Composable ColumnScope.() -> Un
         onHarakatChange = { scope.launch { progress.setHarakatEnabled(it) } },
         limitMinutes = limit,
         onLimitChange = { scope.launch { progress.setDailyLimitMinutes(it) } },
+        onStartOver = { scope.launch { progress.startOver() } },
         footer = footer,
     )
 }

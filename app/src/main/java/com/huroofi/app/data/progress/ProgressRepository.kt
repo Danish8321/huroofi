@@ -100,6 +100,14 @@ class ProgressRepository(
         }
     }
 
+    /** Clears learned letters and stickers, so the Map is back at stage 1. Every setting stays (plan 13 decision 2). */
+    suspend fun startOver() {
+        store.edit { p ->
+            p.remove(ProgressKeys.completedLetters)
+            p.remove(ProgressKeys.stickers)
+        }
+    }
+
     suspend fun setVoiceEnabled(enabled: Boolean) {
         store.edit { it[ProgressKeys.voiceEnabled] = enabled }
     }
