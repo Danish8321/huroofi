@@ -60,6 +60,7 @@ import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.StarIcon
+import com.huroofi.app.ui.components.calmMotion
 import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.rememberWiggle
 import com.huroofi.app.ui.components.wiggle
@@ -116,7 +117,8 @@ object RewardSpec {
 @Composable
 fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onSticker: () -> Unit, onNext: () -> Unit, unlocked: Boolean = true) {
     Box(Modifier.fillMaxSize().background(RewardSpec.Background)) {
-        Confetti(Modifier.fillMaxSize())
+        // With animations removed, confetti would hang frozen in the air; leave it out (plan 14 decision 3).
+        if (!calmMotion()) Confetti(Modifier.fillMaxSize())
         CappedWidth(Color.Transparent) {
             Column(
                 Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 20.dp),

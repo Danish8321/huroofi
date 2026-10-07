@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.huroofi.app.ui.theme.HuroofiTokens
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 /**
  * Look and timing of the demo hand: a white-gloved pointing hand drawn in code, its fingertip on
@@ -91,7 +92,10 @@ fun DemoHand(paths: List<List<Offset>>, run: DemoRun?, onFinished: () -> Unit, m
             }
             stroke = s
             anim.snapTo(0f)
-            anim.animateTo(1f, tween(DemoHandSpec.STROKE_MS, easing = LinearEasing)) { progress = value }
+            // The hand teaches the stroke, so it moves even when the phone removes animations (plan 14 decision 3).
+            withContext(TeachingMotion) {
+                anim.animateTo(1f, tween(DemoHandSpec.STROKE_MS, easing = LinearEasing)) { progress = value }
+            }
         }
         stroke = -1
         finished()
