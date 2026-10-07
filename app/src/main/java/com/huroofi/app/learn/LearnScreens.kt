@@ -8,10 +8,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.huroofi.app.LocalAppContainer
@@ -20,6 +20,7 @@ import com.huroofi.app.data.progress.AgeMode
 import com.huroofi.app.data.progress.unlockedStage
 import com.huroofi.app.parent.parentProgress
 import com.huroofi.app.toddler.PromptPlayer
+import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.theme.HuroofiTokens
 import kotlin.random.Random
 import kotlinx.coroutines.delay
@@ -175,7 +176,11 @@ fun RewardRoute(stage: Int, onNext: () -> Unit) {
     val content = container.content
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
-    LaunchedEffect(stage) { prompt.play(Clips.cheer) }
+    val buzz = LocalBuzz.current
+    LaunchedEffect(stage) {
+        buzz.confirm()
+        prompt.play(Clips.cheer)
+    }
     val completed by container.progress.completedLetters.collectAsStateWithLifecycle<Set<Int>?>(null)
     val done = completed ?: return Loading()
     val reward = rewardNext(stage, done, content.letters.associate { it.index to it.stage })

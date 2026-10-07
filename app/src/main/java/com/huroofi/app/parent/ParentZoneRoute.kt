@@ -25,6 +25,7 @@ fun ParentZoneRoute(onBack: () -> Unit, footer: @Composable ColumnScope.() -> Un
     val limit by progress.dailyLimitMinutes.collectAsStateWithLifecycle(DEFAULT_LIMIT_MINUTES)
     val unlockAll by progress.unlockAll.collectAsStateWithLifecycle(false)
     val traceOnly by progress.traceOnly.collectAsStateWithLifecycle(false)
+    val haptics by progress.hapticsEnabled.collectAsStateWithLifecycle(true)
     val openStage by progress.unlockedStage.collectAsStateWithLifecycle(1)
     val summary = remember(completed, openStage) {
         parentProgress(content.letters, content.stages, completed, openStage)
@@ -51,6 +52,8 @@ fun ParentZoneRoute(onBack: () -> Unit, footer: @Composable ColumnScope.() -> Un
         traceOnly = traceOnly,
         onTraceOnlyChange = { scope.launch { progress.setTraceOnly(it) } },
         onStartOver = { scope.launch { progress.startOver() } },
+        haptics = haptics,
+        onHapticsChange = { scope.launch { progress.setHapticsEnabled(it) } },
         footer = footer,
     )
 }

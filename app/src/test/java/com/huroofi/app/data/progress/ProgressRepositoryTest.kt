@@ -60,6 +60,7 @@ class ProgressRepositoryTest {
         val r = repo()
         r.setMode(AgeMode.READER)
         r.setDailyLimitMinutes(30)
+        r.setHapticsEnabled(false)
         r.addUsageSeconds(90)
         (1..4).forEach { r.markLetterComplete(it) }
         r.awardSticker(1)
@@ -72,6 +73,15 @@ class ProgressRepositoryTest {
         assertEquals(AgeMode.READER, r.mode.first())
         assertEquals(30, r.dailyLimitMinutes.first())
         assertEquals(90, r.usageSecondsToday.first())
+        assertEquals(false, r.hapticsEnabled.first())
+    }
+
+    @Test
+    fun vibrationIsOnUntilAParentTurnsItOff() = runTest {
+        val r = repo()
+        assertEquals(true, r.hapticsEnabled.first())
+        r.setHapticsEnabled(false)
+        assertEquals(false, r.hapticsEnabled.first())
     }
 
     @Test
@@ -149,7 +159,7 @@ class ProgressRepositoryTest {
             listOf(
                 "schema_version", "mode", "completed_letters", "stickers", "voice_enabled",
                 "harakat_enabled", "daily_limit_minutes", "usage_day", "usage_seconds",
-                "offline_pack_ready", "unlock_all", "trace_only",
+                "offline_pack_ready", "unlock_all", "trace_only", "haptics_enabled",
             ),
             ProgressKeys.names,
         )

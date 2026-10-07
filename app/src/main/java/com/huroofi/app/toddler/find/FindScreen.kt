@@ -53,6 +53,7 @@ import com.huroofi.app.toddler.ToddlerHeader
 import com.huroofi.app.toddler.ToddlerPhrases
 import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ChevronIcon
+import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.ParentLock
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
@@ -225,10 +226,12 @@ fun FindScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     LaunchedEffect(round.target) { audio.ask(round.target) }
     DisposableEffect(Unit) { onDispose { audio.stop() } }
 
+    val buzz = LocalBuzz.current
     val ask = { audio.ask(round.target) }
     val pick = { option: Letter ->
         val (after, result) = game.tap(set, option)
         set = after
+        if (result == TapResult.CORRECT) buzz.confirm()
         audio.onTap(result, after)
     }
     val next = { set = game.next(set) }

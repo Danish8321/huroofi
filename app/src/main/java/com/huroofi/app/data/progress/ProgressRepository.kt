@@ -31,11 +31,12 @@ object ProgressKeys {
     val offlinePackReady = booleanPreferencesKey("offline_pack_ready")
     val unlockAll = booleanPreferencesKey("unlock_all")
     val traceOnly = booleanPreferencesKey("trace_only")
+    val hapticsEnabled = booleanPreferencesKey("haptics_enabled")
 
     val names: List<String> = listOf(
         schemaVersion.name, mode.name, completedLetters.name, stickers.name, voiceEnabled.name,
         harakatEnabled.name, dailyLimitMinutes.name, usageDay.name, usageSeconds.name,
-        offlinePackReady.name, unlockAll.name, traceOnly.name,
+        offlinePackReady.name, unlockAll.name, traceOnly.name, hapticsEnabled.name,
     )
 }
 
@@ -76,6 +77,9 @@ class ProgressRepository(
 
     /** Parent setting: letters open straight into Trace, as practice (plan 13 decision 4). */
     val traceOnly: Flow<Boolean> = store.data.map { it[ProgressKeys.traceOnly] ?: false }
+
+    /** Parent setting: a gentle buzz when the child gets something right (plan 14 decision 4). */
+    val hapticsEnabled: Flow<Boolean> = store.data.map { it[ProgressKeys.hapticsEnabled] ?: true }
 
     val offlinePackReady: Flow<Boolean> = store.data.map { it[ProgressKeys.offlinePackReady] ?: false }
 
@@ -144,6 +148,10 @@ class ProgressRepository(
 
     suspend fun setTraceOnly(enabled: Boolean) {
         store.edit { it[ProgressKeys.traceOnly] = enabled }
+    }
+
+    suspend fun setHapticsEnabled(enabled: Boolean) {
+        store.edit { it[ProgressKeys.hapticsEnabled] = enabled }
     }
 
     suspend fun setOfflinePackReady(ready: Boolean) {

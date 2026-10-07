@@ -1,5 +1,10 @@
 package com.huroofi.app.learn
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,23 +28,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -69,7 +69,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import com.huroofi.app.R
 import com.huroofi.app.data.content.TraceStroke
 import com.huroofi.app.toddler.paint.Crayon
@@ -79,6 +78,7 @@ import com.huroofi.app.ui.components.DemoHand
 import com.huroofi.app.ui.components.DemoHandSpec
 import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.LineIcon
+import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
@@ -90,6 +90,7 @@ import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlinx.coroutines.delay
 
 private const val IDLE_TICK_MS = 100L
 
@@ -177,6 +178,8 @@ private class GuideState(val dots: List<List<Offset>>, tolerancePx: Float) {
         private set
 
     val done: Boolean get() = check.done
+
+    val finishedStrokes: Int get() = dots.indices.count(check::finished)
 
     fun addInk(point: Offset) {
         check.addInk(point)
@@ -319,6 +322,7 @@ fun TraceScreen(
     var demoCount by remember { mutableIntStateOf(0) }
     // The idle loop below outlives recompositions; it must see the check built once the glyph is measured.
     val currentCheck by rememberUpdatedState(check)
+    val buzz by rememberUpdatedState(LocalBuzz.current)
     fun send(event: DemoEvent) {
         val (state, play) = reduceDemo(demoState, event)
         demoState = state
@@ -344,6 +348,7 @@ fun TraceScreen(
     fun finish() {
         if (!finished) {
             finished = true
+            buzz.confirm()
             send(DemoEvent.Done)
             onDone()
         }
@@ -409,7 +414,10 @@ fun TraceScreen(
                                 val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
                                 if (!change.pressed) break
                                 change.consume()
+                                val before = currentCheck?.finishedStrokes
                                 currentCheck?.addSegment(stroke.points.last(), change.position, stepPx)
+                                // A light tick for each finished stroke; the last one gets finish()'s buzz instead.
+                                currentCheck?.let { if (!it.done && before != null && it.finishedStrokes > before) buzz.tick() }
                                 send(DemoEvent.Ink)
                                 stroke.points += change.position
                             }

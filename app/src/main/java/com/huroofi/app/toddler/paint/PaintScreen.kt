@@ -65,6 +65,7 @@ import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ChevronIcon
 import com.huroofi.app.ui.components.DemoHand
 import com.huroofi.app.ui.components.DemoRun
+import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarIcon
@@ -160,7 +161,13 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     var demoRun by remember(page.letter) { mutableStateOf<DemoRun?>(DemoRun(demoStrokes(strokes), 0)) }
 
     LaunchedEffect(page.letter) { audio.ask(page.letter) }
-    LaunchedEffect(star) { if (star) audio.star() }
+    val buzz = LocalBuzz.current
+    LaunchedEffect(star) {
+        if (star) {
+            buzz.confirm()
+            audio.star()
+        }
+    }
     DisposableEffect(Unit) { onDispose { audio.stop() } }
 
     ToddlerScaffold {

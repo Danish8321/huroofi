@@ -164,6 +164,8 @@ fun ParentZoneScreen(
     traceOnly: Boolean,
     onTraceOnlyChange: (Boolean) -> Unit,
     onStartOver: () -> Unit,
+    haptics: Boolean,
+    onHapticsChange: (Boolean) -> Unit,
     footer: @Composable ColumnScope.() -> Unit = {},
 ) {
     CappedWidth(LocalHuroofiColors.current.parentBg) {
@@ -182,7 +184,7 @@ fun ParentZoneScreen(
                 Text("All ${letters.size} letters", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy)
                 LetterGrid(letters)
             }
-            SettingsCard(voice, onVoiceChange, harakat, onHarakatChange, limitMinutes, onLimitChange)
+            SettingsCard(voice, onVoiceChange, haptics, onHapticsChange, harakat, onHarakatChange, limitMinutes, onLimitChange)
             LessonsCard(unlockAll, onUnlockAllChange, traceOnly, onTraceOnlyChange)
             StartOverCard(onStartOver)
             footer()
@@ -319,6 +321,8 @@ private fun ModeButton(title: String, age: String, selected: Boolean, modifier: 
 private fun SettingsCard(
     voice: Boolean,
     onVoiceChange: (Boolean) -> Unit,
+    haptics: Boolean,
+    onHapticsChange: (Boolean) -> Unit,
     harakat: Boolean,
     onHarakatChange: (Boolean) -> Unit,
     limitMinutes: Int,
@@ -333,6 +337,8 @@ private fun SettingsCard(
             .padding(horizontal = ZoneSpec.CardPadding, vertical = 4.dp),
     ) {
         ToggleRow("Voice & sounds", AnnotatedString("Native-speaker audio for every letter"), voice, onVoiceChange)
+        ZoneDivider()
+        ToggleRow("Vibration", AnnotatedString("A gentle buzz when your child gets it right"), haptics, onHapticsChange)
         ZoneDivider()
         // Plan 07 decision 6: vowelled data is deferred, so the toggle is locked off until it ships.
         ToggleRow("Show vowel marks", harakatSubtitle, harakat, onHarakatChange, enabled = false)
@@ -596,5 +602,5 @@ private fun ParentZonePreview() {
         GridLetter(glyphs[i % glyphs.size], "letter ${i + 1}", state)
     }
     val progress = ParentProgress(stage, 7, letters.mapIndexed { i, l -> i + 1 to l.state }.toMap())
-    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}, limitMinutes = 20, onLimitChange = {}, unlockAll = false, onUnlockAllChange = {}, traceOnly = false, onTraceOnlyChange = {}, onStartOver = {}) }
+    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}, limitMinutes = 20, onLimitChange = {}, unlockAll = false, onUnlockAllChange = {}, traceOnly = false, onTraceOnlyChange = {}, onStartOver = {}, haptics = true, onHapticsChange = {}) }
 }
