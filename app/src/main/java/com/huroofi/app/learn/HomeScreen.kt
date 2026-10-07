@@ -8,14 +8,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -30,7 +26,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -38,6 +37,8 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,6 +71,9 @@ import com.huroofi.app.ui.theme.highlightedWord
 object HomeSpec {
     val Avatar = 58.dp
     val Gap = 22.dp
+    val ScreenPad = 20.dp
+    /** Tallest Today's letter card grows on a tall screen; a tablet keeps the rest as gaps. */
+    val CardMax = 460.dp
     val CardCorner = 30.dp
     val CardShadow = Color(0xFFCFE2F7)
     val Edge = 8.dp
@@ -134,12 +138,12 @@ fun HomeScreen(
     CappedWidth(HuroofiTokens.Sky) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             BoxWithConstraints(Modifier.weight(1f)) {
-                // At least the screen tall, so spare height is shared between the gaps instead of pooling above the nav.
-                Column(Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(horizontal = 20.dp, vertical = 20.dp)) {
+                HomeColumn(
+                    room = maxHeight,
+                    modifier = Modifier.verticalScroll(rememberScrollState()).padding(HomeSpec.ScreenPad),
+                ) {
                     Greeting(review)
-                    SectionGap()
                     TodayCard(today, todayStage, onGo, onHearLetter, onHearWord)
-                    SectionGap()
                     StageStrip(strip, stripStage)
                 }
             }
@@ -148,11 +152,30 @@ fun HomeScreen(
     }
 }
 
-/** [HomeSpec.Gap] plus an equal share of any spare height. */
+/**
+ * Greeting, Today's letter card and stage strip, [HomeSpec.Gap] apart. On a tall screen ([room] high)
+ * the card grows into the spare height up to [HomeSpec.CardMax], and what is left still splits between
+ * the two gaps, so nothing pools above the nav (plan 14 decision 1). Short of room it scrolls.
+ */
 @Composable
-private fun ColumnScope.SectionGap() {
-    Spacer(Modifier.height(HomeSpec.Gap))
-    Spacer(Modifier.weight(1f))
+private fun HomeColumn(room: Dp, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Layout(content, modifier) { measurables, constraints ->
+        val (greetingM, cardM, stripM) = measurables
+        val loose = constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity)
+        val greeting = greetingM.measure(loose)
+        val strip = stripM.measure(loose)
+        val gap = HomeSpec.Gap.roundToPx()
+        // The scroll's own padding is inside [room], and the column only sees what is left of it.
+        val inner = room.roundToPx() - (HomeSpec.ScreenPad * 2).roundToPx()
+        val cardRoom = (inner - greeting.height - strip.height - 2 * gap).coerceIn(0, HomeSpec.CardMax.roundToPx())
+        val card = cardM.measure(loose.copy(minHeight = cardRoom))
+        val spare = (inner - greeting.height - card.height - strip.height).coerceAtLeast(2 * gap)
+        layout(constraints.maxWidth, greeting.height + card.height + strip.height + spare) {
+            greeting.place(0, 0)
+            card.place(0, greeting.height + spare / 2)
+            strip.place(0, greeting.height + spare / 2 + card.height + spare - spare / 2)
+        }
+    }
 }
 
 @Composable
@@ -189,60 +212,62 @@ private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit, onHearLett
             .clip(shape)
             .background(HuroofiTokens.Card)
             .padding(20.dp),
+        // Grown into spare height, the space goes either side of the letter row; the button stays at the bottom.
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Box(Modifier.fillMaxWidth()) {
-            // Decorative bubbles in the stage pastel, top-end corner as in the prototype.
-            Box(Modifier.align(Alignment.TopEnd).offset(30.dp, (-58).dp).size(120.dp).background(colors.pastel, CircleShape))
-            Box(Modifier.align(Alignment.TopEnd).offset((-60).dp, (-30).dp).size(70.dp).background(colors.pastel, CircleShape))
-            Column {
-                Text(
-                    "TODAY'S LETTER",
-                    style = HuroofiText.caption.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp),
-                    color = HuroofiTokens.Primary,
-                )
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    // Letter and picture answer a tap with their sound and a wiggle (plan 11 decision 2).
-                    val letterWiggle = rememberWiggle()
-                    val pictureWiggle = rememberWiggle()
-                    Column(
-                        Modifier
-                            .weight(1f)
-                            // No clip and no ripple: the glyph overflows its box, and the wiggle is the answer.
-                            .clickable(interactionSource = null, indication = null, role = Role.Button, onClickLabel = "Hear the letter") {
-                                letterWiggle.play()
-                                onHearLetter()
-                            }
-                            .wiggle(letterWiggle),
-                    ) {
-                        Box(Modifier.height(HomeSpec.LetterBox), contentAlignment = Alignment.Center) {
-                            IgnoreFontScale {
-                                ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = HomeSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
-                            }
-                        }
-                        Text(letter.nameLatin, style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
+        Text(
+            "TODAY'S LETTER",
+            Modifier
+                .fillMaxWidth()
+                // Decorative bubbles in the stage pastel, top-end corner as in the prototype. Drawn, not laid out,
+                // so they add no height to the label row.
+                .drawBehind {
+                    drawCircle(colors.pastel, 60.dp.toPx(), Offset(size.width - 30.dp.toPx(), 2.dp.toPx()))
+                    drawCircle(colors.pastel, 35.dp.toPx(), Offset(size.width - 95.dp.toPx(), 5.dp.toPx()))
+                },
+            style = HuroofiText.caption.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp),
+            color = HuroofiTokens.Primary,
+        )
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            // Letter and picture answer a tap with their sound and a wiggle (plan 11 decision 2).
+            val letterWiggle = rememberWiggle()
+            val pictureWiggle = rememberWiggle()
+            Column(
+                Modifier
+                    .weight(1f)
+                    // No clip and no ripple: the glyph overflows its box, and the wiggle is the answer.
+                    .clickable(interactionSource = null, indication = null, role = Role.Button, onClickLabel = "Hear the letter") {
+                        letterWiggle.play()
+                        onHearLetter()
                     }
-                    Column(
-                        Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .clickable(role = Role.Button, onClickLabel = "Hear the word") {
-                                pictureWiggle.play()
-                                onHearWord()
-                            }
-                            .wiggle(pictureWiggle),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Image(letterPicture(letter), contentDescription = letter.meaningEn, modifier = Modifier.size(HomeSpec.Picture))
-                        ArabicText(
-                            highlightedWord(letter.wordFirst, letter.wordRest, colors.accent),
-                            size = HomeSpec.WORD_SP.sp,
-                            color = HuroofiTokens.Navy,
-                        )
+                    .wiggle(letterWiggle),
+            ) {
+                Box(Modifier.height(HomeSpec.LetterBox), contentAlignment = Alignment.Center) {
+                    IgnoreFontScale {
+                        ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = HomeSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
                     }
                 }
+                Text(letter.nameLatin, style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
+            }
+            Column(
+                Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable(role = Role.Button, onClickLabel = "Hear the word") {
+                        pictureWiggle.play()
+                        onHearWord()
+                    }
+                    .wiggle(pictureWiggle),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Image(letterPicture(letter), contentDescription = letter.meaningEn, modifier = Modifier.size(HomeSpec.Picture))
+                ArabicText(
+                    highlightedWord(letter.wordFirst, letter.wordRest, colors.accent),
+                    size = HomeSpec.WORD_SP.sp,
+                    color = HuroofiTokens.Navy,
+                )
             }
         }
-        Spacer(Modifier.height(16.dp))
-        PrimaryButton("Let's go!", onClick = onGo, icon = ButtonIcons.Next)
+        PrimaryButton("Let's go!", onClick = onGo, modifier = Modifier.padding(top = 16.dp), icon = ButtonIcons.Next)
     }
 }
 

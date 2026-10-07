@@ -32,6 +32,8 @@
 
 **Unlock all**: the Parent-zone setting that lets the child start any stage from the Letter Map. The open stage is still the one progress has reached; Today's letter and the learning letter follow it.
 
+**Vibration**: the Parent-zone setting that lets the phone buzz gently when the child does something right (a finished stroke, a right answer, a sticker). Never on a wrong answer. Default on.
+
 **Sticker**: the reward for a completed stage; one per stage, seven in all, named after the stage (e.g. "Sunny Meadow sticker"). The app has no other score or currency.
 
 **Sticker book**: the Stickers tab; shows all seven stickers, earned ones filled in and the rest as gentle empty slots.

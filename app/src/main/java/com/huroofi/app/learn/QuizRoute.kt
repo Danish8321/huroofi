@@ -12,6 +12,7 @@ import com.huroofi.app.audio.Clips
 import com.huroofi.app.data.progress.isStageComplete
 import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.toddler.pickExcept
+import com.huroofi.app.ui.components.LocalBuzz
 import kotlin.random.Random
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -34,6 +35,7 @@ fun QuizRoute(index: Int, onClose: () -> Unit, onContinue: (PathNext) -> Unit) {
     val progress = container.progress
     val target = remember(index) { content.letter(index) }
     val scope = rememberCoroutineScope()
+    val buzz = LocalBuzz.current
     val prompt = remember { PromptPlayer(container.sound, scope) }
     val random = remember { Random(Random.nextInt()) }
     var lastPraise by remember { mutableStateOf<Int?>(null) }
@@ -83,6 +85,7 @@ fun QuizRoute(index: Int, onClose: () -> Unit, onContinue: (PathNext) -> Unit) {
                 prompt.play(Clips.boing)
                 return@QuizScreen
             }
+            buzz.confirm()
             val n = pickExcept((1..Clips.PRAISE_COUNT).toList(), lastPraise, random)
             lastPraise = n
             if (after.finished) {

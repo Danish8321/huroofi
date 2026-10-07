@@ -1,5 +1,10 @@
 package com.huroofi.app.learn
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,6 +19,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -22,23 +28,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -68,7 +69,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import com.huroofi.app.R
 import com.huroofi.app.data.content.TraceStroke
 import com.huroofi.app.toddler.paint.Crayon
@@ -78,6 +78,8 @@ import com.huroofi.app.ui.components.DemoHand
 import com.huroofi.app.ui.components.DemoHandSpec
 import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.LineIcon
+import com.huroofi.app.ui.components.LocalBuzz
+import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
@@ -88,6 +90,7 @@ import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlinx.coroutines.delay
 
 private const val IDLE_TICK_MS = 100L
 
@@ -145,6 +148,7 @@ object TraceSpec {
     /** The guide is the shape to trace, so it counts as a cue. Crayon colours are content, like Paint's. */
     val textPairs: List<ContrastPair> = listOf(
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "helper bubble"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = true, "helper bubble speaker"),
         ContrastPair(Outline, HuroofiTokens.Card, large = true, "letter outline"),
         ContrastPair(Dot, Band, large = true, "trace dot"),
         ContrastPair(DoneDot, Band, large = true, "covered trace dot"),
@@ -174,6 +178,8 @@ private class GuideState(val dots: List<List<Offset>>, tolerancePx: Float) {
         private set
 
     val done: Boolean get() = check.done
+
+    val finishedStrokes: Int get() = dots.indices.count(check::finished)
 
     fun addInk(point: Offset) {
         check.addInk(point)
@@ -262,7 +268,15 @@ private fun DrawScope.drawArrow(dots: List<Offset>, color: Color, towards: Offse
  * doesn't show (plan 12 decision 4).
  */
 @Composable
-fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, onBack: () -> Unit, onDone: () -> Unit, practice: Boolean = false) {
+fun TraceScreen(
+    letter: String,
+    strokes: List<TraceStroke>,
+    introDone: Boolean,
+    onBack: () -> Unit,
+    onDone: () -> Unit,
+    onHearHint: () -> Unit = {},
+    practice: Boolean = false,
+) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -308,6 +322,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
     var demoCount by remember { mutableIntStateOf(0) }
     // The idle loop below outlives recompositions; it must see the check built once the glyph is measured.
     val currentCheck by rememberUpdatedState(check)
+    val buzz by rememberUpdatedState(LocalBuzz.current)
     fun send(event: DemoEvent) {
         val (state, play) = reduceDemo(demoState, event)
         demoState = state
@@ -333,6 +348,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
     fun finish() {
         if (!finished) {
             finished = true
+            buzz.confirm()
             send(DemoEvent.Done)
             onDone()
         }
@@ -353,12 +369,26 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
                 ) {
                     Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.fillMaxSize())
                 }
-                Text(
-                    "Start at the green 1, then follow the dots!",
-                    Modifier.weight(1f).background(HuroofiTokens.Card, RoundedCornerShape(20.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
-                    style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
-                    color = HuroofiTokens.Navy,
-                )
+                // The hint is spoken too (plan 14 decision 2); a tap on the bubble says it again.
+                Row(
+                    Modifier
+                        .weight(1f)
+                        .heightIn(min = TraceSpec.Helper)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(HuroofiTokens.Card)
+                        .clickable(role = Role.Button, onClickLabel = "Hear the hint", onClick = onHearHint)
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Start at the green 1, then follow the dots!",
+                        Modifier.weight(1f),
+                        style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
+                        color = HuroofiTokens.Navy,
+                    )
+                    SoundIcon(HuroofiTokens.Primary, size = 26.dp)
+                }
             }
             val cardShape = RoundedCornerShape(TraceSpec.CanvasCorner)
             Box(
@@ -384,7 +414,10 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
                                 val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
                                 if (!change.pressed) break
                                 change.consume()
+                                val before = currentCheck?.finishedStrokes
                                 currentCheck?.addSegment(stroke.points.last(), change.position, stepPx)
+                                // A light tick for each finished stroke; the last one gets finish()'s buzz instead.
+                                currentCheck?.let { if (!it.done && before != null && it.finishedStrokes > before) buzz.tick() }
                                 send(DemoEvent.Ink)
                                 stroke.points += change.position
                             }
@@ -460,8 +493,10 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
                     )
                 }
             }
+            // Centred under the paints instead of alone at the start (plan 14 decision 5).
             Box(
                 Modifier
+                    .align(Alignment.CenterHorizontally)
                     .width(TraceSpec.AgainWidth)
                     .height(TraceSpec.Again)
                     .clip(RoundedCornerShape(22.dp))

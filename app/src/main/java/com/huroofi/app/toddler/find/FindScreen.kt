@@ -53,6 +53,7 @@ import com.huroofi.app.toddler.ToddlerHeader
 import com.huroofi.app.toddler.ToddlerPhrases
 import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ChevronIcon
+import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.ParentLock
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
@@ -77,11 +78,12 @@ import kotlinx.coroutines.launch
 object FindSpec {
     val SunButton = 84.dp
     val NextButton = 96.dp
-    val TileHeight = 230.dp
+    /** Tallest a tile grows; on a tall phone the two tiles share the spare height up to this (plan 14 decision 1). */
+    val TileHeight = 300.dp
     val TileCorner = 40.dp
     val TileBorder = 6.dp
     val TileShadow = 8.dp
-    val PictureSize = 180.dp
+    val PictureSize = 210.dp
     val HeaderStar = 30.dp
     const val PROMPT_SP = 42f
     const val WORD_SP = 50f
@@ -224,10 +226,12 @@ fun FindScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     LaunchedEffect(round.target) { audio.ask(round.target) }
     DisposableEffect(Unit) { onDispose { audio.stop() } }
 
+    val buzz = LocalBuzz.current
     val ask = { audio.ask(round.target) }
     val pick = { option: Letter ->
         val (after, result) = game.tap(set, option)
         set = after
+        if (result == TapResult.CORRECT) buzz.confirm()
         audio.onTap(result, after)
     }
     val next = { set = game.next(set) }

@@ -56,6 +56,7 @@ import com.huroofi.app.toddler.find.FindScreen
 import com.huroofi.app.toddler.paint.PaintScreen
 import com.huroofi.app.ui.ImmersiveBars
 import com.huroofi.app.ui.components.PrimaryButton
+import com.huroofi.app.ui.components.ProvideBuzz
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 import kotlinx.coroutines.delay
@@ -83,13 +84,16 @@ fun HuroofiApp(onCloseApp: () -> Unit = {}) {
     HuroofiTheme {
         val progress = LocalAppContainer.current.progress
         var mode by rememberSaveable { mutableStateOf<AgeMode?>(null) }
+        val haptics by progress.hapticsEnabled.collectAsStateWithLifecycle(true)
         LaunchedEffect(Unit) {
             if (mode == null) mode = progress.mode.first()
         }
-        when (val session = mode) {
-            null -> Box(Modifier.fillMaxSize().background(LocalHuroofiColors.current.sky))
-            // A new mode gets a fresh back stack starting at its own home.
-            else -> key(session) { HuroofiNavHost(session, onCloseApp, onModeChange = { mode = it }) }
+        ProvideBuzz(haptics) {
+            when (val session = mode) {
+                null -> Box(Modifier.fillMaxSize().background(LocalHuroofiColors.current.sky))
+                // A new mode gets a fresh back stack starting at its own home.
+                else -> key(session) { HuroofiNavHost(session, onCloseApp, onModeChange = { mode = it }) }
+            }
         }
     }
 }

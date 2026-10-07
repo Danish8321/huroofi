@@ -31,6 +31,9 @@ object Clips {
     /** "Which picture starts with the letter…?", followed by the letter clip (plan 07 decision 4). */
     val whichStartsWith = Clip("audio/prompts/which_starts_with.mp3")
 
+    /** Trace's helper line, "Start at the green 1, then follow the dots!" (plan 14 decision 2). */
+    val traceHint = Clip("audio/prompts/trace_hint.mp3")
+
     fun praise(n: Int): Clip {
         require(n in 1..PRAISE_COUNT) { "praise clip must be 1..$PRAISE_COUNT" }
         return Clip("audio/sfx/praise_$n.mp3")
@@ -43,5 +46,5 @@ object Clips {
 
     fun all(letters: List<Letter>): List<Clip> =
         letters.flatMap { listOf(letter(it), word(it), whereIs(it), colour(it)) } +
-            whatShallWePlay + timeToRest + whichStartsWith + (1..PRAISE_COUNT).map(::praise) + boing + cheer
+            whatShallWePlay + timeToRest + whichStartsWith + traceHint + (1..PRAISE_COUNT).map(::praise) + boing + cheer
 }
