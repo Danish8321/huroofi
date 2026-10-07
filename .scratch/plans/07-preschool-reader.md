@@ -39,7 +39,7 @@ Glossary terms used here (see `CONTEXT.md`): Letter path, Learned letter, Learni
 
 ### 5. Reward, stickers, sticker book
 - One Sticker per stage (7), named "<stage name> sticker". Drawn in code: round badge in the stage pastel and border colours with the stage's 4 letter pictures. No new art, no JSON change.
-- Reward: confetti, always 3 stars, `cheer`, "Stage N complete!", "You learned 4 new letters", 4 letter tiles, the sticker card, "<next stage name> unlocked" (last stage: "All letters learned!"). One button: "Next stage" → Map.
+- Reward: confetti, always 3 stars, `cheer`, "Stage N complete!", "You learned 4 new letters", 4 letter tiles, the sticker card, "<next stage name> unlocked" (2026-10-07, plan 11 decision 6: the sticker is now the big animated hero with its name under it; the card, "NEW STICKER" and "You learned 4 new letters" are gone) (last stage: "All letters learned!"). One button: "Next stage" → Map.
 - The sticker is awarded (`awardSticker`) in the same step that marks the stage's 4th letter learned, before Reward opens, so killing the app on the way never loses it. The next stage unlocks by the existing `unlockedStage` rule.
 - Stickers tab = Sticker book: 7 slots; earned shows badge and name, unearned a soft pastel outline with "?". No lock, no grey, not tappable.
 - No stars currency anywhere (no star pill, no "+12").
