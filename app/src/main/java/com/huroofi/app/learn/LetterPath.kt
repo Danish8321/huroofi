@@ -73,6 +73,17 @@ fun rewardNext(stage: Int, completed: Set<Int>, stageOf: Map<Int, Int>): RewardN
     return if (open > stage) RewardNext.Unlocked(open) else RewardNext.Nothing
 }
 
+/**
+ * Trace practice (plan 13 decision 4): the letter after [current] in alphabet order, wrapping after
+ * the last, among the letters of open stages: every stage up to the one progress has reached, or all
+ * of them with [unlockAll].
+ */
+fun nextPracticeLetter(letters: List<Letter>, completed: Set<Int>, unlockAll: Boolean, current: Int): Int {
+    val open = unlockedStage(completed, letters.associate { it.index to it.stage })
+    val pool = letters.filter { unlockAll || it.stage <= open }.map { it.index }.sorted()
+    return pool.firstOrNull { it > current } ?: pool.first()
+}
+
 /** A letter of a finished stage to play again: any of [indices] but [last], unless it is the only one (plan 11 decision 2). */
 fun replayLetter(indices: List<Int>, last: Int, random: Random): Int {
     require(indices.isNotEmpty()) { "a stage has letters" }

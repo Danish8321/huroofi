@@ -30,11 +30,12 @@ object ProgressKeys {
     val usageSeconds = intPreferencesKey("usage_seconds")
     val offlinePackReady = booleanPreferencesKey("offline_pack_ready")
     val unlockAll = booleanPreferencesKey("unlock_all")
+    val traceOnly = booleanPreferencesKey("trace_only")
 
     val names: List<String> = listOf(
         schemaVersion.name, mode.name, completedLetters.name, stickers.name, voiceEnabled.name,
         harakatEnabled.name, dailyLimitMinutes.name, usageDay.name, usageSeconds.name,
-        offlinePackReady.name, unlockAll.name,
+        offlinePackReady.name, unlockAll.name, traceOnly.name,
     )
 }
 
@@ -72,6 +73,9 @@ class ProgressRepository(
 
     /** Parent setting: every stage can be started from the Map (plan 13 decision 3). */
     val unlockAll: Flow<Boolean> = store.data.map { it[ProgressKeys.unlockAll] ?: false }
+
+    /** Parent setting: letters open straight into Trace, as practice (plan 13 decision 4). */
+    val traceOnly: Flow<Boolean> = store.data.map { it[ProgressKeys.traceOnly] ?: false }
 
     val offlinePackReady: Flow<Boolean> = store.data.map { it[ProgressKeys.offlinePackReady] ?: false }
 
@@ -136,6 +140,10 @@ class ProgressRepository(
 
     suspend fun setUnlockAll(enabled: Boolean) {
         store.edit { it[ProgressKeys.unlockAll] = enabled }
+    }
+
+    suspend fun setTraceOnly(enabled: Boolean) {
+        store.edit { it[ProgressKeys.traceOnly] = enabled }
     }
 
     suspend fun setOfflinePackReady(ready: Boolean) {

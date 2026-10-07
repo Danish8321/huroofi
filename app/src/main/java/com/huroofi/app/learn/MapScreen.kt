@@ -315,11 +315,12 @@ private fun PlayIcon(color: Color) {
  * finished card opens Meet for one of its letters at random, never the same one twice in a row.
  */
 @Composable
-fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Unit) {
+fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Unit, onPractice: (Int) -> Unit) {
     val container = LocalAppContainer.current
     val content = container.content
     val completed by container.progress.completedLetters.collectAsStateWithLifecycle<Set<Int>?>(null)
     val unlockAll by container.progress.unlockAll.collectAsStateWithLifecycle(false)
+    val traceOnly by container.progress.traceOnly.collectAsStateWithLifecycle(false)
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
     var lastReplay by rememberSaveable { mutableIntStateOf(0) }
@@ -329,6 +330,8 @@ fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Un
     val states = stageStates(content.stages, done, stageOf, unlockAll)
     val letterStates = parentProgress(content.letters, content.stages, done, open).states
     val learning = learningLetter(content.letters, done, open)
+    // Trace practice opens a stage at its first letter (plan 13 decision 4).
+    val practiceStage = { stage: Int -> onPractice(content.lettersInStage(stage).minOf { it.index }) }
     MapScreen(
         stages = content.stages.sortedBy { it.stage }.map { stage ->
             MapStage(
@@ -339,17 +342,21 @@ fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Un
         },
         onPlay = {
             prompt.stop()
-            learning?.let { onPlay(it.index) }
+            if (traceOnly) practiceStage(open) else learning?.let { onPlay(it.index) }
         },
         onReplay = { stage ->
             prompt.stop()
-            val pick = replayLetter(content.lettersInStage(stage.stage).map { it.index }, lastReplay, Random)
-            lastReplay = pick
-            onPlay(pick)
+            if (traceOnly) {
+                practiceStage(stage.stage)
+            } else {
+                val pick = replayLetter(content.lettersInStage(stage.stage).map { it.index }, lastReplay, Random)
+                lastReplay = pick
+                onPlay(pick)
+            }
         },
         onOpen = { stage ->
             prompt.stop()
-            learningLetter(content.letters, done, stage.stage)?.let { onPlay(it.index) }
+            if (traceOnly) practiceStage(stage.stage) else learningLetter(content.letters, done, stage.stage)?.let { onPlay(it.index) }
         },
         onLocked = { prompt.play(Clips.boing) },
         navTabs = navTabs,

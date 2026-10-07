@@ -120,6 +120,24 @@ class LetterPathTest {
     }
 
     @Test
+    fun practiceGoesToTheNextLetterInAlphabetOrder() {
+        assertEquals(2, nextPracticeLetter(letters, emptySet(), unlockAll = false, current = 1))
+    }
+
+    @Test
+    fun practiceWrapsWithinTheOpenStages() {
+        assertEquals(1, nextPracticeLetter(letters, emptySet(), unlockAll = false, current = 4))
+        assertEquals(5, nextPracticeLetter(letters, (1..4).toSet(), unlockAll = false, current = 4))
+        assertEquals(1, nextPracticeLetter(letters, (1..4).toSet(), unlockAll = false, current = 8))
+    }
+
+    @Test
+    fun practiceWithUnlockAllRunsThroughAllLetters() {
+        assertEquals(5, nextPracticeLetter(letters, emptySet(), unlockAll = true, current = 4))
+        assertEquals(1, nextPracticeLetter(letters, emptySet(), unlockAll = true, current = 28))
+    }
+
+    @Test
     fun replayNeverRepeatsTheLastLetter() {
         val stage = listOf(5, 6, 7, 8)
         repeat(50) { seed -> assertTrue(replayLetter(stage, 6, Random(seed)) in listOf(5, 7, 8)) }

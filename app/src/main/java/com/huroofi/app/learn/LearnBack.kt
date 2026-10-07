@@ -21,6 +21,7 @@ object LearnRoutes {
     const val Stickers = "stickers"
     const val Lesson = "lesson/{index}"
     const val Trace = "trace/{index}"
+    const val Practice = "practice/{index}"
     const val Quiz = "quiz/{index}"
     const val Reward = "reward/{stage}"
     const val ARG_INDEX = "index"
@@ -28,6 +29,7 @@ object LearnRoutes {
 
     fun lesson(index: Int) = "lesson/$index"
     fun trace(index: Int) = "trace/$index"
+    fun practice(index: Int) = "practice/$index"
     fun quiz(index: Int) = "quiz/$index"
     fun reward(stage: Int) = "reward/$stage"
 }

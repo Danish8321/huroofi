@@ -161,6 +161,8 @@ fun ParentZoneScreen(
     onLimitChange: (Int) -> Unit,
     unlockAll: Boolean,
     onUnlockAllChange: (Boolean) -> Unit,
+    traceOnly: Boolean,
+    onTraceOnlyChange: (Boolean) -> Unit,
     onStartOver: () -> Unit,
     footer: @Composable ColumnScope.() -> Unit = {},
 ) {
@@ -181,7 +183,7 @@ fun ParentZoneScreen(
                 LetterGrid(letters)
             }
             SettingsCard(voice, onVoiceChange, harakat, onHarakatChange, limitMinutes, onLimitChange)
-            LessonsCard(unlockAll, onUnlockAllChange)
+            LessonsCard(unlockAll, onUnlockAllChange, traceOnly, onTraceOnlyChange)
             StartOverCard(onStartOver)
             footer()
         }
@@ -370,10 +372,12 @@ private fun ZoneDivider() {
 
 /** How lessons open (plan 13 decisions 3 and 4). */
 @Composable
-private fun LessonsCard(unlockAll: Boolean, onUnlockAllChange: (Boolean) -> Unit) {
+private fun LessonsCard(unlockAll: Boolean, onUnlockAllChange: (Boolean) -> Unit, traceOnly: Boolean, onTraceOnlyChange: (Boolean) -> Unit) {
     ZoneCard {
         Text("Lessons", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy, modifier = Modifier.semantics { heading() })
         ToggleRow("Unlock all", AnnotatedString("Start any stage from the Letter Map"), unlockAll, onUnlockAllChange)
+        ZoneDivider()
+        ToggleRow("Trace only", AnnotatedString("Letters open straight into tracing, as practice"), traceOnly, onTraceOnlyChange)
     }
 }
 
@@ -592,5 +596,5 @@ private fun ParentZonePreview() {
         GridLetter(glyphs[i % glyphs.size], "letter ${i + 1}", state)
     }
     val progress = ParentProgress(stage, 7, letters.mapIndexed { i, l -> i + 1 to l.state }.toMap())
-    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}, limitMinutes = 20, onLimitChange = {}, unlockAll = false, onUnlockAllChange = {}, onStartOver = {}) }
+    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}, limitMinutes = 20, onLimitChange = {}, unlockAll = false, onUnlockAllChange = {}, traceOnly = false, onTraceOnlyChange = {}, onStartOver = {}) }
 }

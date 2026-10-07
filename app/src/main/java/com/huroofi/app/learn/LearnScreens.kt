@@ -49,11 +49,13 @@ internal fun Loading() {
 fun HomeRoute(
     navTabs: List<NavTab>,
     onGo: (Int) -> Unit,
+    onPractice: (Int) -> Unit,
     onTab: (NavTab) -> Unit,
 ) {
     val container = LocalAppContainer.current
     val content = container.content
     val completed by container.progress.completedLetters.collectAsStateWithLifecycle<Set<Int>?>(null)
+    val traceOnly by container.progress.traceOnly.collectAsStateWithLifecycle(false)
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
     val done = completed ?: return Loading()
@@ -71,7 +73,7 @@ fun HomeRoute(
         stripStage = content.stage(open),
         onGo = {
             prompt.stop()
-            onGo(today.index)
+            if (traceOnly) onPractice(today.index) else onGo(today.index)
         },
         onHearLetter = { prompt.play(Clips.letter(today)) },
         onHearWord = { prompt.play(Clips.word(today)) },
@@ -111,7 +113,7 @@ fun LessonRoute(index: Int, onBack: () -> Unit, onNext: (() -> Unit)?) {
 
 /** Trace: `cheer`, a short pause, then [onDone] (decision 3). */
 @Composable
-fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit) {
+fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit, practice: Boolean = false) {
     val container = LocalAppContainer.current
     val letter = remember(index) { container.content.letter(index) }
     val scope = rememberCoroutineScope()
@@ -127,6 +129,7 @@ fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit) {
         letter = letter.letter,
         strokes = strokes,
         introDone = introDone,
+        practice = practice,
         onBack = {
             prompt.stop()
             onBack()
@@ -145,6 +148,24 @@ fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit) {
 }
 
 private const val CHEER_PAUSE_MS = 400L
+
+/**
+ * Trace practice for letter [index]: no step track, Back goes Home, and after the cheer the next
+ * practice letter opens. Nothing is saved (plan 13 decision 4).
+ */
+@Composable
+fun PracticeRoute(index: Int, onBack: () -> Unit, onNext: (Int) -> Unit) {
+    val container = LocalAppContainer.current
+    val completed by container.progress.completedLetters.collectAsStateWithLifecycle<Set<Int>?>(null)
+    val unlockAll by container.progress.unlockAll.collectAsStateWithLifecycle(false)
+    val done = completed ?: return Loading()
+    TraceRoute(
+        index,
+        onBack = onBack,
+        onDone = { onNext(nextPracticeLetter(container.content.letters, done, unlockAll, index)) },
+        practice = true,
+    )
+}
 
 /** Reward for [stage]: `cheer` on open (decision 5). The sticker was saved before this opened. */
 @Composable

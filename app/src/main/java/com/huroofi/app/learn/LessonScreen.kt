@@ -122,7 +122,7 @@ val PathTabs = PathStep.entries.map { it.tab }
 
 /** Back button and step tabs, shared by Meet, Trace and Play. */
 @Composable
-fun PathHeader(step: PathStep, backLabel: String, onBack: () -> Unit) {
+fun PathHeader(step: PathStep?, backLabel: String, onBack: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         RoundIconButton(
             contentDescription = backLabel,
@@ -133,7 +133,8 @@ fun PathHeader(step: PathStep, backLabel: String, onBack: () -> Unit) {
             shadowColor = LessonSpec.EdgeColor,
             shadowDepth = 4.dp,
         ) { ChevronIcon(HuroofiTokens.Navy, pointsRight = false, size = 32.dp) }
-        StepTabs(PathTabs, step.ordinal, Modifier.weight(1f))
+        // Trace practice has no path, so no step track (plan 13 decision 4).
+        if (step != null) StepTabs(PathTabs, step.ordinal, Modifier.weight(1f))
     }
 }
 
