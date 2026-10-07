@@ -112,7 +112,13 @@ object TraceSpec {
     val CoinNumber = Color.White
     val StarFill = HuroofiTokens.Sun
     val StarEdge = HuroofiTokens.Navy
-    const val SHRINK_MS = 180f
+    /** A covered dot turns green and grows by [DONE_GROW] over this long (plan 12 decision 2). */
+    const val POP_MS = 180f
+    const val DONE_GROW = 0.3f
+    val DoneDot = HuroofiTokens.Success
+
+    /** Open dots of every stroke but the next one are this faint, so the next path stands out. */
+    const val LATER_ALPHA = 0.35f
 
     /** The glyph's ink fills this share of the canvas width or height, whichever binds first. */
     const val INK_SHARE = 0.8f
@@ -133,6 +139,7 @@ object TraceSpec {
     val textPairs: List<ContrastPair> = listOf(
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "helper bubble"),
         ContrastPair(Dot, Band, large = true, "trace dot"),
+        ContrastPair(DoneDot, Band, large = true, "covered trace dot"),
         ContrastPair(CoinNumber, FirstCoin, large = true, "coin number 1"),
         ContrastPair(CoinNumber, OtherCoin, large = true, "coin number"),
         ContrastPair(FirstCoin, Band, large = true, "coin edge 1"),
@@ -149,12 +156,12 @@ object TraceSpec {
 private class InkStroke(val color: Color, val points: SnapshotStateList<Offset>)
 
 /**
- * The dots of every stroke and how far each has shrunk away. The canvas reads [revision], so it
- * redraws when ink lands or a dot moves a frame.
+ * The dots of every stroke and how far each covered dot has popped. The canvas reads [revision], so
+ * it redraws when ink lands or a dot moves a frame.
  */
 private class GuideState(val dots: List<List<Offset>>, tolerancePx: Float) {
     private val check = StrokeCheck(dots, tolerancePx)
-    private val shrink = dots.map { FloatArray(it.size) }
+    private val pops = dots.map { FloatArray(it.size) }
     var revision by mutableIntStateOf(0)
         private set
 
@@ -173,12 +180,14 @@ private class GuideState(val dots: List<List<Offset>>, tolerancePx: Float) {
 
     fun clear() {
         check.clear()
-        shrink.forEach { it.fill(0f) }
+        pops.forEach { it.fill(0f) }
         revision++
     }
 
-    /** 1 for a fresh dot, 0 once it has shrunk away. */
-    fun size(stroke: Int, dot: Int): Float = 1f - shrink[stroke][dot]
+    fun covered(stroke: Int, dot: Int): Boolean = check.covered(stroke, dot)
+
+    /** 0 for an open dot, rising to 1 as a covered dot finishes its pop. */
+    fun pop(stroke: Int, dot: Int): Float = pops[stroke][dot]
 
     fun finished(stroke: Int): Boolean = check.finished(stroke)
 
@@ -189,9 +198,9 @@ private class GuideState(val dots: List<List<Offset>>, tolerancePx: Float) {
         var moving = false
         for (s in dots.indices) for (d in dots[s].indices) {
             val target = if (check.covered(s, d)) 1f else 0f
-            val now = shrink[s][d]
+            val now = pops[s][d]
             if (now == target) continue
-            shrink[s][d] = if (target > now) minOf(target, now + fraction) else maxOf(target, now - fraction)
+            pops[s][d] = if (target > now) minOf(target, now + fraction) else maxOf(target, now - fraction)
             moving = true
         }
         if (moving) revision++
@@ -271,13 +280,13 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
         animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
         label = "pulse",
     )
-    // Covered dots shrink away over a few frames; the loop ends when nothing moves.
+    // Covered dots pop over a few frames; the loop ends when nothing moves.
     LaunchedEffect(check, check?.revision) {
         val guide = check ?: return@LaunchedEffect
         var last = withFrameNanos { it }
         do {
             val now = withFrameNanos { it }
-            val moving = guide.advance((now - last) / 1_000_000f / TraceSpec.SHRINK_MS)
+            val moving = guide.advance((now - last) / 1_000_000f / TraceSpec.POP_MS)
             last = now
         } while (moving)
     }
@@ -396,8 +405,11 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
                     for ((i, dots) in guide.dots.withIndex()) {
                         val base = (if (dots.size == 1) TraceSpec.DotStrokeRadius else TraceSpec.DotRadius).toPx()
                         for ((d, dot) in dots.withIndex()) {
-                            val r = base * guide.size(i, d)
-                            if (r > 0f) drawCircle(TraceSpec.Dot, r, dot)
+                            if (guide.covered(i, d)) {
+                                drawCircle(TraceSpec.DoneDot, base * (1f + TraceSpec.DONE_GROW * guide.pop(i, d)), dot)
+                            } else {
+                                drawCircle(TraceSpec.Dot, base, dot, alpha = if (next == null || i == next) 1f else TraceSpec.LATER_ALPHA)
+                            }
                         }
                     }
                     for ((i, dots) in guide.dots.withIndex()) {
