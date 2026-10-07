@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -78,6 +79,7 @@ import com.huroofi.app.ui.components.DemoHand
 import com.huroofi.app.ui.components.DemoHandSpec
 import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.LineIcon
+import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
@@ -145,6 +147,7 @@ object TraceSpec {
     /** The guide is the shape to trace, so it counts as a cue. Crayon colours are content, like Paint's. */
     val textPairs: List<ContrastPair> = listOf(
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "helper bubble"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = true, "helper bubble speaker"),
         ContrastPair(Outline, HuroofiTokens.Card, large = true, "letter outline"),
         ContrastPair(Dot, Band, large = true, "trace dot"),
         ContrastPair(DoneDot, Band, large = true, "covered trace dot"),
@@ -262,7 +265,15 @@ private fun DrawScope.drawArrow(dots: List<Offset>, color: Color, towards: Offse
  * doesn't show (plan 12 decision 4).
  */
 @Composable
-fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, onBack: () -> Unit, onDone: () -> Unit, practice: Boolean = false) {
+fun TraceScreen(
+    letter: String,
+    strokes: List<TraceStroke>,
+    introDone: Boolean,
+    onBack: () -> Unit,
+    onDone: () -> Unit,
+    onHearHint: () -> Unit = {},
+    practice: Boolean = false,
+) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -353,12 +364,26 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
                 ) {
                     Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.fillMaxSize())
                 }
-                Text(
-                    "Start at the green 1, then follow the dots!",
-                    Modifier.weight(1f).background(HuroofiTokens.Card, RoundedCornerShape(20.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
-                    style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
-                    color = HuroofiTokens.Navy,
-                )
+                // The hint is spoken too (plan 14 decision 2); a tap on the bubble says it again.
+                Row(
+                    Modifier
+                        .weight(1f)
+                        .heightIn(min = TraceSpec.Helper)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(HuroofiTokens.Card)
+                        .clickable(role = Role.Button, onClickLabel = "Hear the hint", onClick = onHearHint)
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Start at the green 1, then follow the dots!",
+                        Modifier.weight(1f),
+                        style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
+                        color = HuroofiTokens.Navy,
+                    )
+                    SoundIcon(HuroofiTokens.Primary, size = 26.dp)
+                }
             }
             val cardShape = RoundedCornerShape(TraceSpec.CanvasCorner)
             Box(

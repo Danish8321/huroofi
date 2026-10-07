@@ -19,6 +19,12 @@ Spoken at the start of each Play round (`audio/prompts/which_starts_with.mp3`), 
 
 - أي صورة تبدأ بحرف…؟  ("Which picture starts with the letter…?")
 
+## Trace hint (plan 14)
+
+Spoken after the letter when Trace opens, and again when the lion's bubble is tapped (`audio/prompts/trace_hint.mp3`). The bubble shows the English line.
+
+- ابدأ من الرقم ١ الأخضر، ثم اتبع النقاط!  ("Start at the green 1, then follow the dots!")
+
 ## Per-letter prompts
 
 | # | Letter | Where is…? | Colour… |
