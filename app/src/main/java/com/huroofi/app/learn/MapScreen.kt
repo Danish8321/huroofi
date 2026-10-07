@@ -130,13 +130,15 @@ private val PlayTriangle = "M8 5v14l11-7z"
 /**
  * Seven zig-zag stage cards over a dotted path, opened at the current stage. A finished card replays
  * one of its letters with [onReplay] (plan 11 decision 2), the current card's play button opens Meet,
- * a locked card says no with [onLocked] and a wiggle.
+ * an open card's play button (Unlock all) starts its stage with [onOpen], a locked card says no with
+ * [onLocked] and a wiggle.
  */
 @Composable
 fun MapScreen(
     stages: List<MapStage>,
     onPlay: () -> Unit,
     onReplay: (Stage) -> Unit,
+    onOpen: (Stage) -> Unit,
     onLocked: () -> Unit,
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
@@ -168,6 +170,7 @@ fun MapScreen(
                                 Modifier.padding(start = starts[i % 2]).width(cardWidth).height(MapSpec.CardHeight),
                                 onPlay = onPlay,
                                 onReplay = { onReplay(s.stage) },
+                                onOpen = { onOpen(s.stage) },
                                 onLocked = onLocked,
                             )
                         }
@@ -187,8 +190,10 @@ fun MapScreen(
 }
 
 /** Counts come from content, so the subtitle never disagrees with letters.json. */
-private fun subtitle(stages: List<MapStage>): String =
-    "${stages.sumOf { it.chips.size }} letters · ${stages.size} stages · finish one to unlock the next"
+private fun subtitle(stages: List<MapStage>): String {
+    val how = if (stages.any { it.state == StageState.OPEN }) "start any stage" else "finish one to unlock the next"
+    return "${stages.sumOf { it.chips.size }} letters · ${stages.size} stages · $how"
+}
 
 /** Dots from card centre to card centre, drawn behind the cards so they show in the gaps. */
 @Composable
@@ -213,19 +218,21 @@ private fun DottedPath(count: Int, starts: List<Dp>, cardWidth: Dp, modifier: Mo
 }
 
 @Composable
-private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onReplay: () -> Unit, onLocked: () -> Unit) {
+private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onReplay: () -> Unit, onOpen: () -> Unit, onLocked: () -> Unit) {
     val colors = s.stage.colors()
     val shape = RoundedCornerShape(MapSpec.CardCorner)
     val locked = s.state == StageState.LOCKED
     val (ring, ringWidth, edge) = when (s.state) {
         StageState.CURRENT -> Triple(colors.accent, MapSpec.Ring, colors.pastel)
         StageState.FINISHED -> Triple(HuroofiTokens.Success, MapSpec.Ring, MapSpec.QuietBorder)
+        StageState.OPEN -> Triple(colors.pastel, MapSpec.QuietRing, colors.pastel)
         StageState.LOCKED -> Triple(MapSpec.QuietBorder, MapSpec.QuietRing, MapSpec.QuietBorder)
     }
     val wiggle = rememberWiggle()
     val stateLabel = when (s.state) {
         StageState.FINISHED -> "finished"
         StageState.CURRENT -> "playing now"
+        StageState.OPEN -> "open"
         StageState.LOCKED -> "locked"
     }
     Column(
@@ -245,7 +252,7 @@ private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onRepla
                         wiggle.play()
                         onReplay()
                     }
-                    StageState.CURRENT -> Modifier
+                    StageState.CURRENT, StageState.OPEN -> Modifier
                 },
             )
             .semantics { contentDescription = "Stage ${s.stage.stage}, ${s.stage.name}, $stateLabel" }
@@ -266,9 +273,9 @@ private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onRepla
                 overflow = TextOverflow.Ellipsis,
             )
             when (s.state) {
-                StageState.CURRENT -> RoundIconButton(
+                StageState.CURRENT, StageState.OPEN -> RoundIconButton(
                     contentDescription = "Play ${s.stage.name}",
-                    onClick = onPlay,
+                    onClick = if (s.state == StageState.OPEN) onOpen else onPlay,
                     toddler = true,
                     size = MapSpec.Play,
                     containerColor = HuroofiTokens.Primary,
@@ -312,13 +319,14 @@ fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Un
     val container = LocalAppContainer.current
     val content = container.content
     val completed by container.progress.completedLetters.collectAsStateWithLifecycle<Set<Int>?>(null)
+    val unlockAll by container.progress.unlockAll.collectAsStateWithLifecycle(false)
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
     var lastReplay by rememberSaveable { mutableIntStateOf(0) }
     val done = completed ?: return Loading()
     val stageOf = remember { content.letters.associate { it.index to it.stage } }
     val open = unlockedStage(done, stageOf)
-    val states = stageStates(content.stages, done, stageOf)
+    val states = stageStates(content.stages, done, stageOf, unlockAll)
     val letterStates = parentProgress(content.letters, content.stages, done, open).states
     val learning = learningLetter(content.letters, done, open)
     MapScreen(
@@ -338,6 +346,10 @@ fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Un
             val pick = replayLetter(content.lettersInStage(stage.stage).map { it.index }, lastReplay, Random)
             lastReplay = pick
             onPlay(pick)
+        },
+        onOpen = { stage ->
+            prompt.stop()
+            learningLetter(content.letters, done, stage.stage)?.let { onPlay(it.index) }
         },
         onLocked = { prompt.play(Clips.boing) },
         navTabs = navTabs,
@@ -374,6 +386,7 @@ private fun MapPreview() {
             },
             onPlay = {},
             onReplay = {},
+            onOpen = {},
             onLocked = {},
             navTabs = NavTab.entries,
             onTab = {},

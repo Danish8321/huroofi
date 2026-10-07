@@ -92,6 +92,34 @@ class LetterPathTest {
     }
 
     @Test
+    fun unlockAllOpensEveryLaterStageAndKeepsTheCurrentOne() {
+        val s = stageStates(TestContent.repo.stages, setOf(1, 2, 3, 4, 9), stageOf, unlockAll = true)
+        assertEquals(StageState.FINISHED, s[1])
+        assertEquals(StageState.CURRENT, s[2])
+        for (n in 3..7) assertEquals("$n", StageState.OPEN, s[n])
+    }
+
+    @Test
+    fun finishingTheOpenStageUnlocksTheNext() {
+        assertEquals(RewardNext.Unlocked(2), rewardNext(1, (1..4).toSet(), stageOf))
+    }
+
+    @Test
+    fun finishingAStageAheadUnlocksNothing() {
+        assertEquals(RewardNext.Nothing, rewardNext(3, (9..12).toSet(), stageOf))
+    }
+
+    @Test
+    fun finishingTheOpenStageSkipsStagesAlreadyFinishedAhead() {
+        assertEquals(RewardNext.Unlocked(4), rewardNext(2, (1..12).toSet(), stageOf))
+    }
+
+    @Test
+    fun finishingTheLastGapIsAllLearned() {
+        assertEquals(RewardNext.AllLearned, rewardNext(1, (1..28).toSet(), stageOf))
+    }
+
+    @Test
     fun replayNeverRepeatsTheLastLetter() {
         val stage = listOf(5, 6, 7, 8)
         repeat(50) { seed -> assertTrue(replayLetter(stage, 6, Random(seed)) in listOf(5, 7, 8)) }

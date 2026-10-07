@@ -35,22 +35,42 @@ fun nextStep(letters: List<Letter>, completed: Set<Int>, justLearned: Int, wasNe
     return learningLetter(letters, completed, stage)?.let { PathNext.Meet(it.index) } ?: PathNext.Home
 }
 
-/** How a stage shows on the Letter Map (decision 8). */
-enum class StageState { FINISHED, CURRENT, LOCKED }
+/** How a stage shows on the Letter Map (decision 8). OPEN is a later stage the child may start under Unlock all (plan 13 decision 3). */
+enum class StageState { FINISHED, CURRENT, OPEN, LOCKED }
 
 /**
  * Keyed by stage number. Every complete stage is finished; the open stage, if not complete, is current;
- * the rest are locked. Once all letters are learned there is no current stage.
+ * the rest are locked, or open when [unlockAll] is on. Once all letters are learned there is no current stage.
  */
-fun stageStates(stages: List<Stage>, completed: Set<Int>, stageOf: Map<Int, Int>): Map<Int, StageState> {
+fun stageStates(stages: List<Stage>, completed: Set<Int>, stageOf: Map<Int, Int>, unlockAll: Boolean = false): Map<Int, StageState> {
     val open = unlockedStage(completed, stageOf)
     return stages.associate { s ->
         s.stage to when {
             isStageComplete(s.stage, completed, stageOf) -> StageState.FINISHED
             s.stage == open -> StageState.CURRENT
+            unlockAll -> StageState.OPEN
             else -> StageState.LOCKED
         }
     }
+}
+
+/** What the Reward says opens next (plan 13 decision 3). */
+sealed interface RewardNext {
+    /** The completion moved progress on; [stage] is the new open stage. */
+    data class Unlocked(val stage: Int) : RewardNext
+    data object AllLearned : RewardNext
+    /** A stage finished ahead of progress under Unlock all: nothing new opens. */
+    data object Nothing : RewardNext
+}
+
+/**
+ * [completed] already includes [stage]'s letters. Progress moved on exactly when every stage up to
+ * [stage] is complete, since [stage] was then the open stage before this completion.
+ */
+fun rewardNext(stage: Int, completed: Set<Int>, stageOf: Map<Int, Int>): RewardNext {
+    if (completed.containsAll(stageOf.keys)) return RewardNext.AllLearned
+    val open = unlockedStage(completed, stageOf)
+    return if (open > stage) RewardNext.Unlocked(open) else RewardNext.Nothing
 }
 
 /** A letter of a finished stage to play again: any of [indices] but [last], unless it is the only one (plan 11 decision 2). */

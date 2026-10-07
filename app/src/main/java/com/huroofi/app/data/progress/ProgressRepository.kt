@@ -29,11 +29,12 @@ object ProgressKeys {
     val usageDay = stringPreferencesKey("usage_day")
     val usageSeconds = intPreferencesKey("usage_seconds")
     val offlinePackReady = booleanPreferencesKey("offline_pack_ready")
+    val unlockAll = booleanPreferencesKey("unlock_all")
 
     val names: List<String> = listOf(
         schemaVersion.name, mode.name, completedLetters.name, stickers.name, voiceEnabled.name,
         harakatEnabled.name, dailyLimitMinutes.name, usageDay.name, usageSeconds.name,
-        offlinePackReady.name,
+        offlinePackReady.name, unlockAll.name,
     )
 }
 
@@ -68,6 +69,9 @@ class ProgressRepository(
     val usageSecondsToday: Flow<Int> = store.data.map {
         usageForToday(it[ProgressKeys.usageDay], it[ProgressKeys.usageSeconds] ?: 0, today())
     }
+
+    /** Parent setting: every stage can be started from the Map (plan 13 decision 3). */
+    val unlockAll: Flow<Boolean> = store.data.map { it[ProgressKeys.unlockAll] ?: false }
 
     val offlinePackReady: Flow<Boolean> = store.data.map { it[ProgressKeys.offlinePackReady] ?: false }
 
@@ -128,6 +132,10 @@ class ProgressRepository(
             p[ProgressKeys.usageDay] = day
             p[ProgressKeys.usageSeconds] = current + seconds
         }
+    }
+
+    suspend fun setUnlockAll(enabled: Boolean) {
+        store.edit { it[ProgressKeys.unlockAll] = enabled }
     }
 
     suspend fun setOfflinePackReady(ready: Boolean) {

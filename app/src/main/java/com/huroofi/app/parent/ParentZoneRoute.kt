@@ -23,6 +23,7 @@ fun ParentZoneRoute(onBack: () -> Unit, footer: @Composable ColumnScope.() -> Un
     val voice by progress.voiceEnabled.collectAsStateWithLifecycle(true)
     val harakat by progress.harakatEnabled.collectAsStateWithLifecycle(false)
     val limit by progress.dailyLimitMinutes.collectAsStateWithLifecycle(DEFAULT_LIMIT_MINUTES)
+    val unlockAll by progress.unlockAll.collectAsStateWithLifecycle(false)
     val openStage by progress.unlockedStage.collectAsStateWithLifecycle(1)
     val summary = remember(completed, openStage) {
         parentProgress(content.letters, content.stages, completed, openStage)
@@ -44,6 +45,8 @@ fun ParentZoneRoute(onBack: () -> Unit, footer: @Composable ColumnScope.() -> Un
         onHarakatChange = { scope.launch { progress.setHarakatEnabled(it) } },
         limitMinutes = limit,
         onLimitChange = { scope.launch { progress.setDailyLimitMinutes(it) } },
+        unlockAll = unlockAll,
+        onUnlockAllChange = { scope.launch { progress.setUnlockAll(it) } },
         onStartOver = { scope.launch { progress.startOver() } },
         footer = footer,
     )

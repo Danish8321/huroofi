@@ -149,7 +149,7 @@ class ProgressRepositoryTest {
             listOf(
                 "schema_version", "mode", "completed_letters", "stickers", "voice_enabled",
                 "harakat_enabled", "daily_limit_minutes", "usage_day", "usage_seconds",
-                "offline_pack_ready",
+                "offline_pack_ready", "unlock_all",
             ),
             ProgressKeys.names,
         )

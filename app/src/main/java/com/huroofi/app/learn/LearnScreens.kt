@@ -154,10 +154,14 @@ fun RewardRoute(stage: Int, onNext: () -> Unit) {
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
     LaunchedEffect(stage) { prompt.play(Clips.cheer) }
+    val completed by container.progress.completedLetters.collectAsStateWithLifecycle<Set<Int>?>(null)
+    val done = completed ?: return Loading()
+    val reward = rewardNext(stage, done, content.letters.associate { it.index to it.stage })
     RewardScreen(
         stage = content.stage(stage),
         letters = content.lettersInStage(stage),
-        next = content.stages.firstOrNull { it.stage == stage + 1 },
+        next = (reward as? RewardNext.Unlocked)?.let { content.stage(it.stage) },
+        unlocked = reward != RewardNext.Nothing,
         onSticker = { prompt.play(content.lettersInStage(stage).sortedBy { it.index }.map(Clips::letter)) },
         onNext = {
             prompt.stop()

@@ -159,6 +159,8 @@ fun ParentZoneScreen(
     onHarakatChange: (Boolean) -> Unit,
     limitMinutes: Int,
     onLimitChange: (Int) -> Unit,
+    unlockAll: Boolean,
+    onUnlockAllChange: (Boolean) -> Unit,
     onStartOver: () -> Unit,
     footer: @Composable ColumnScope.() -> Unit = {},
 ) {
@@ -179,6 +181,7 @@ fun ParentZoneScreen(
                 LetterGrid(letters)
             }
             SettingsCard(voice, onVoiceChange, harakat, onHarakatChange, limitMinutes, onLimitChange)
+            LessonsCard(unlockAll, onUnlockAllChange)
             StartOverCard(onStartOver)
             footer()
         }
@@ -363,6 +366,15 @@ private val harakatSubtitle = buildAnnotatedString {
 @Composable
 private fun ZoneDivider() {
     Box(Modifier.fillMaxWidth().height(1.dp).background(ZoneSpec.Divider))
+}
+
+/** How lessons open (plan 13 decisions 3 and 4). */
+@Composable
+private fun LessonsCard(unlockAll: Boolean, onUnlockAllChange: (Boolean) -> Unit) {
+    ZoneCard {
+        Text("Lessons", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy, modifier = Modifier.semantics { heading() })
+        ToggleRow("Unlock all", AnnotatedString("Start any stage from the Letter Map"), unlockAll, onUnlockAllChange)
+    }
 }
 
 /** "Start over" behind a confirm step: it clears learned letters and stickers for good (plan 13 decision 2). */
@@ -580,5 +592,5 @@ private fun ParentZonePreview() {
         GridLetter(glyphs[i % glyphs.size], "letter ${i + 1}", state)
     }
     val progress = ParentProgress(stage, 7, letters.mapIndexed { i, l -> i + 1 to l.state }.toMap())
-    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}, limitMinutes = 20, onLimitChange = {}, onStartOver = {}) }
+    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}, limitMinutes = 20, onLimitChange = {}, unlockAll = false, onUnlockAllChange = {}, onStartOver = {}) }
 }
