@@ -3,6 +3,7 @@ package com.huroofi.app.learn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -32,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +51,8 @@ import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.components.rememberWiggle
+import com.huroofi.app.ui.components.wiggle
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
@@ -122,6 +126,8 @@ fun HomeScreen(
     strip: List<StageChip>,
     stripStage: Stage,
     onGo: () -> Unit,
+    onHearLetter: () -> Unit,
+    onHearWord: () -> Unit,
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
 ) {
@@ -132,7 +138,7 @@ fun HomeScreen(
                 Column(Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(horizontal = 20.dp, vertical = 20.dp)) {
                     Greeting(review)
                     SectionGap()
-                    TodayCard(today, todayStage, onGo)
+                    TodayCard(today, todayStage, onGo, onHearLetter, onHearWord)
                     SectionGap()
                     StageStrip(strip, stripStage)
                 }
@@ -173,7 +179,7 @@ private fun Greeting(review: Boolean) {
 }
 
 @Composable
-private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
+private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit, onHearLetter: () -> Unit, onHearWord: () -> Unit) {
     val colors = stage.colors()
     val shape = RoundedCornerShape(HomeSpec.CardCorner)
     Column(
@@ -195,7 +201,19 @@ private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
                     color = HuroofiTokens.Primary,
                 )
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
+                    // Letter and picture answer a tap with their sound and a wiggle (plan 11 decision 2).
+                    val letterWiggle = rememberWiggle()
+                    val pictureWiggle = rememberWiggle()
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            // No clip and no ripple: the glyph overflows its box, and the wiggle is the answer.
+                            .clickable(interactionSource = null, indication = null, role = Role.Button, onClickLabel = "Hear the letter") {
+                                letterWiggle.play()
+                                onHearLetter()
+                            }
+                            .wiggle(letterWiggle),
+                    ) {
                         Box(Modifier.height(HomeSpec.LetterBox), contentAlignment = Alignment.Center) {
                             IgnoreFontScale {
                                 ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = HomeSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
@@ -203,7 +221,16 @@ private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
                         }
                         Text(letter.nameLatin, style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
                     }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable(role = Role.Button, onClickLabel = "Hear the word") {
+                                pictureWiggle.play()
+                                onHearWord()
+                            }
+                            .wiggle(pictureWiggle),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         Image(letterPicture(letter), contentDescription = letter.meaningEn, modifier = Modifier.size(HomeSpec.Picture))
                         ArabicText(
                             highlightedWord(letter.wordFirst, letter.wordRest, colors.accent),
@@ -294,6 +321,8 @@ private fun HomePreview() {
             },
             stripStage = stage,
             onGo = {},
+            onHearLetter = {},
+            onHearWord = {},
             navTabs = NavTab.entries,
             onTab = {},
         )

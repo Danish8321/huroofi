@@ -52,3 +52,9 @@ fun stageStates(stages: List<Stage>, completed: Set<Int>, stageOf: Map<Int, Int>
         }
     }
 }
+
+/** A letter of a finished stage to play again: any of [indices] but [last], unless it is the only one (plan 11 decision 2). */
+fun replayLetter(indices: List<Int>, last: Int, random: Random): Int {
+    require(indices.isNotEmpty()) { "a stage has letters" }
+    return (indices - last).ifEmpty { indices }.random(random)
+}

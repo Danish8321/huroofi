@@ -54,6 +54,8 @@ fun HomeRoute(
     val container = LocalAppContainer.current
     val content = container.content
     val completed by container.progress.completedLetters.collectAsStateWithLifecycle<Set<Int>?>(null)
+    val scope = rememberCoroutineScope()
+    val prompt = remember { PromptPlayer(container.sound, scope) }
     val done = completed ?: return Loading()
     val stageOf = remember { content.letters.associate { it.index to it.stage } }
     val open = unlockedStage(done, stageOf)
@@ -67,7 +69,12 @@ fun HomeRoute(
         review = today.index in done,
         strip = content.lettersInStage(open).sortedBy { it.index }.map { StageChip(it, states.getValue(it.index)) },
         stripStage = content.stage(open),
-        onGo = { onGo(today.index) },
+        onGo = {
+            prompt.stop()
+            onGo(today.index)
+        },
+        onHearLetter = { prompt.play(Clips.letter(today)) },
+        onHearWord = { prompt.play(Clips.word(today)) },
         navTabs = navTabs,
         onTab = onTab,
     )

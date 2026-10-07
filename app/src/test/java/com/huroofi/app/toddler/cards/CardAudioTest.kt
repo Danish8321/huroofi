@@ -36,6 +36,17 @@ class CardAudioTest {
     }
 
     @Test
+    fun letterTapPlaysOnlyTheLetter() = runTest {
+        val sound = FakeSoundPlayer()
+        val audio = CardAudio(PromptPlayer(sound, backgroundScope))
+        audio.onLetterTap(alif)
+        runCurrent()
+        sound.finish()
+        runCurrent()
+        assertEquals(listOf(Clips.letter(alif).path), sound.played)
+    }
+
+    @Test
     fun newArrivalCutsTheClipStillPlaying() = runTest {
         val sound = FakeSoundPlayer()
         val audio = CardAudio(PromptPlayer(sound, backgroundScope))

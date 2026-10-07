@@ -1,11 +1,9 @@
 package com.huroofi.app.toddler.cards
 
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.StartOffset
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -30,12 +28,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
@@ -53,6 +50,8 @@ import com.huroofi.app.ui.components.ChevronIcon
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.ToddlerHomeButtonSpec
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.components.rememberWiggle
+import com.huroofi.app.ui.components.wiggle
 import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.CenteredLetter
@@ -80,7 +79,10 @@ object CardsSpec {
     const val LETTER_SP = 110f
     const val WORD_SP = 88f
 
-    /** Previous, next and the picture. Home and lock are navigation, not choices. */
+    /**
+     * Previous, next and "hear it". The letter, picture and word all answer a tap with sound and a
+     * wiggle (plan 11 decision 2); they are one "hear it" choice. Home and lock are navigation.
+     */
     const val CHOICES = 3
     val touchSizes = listOf(NavButton, PictureButtonMin)
     val colors = listOf(ShadowColor)
@@ -109,10 +111,8 @@ fun LookListenScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     val deck = remember { CardDeck(letters.size) }
     val pager = rememberPagerState(initialPage = deck.startPage) { deck.pageCount }
     val speaking by audio.speaking.collectAsState()
-    var wiggles by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(pager.settledPage) {
-        wiggles = 0
         audio.onArrive(letters[deck.indexOf(pager.settledPage)])
     }
     DisposableEffect(Unit) { onDispose { audio.stop() } }
@@ -126,11 +126,8 @@ fun LookListenScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
                 letter = letter,
                 stage = container.content.stageColors(letter),
                 speaking = current && speaking,
-                wiggles = if (current) wiggles else 0,
-                onPictureTap = {
-                    wiggles++
-                    audio.onPictureTap(letter)
-                },
+                onLetterTap = { audio.onLetterTap(letter) },
+                onWordTap = { audio.onPictureTap(letter) },
             )
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -160,8 +157,8 @@ private fun LetterCard(
     letter: Letter,
     stage: StageColors,
     speaking: Boolean,
-    wiggles: Int,
-    onPictureTap: () -> Unit,
+    onLetterTap: () -> Unit,
+    onWordTap: () -> Unit,
 ) {
     val spec = CardsSpec
     val colors = LocalHuroofiColors.current
@@ -187,8 +184,16 @@ private fun LetterCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    val letterWiggle = rememberWiggle()
                     Box(
                         Modifier
+                            .wiggle(letterWiggle)
+                            .clip(RoundedCornerShape(spec.LetterBoxCorner))
+                            .semantics { contentDescription = "${letter.nameLatin}: tap to hear the letter" }
+                            .clickable(role = Role.Button) {
+                                letterWiggle.play()
+                                onLetterTap()
+                            }
                             .widthIn(min = spec.LetterBoxMinWidth)
                             .height(spec.LetterBoxHeight)
                             .background(stage.pastel, RoundedCornerShape(spec.LetterBoxCorner))
@@ -197,9 +202,19 @@ private fun LetterCard(
                     ) { CenteredLetter(letter.letter, size = spec.LETTER_SP.sp, color = colors.navy) }
                     if (speaking) TalkingBars(stage.accent, Modifier.align(Alignment.TopStart).padding(top = 6.dp))
                 }
-                WigglingPicture(letter, stage, picture, wiggles, onPictureTap)
+                TapPicture(letter, stage, picture, onWordTap)
+                val wordWiggle = rememberWiggle()
                 ArabicText(
                     highlightedWord(letter.wordFirst, letter.wordRest, stage.accent),
+                    modifier = Modifier
+                        .wiggle(wordWiggle)
+                        .semantics { contentDescription = "${letter.meaningEn.replaceFirstChar { it.uppercase() }}: tap to hear the word" }
+                        // No ripple box around a word; the wiggle is the answer.
+                        .clickable(interactionSource = null, indication = null, role = Role.Button) {
+                            wordWiggle.play()
+                            onWordTap()
+                        }
+                        .padding(horizontal = 16.dp),
                     size = spec.WORD_SP.sp,
                     color = colors.navy,
                 )
@@ -209,50 +224,21 @@ private fun LetterCard(
 }
 
 @Composable
-private fun WigglingPicture(
-    letter: Letter,
-    stage: StageColors,
-    size: Dp,
-    wiggles: Int,
-    onTap: () -> Unit,
-) {
-    val rotation = remember { Animatable(0f) }
-    val scale = remember { Animatable(1f) }
-    LaunchedEffect(wiggles) {
-        if (wiggles == 0) return@LaunchedEffect
-        launch {
-            rotation.animateTo(0f, keyframes {
-                durationMillis = 700
-                -8f at 175
-                8f at 525
-            })
-        }
-        scale.animateTo(1f, keyframes {
-            durationMillis = 700
-            1.08f at 175
-            1.08f at 525
-        })
-    }
+private fun TapPicture(letter: Letter, stage: StageColors, size: Dp, onTap: () -> Unit) {
+    val wiggle = rememberWiggle()
     Box(
         Modifier
             .padding(top = 10.dp)
             .size(size)
             .background(stage.pastel, CircleShape)
             .semantics { contentDescription = "${letter.meaningEn.replaceFirstChar { it.uppercase() }}: tap to hear the word" }
-            .clickable(role = Role.Button, onClick = onTap),
+            .clickable(role = Role.Button) {
+                wiggle.play()
+                onTap()
+            },
         contentAlignment = Alignment.Center,
     ) {
-        Image(
-            letterPicture(letter),
-            contentDescription = null,
-            modifier = Modifier
-                .size(size * (196f / 226f))
-                .graphicsLayer {
-                    rotationZ = rotation.value
-                    scaleX = scale.value
-                    scaleY = scale.value
-                },
-        )
+        Image(letterPicture(letter), contentDescription = null, modifier = Modifier.size(size * (196f / 226f)).wiggle(wiggle))
     }
 }
 

@@ -90,4 +90,21 @@ class LetterPathTest {
         assertEquals(7, s.size)
         assertTrue(s.values.all { it == StageState.FINISHED })
     }
+
+    @Test
+    fun replayNeverRepeatsTheLastLetter() {
+        val stage = listOf(5, 6, 7, 8)
+        repeat(50) { seed -> assertTrue(replayLetter(stage, 6, Random(seed)) in listOf(5, 7, 8)) }
+    }
+
+    @Test
+    fun replayCanReachEveryOtherLetter() {
+        val picks = (0 until 200).map { replayLetter(listOf(5, 6, 7, 8), 0, Random(it)) }.toSet()
+        assertEquals(setOf(5, 6, 7, 8), picks)
+    }
+
+    @Test
+    fun replayOfAOneLetterStageGivesThatLetter() {
+        assertEquals(9, replayLetter(listOf(9), 9, Random(1)))
+    }
 }

@@ -13,7 +13,12 @@ class CardAudio(private val prompt: PromptPlayer) {
         prompt.play(listOf(Clips.letter(letter), Clips.word(letter)))
     }
 
-    /** The picture was tapped: the word only. */
+    /** The letter was tapped: the letter name only. */
+    fun onLetterTap(letter: Letter) {
+        prompt.play(Clips.letter(letter))
+    }
+
+    /** The picture or the word was tapped: the word only. */
     fun onPictureTap(letter: Letter) {
         prompt.play(Clips.word(letter))
     }
