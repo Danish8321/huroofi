@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Huroofi – App icon concepts</title>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&amp;family=Noto+Naskh+Arabic:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F6FE0}a:hover{color:#1555B0}
+</style>
+</helmet>
+<div style="width: 1200px; height: 480px; box-sizing: border-box; background: #F4F7FB; font-family: 'Baloo Bhaijaan 2', system-ui, sans-serif; color: #13294B; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; padding: 48px 60px">
+
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 18px">
+    <div style="position: relative; width: 300px; height: 300px; border-radius: 72px; background: #13294B; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 12px 30px rgba(19, 41, 75, 0.18)">
+      <span style="position: absolute; bottom: -70px; right: -60px; width: 220px; height: 220px; border-radius: 50%; background: #1F6FE0"></span>
+      <span style="position: absolute; top: 46px; left: 52px; width: 26px; height: 26px; border-radius: 50%; background: #EC4F8C"></span>
+      <span style="position: absolute; top: 70px; right: 56px; width: 18px; height: 18px; border-radius: 6px; background: #14A88E; transform: rotate(20deg)"></span>
+      <span dir="rtl" style="position: relative; font-family: 'Noto Naskh Arabic', serif; font-size: 230px; font-weight: 700; line-height: 1; color: #FFC93C; margin-top: -30px">ح</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center">
+      <span style="font-size: 22px; font-weight: 800">A · Letter mark</span>
+      <span style="font-size: 16px; font-weight: 600; color: #4A5D7A">ح from حروفي, sun on navy</span>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 18px">
+    <div style="position: relative; width: 300px; height: 300px; border-radius: 72px; background: #FFC93C; overflow: hidden; box-shadow: 0 12px 30px rgba(19, 41, 75, 0.18)">
+      <span style="position: absolute; top: -60px; left: -60px; width: 240px; height: 240px; border-radius: 50%; background: #FFDB6E"></span>
+      <img src="../../assets/illustrations/png/lion.png" alt="" style="position: absolute; left: 30px; bottom: -14px; width: 250px; height: 250px; object-fit: contain">
+      <span dir="rtl" style="position: absolute; top: 22px; right: 22px; width: 92px; height: 92px; border-radius: 30px; background: #FFFFFF; border: 6px solid #13294B; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-family: 'Noto Naskh Arabic', serif; font-size: 52px; font-weight: 700; line-height: 1; color: #13294B; padding-top: 14px">أ</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center">
+      <span style="font-size: 22px; font-weight: 800">B · Leo the lion</span>
+      <span style="font-size: 16px; font-weight: 600; color: #4A5D7A">Mascot plus alif tile, warmest at small size</span>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 18px">
+    <div style="position: relative; width: 300px; height: 300px; border-radius: 72px; background: #E8F4FF; overflow: hidden; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 28px; box-sizing: border-box; box-shadow: 0 12px 30px rgba(19, 41, 75, 0.18)">
+      <span dir="rtl" style="border-radius: 30px; background: #F59E0B; box-shadow: 0 6px 0 #C77F00; display: flex; align-items: center; justify-content: center; font-family: 'Noto Naskh Arabic', serif; font-size: 64px; font-weight: 700; line-height: 1; color: #FFFFFF">أ</span>
+      <span dir="rtl" style="border-radius: 30px; background: #EC4F8C; box-shadow: 0 6px 0 #B83A6B; display: flex; align-items: center; justify-content: center; font-family: 'Noto Naskh Arabic', serif; font-size: 64px; font-weight: 700; line-height: 1; color: #FFFFFF">ب</span>
+      <span dir="rtl" style="border-radius: 30px; background: #14A88E; box-shadow: 0 6px 0 #00695C; display: flex; align-items: center; justify-content: center; font-family: 'Noto Naskh Arabic', serif; font-size: 64px; font-weight: 700; line-height: 1; color: #FFFFFF">ت</span>
+      <span dir="rtl" style="border-radius: 30px; background: #2F80ED; box-shadow: 0 6px 0 #0B4FB0; display: flex; align-items: center; justify-content: center; font-family: 'Noto Naskh Arabic', serif; font-size: 64px; font-weight: 700; line-height: 1; color: #FFFFFF">ث</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center">
+      <span style="font-size: 22px; font-weight: 800">C · Stage tiles</span>
+      <span style="font-size: 16px; font-weight: 600; color: #4A5D7A">Four letters in stage colours</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":480}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
