@@ -10,12 +10,12 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -88,6 +88,8 @@ object PaintSpec {
     const val STROKE_ALPHA = 0.9f
     val Star = 86.dp
     val NextButton = 96.dp
+    /** Room under the Next button for its drop edge. */
+    val NextShadow = 8.dp
     val CrayonSize = 64.dp
     val CrayonRing = 6.dp
     val CrayonShadow = 5.dp
@@ -168,8 +170,14 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                 SoundIcon(color = PaintSpec.Pink, size = PaintSpec.BubbleIcon)
             }
         }
-        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.TopCenter) {
-            Box(Modifier.aspectRatio(PaintSpec.CANVAS_ASPECT)) {
+        // Canvas, crayons and the Next slot stay together, centred in the space left, so no gap opens
+        // between canvas and crayons and Next never covers the canvas (plan 11 decision 5).
+        Column(
+            Modifier.fillMaxWidth().weight(1f),
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(Modifier.weight(1f, fill = false).aspectRatio(PaintSpec.CANVAS_ASPECT)) {
                 val shape = RoundedCornerShape(PaintSpec.CanvasCorner)
                 Box(
                     Modifier
@@ -205,8 +213,31 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                         }
                     }
                 }
+            }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                for (crayon in Crayon.entries) {
+                    CrayonButton(crayon, selected = crayon == page.painting.crayon) {
+                        page = page.copy(painting = page.painting.select(crayon))
+                    }
+                }
+                Box(
+                    Modifier
+                        .size(PaintSpec.Wipe)
+                        .clip(CircleShape)
+                        .background(colors.card)
+                        .border(PaintSpec.WipeBorder, PaintSpec.WipeBorderColor, CircleShape)
+                        .clickable(role = Role.Button) { page = page.copy(painting = page.painting.wipe()) }
+                        .semantics { contentDescription = "Wipe clean" },
+                    contentAlignment = Alignment.Center,
+                ) { WipeIcon(colors.navy) }
+            }
+            Box(Modifier.height(PaintSpec.NextButton + PaintSpec.NextShadow), contentAlignment = Alignment.Center) {
                 if (star) {
-                    PopIn(page.letter, Modifier.align(Alignment.BottomEnd).offset(x = 8.dp, y = 8.dp)) {
+                    PopIn(page.letter) {
                         RoundIconButton(
                             contentDescription = "Next",
                             onClick = { page = session.next(page) },
@@ -218,27 +249,6 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                     }
                 }
             }
-        }
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            for (crayon in Crayon.entries) {
-                CrayonButton(crayon, selected = crayon == page.painting.crayon) {
-                    page = page.copy(painting = page.painting.select(crayon))
-                }
-            }
-            Box(
-                Modifier
-                    .size(PaintSpec.Wipe)
-                    .clip(CircleShape)
-                    .background(colors.card)
-                    .border(PaintSpec.WipeBorder, PaintSpec.WipeBorderColor, CircleShape)
-                    .clickable(role = Role.Button) { page = page.copy(painting = page.painting.wipe()) }
-                    .semantics { contentDescription = "Wipe clean" },
-                contentAlignment = Alignment.Center,
-            ) { WipeIcon(colors.navy) }
         }
     }
 }
@@ -314,7 +324,7 @@ private fun CrayonButton(crayon: Crayon, selected: Boolean, onClick: () -> Unit)
 
 /** Pops its content in, again each time [key] changes. */
 @Composable
-private fun PopIn(key: Any, modifier: Modifier, content: @Composable () -> Unit) {
+private fun PopIn(key: Any, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val pop = remember(key) { Animatable(0f) }
     LaunchedEffect(pop) { pop.animateTo(1f, tween(450)) }
     Box(
