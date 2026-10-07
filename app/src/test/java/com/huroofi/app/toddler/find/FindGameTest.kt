@@ -29,6 +29,17 @@ class FindGameTest {
     }
 
     @Test
+    fun onlyToddlerWordsAreAskedOrOffered() {
+        var set = game.start()
+        val seen = mutableSetOf<String>()
+        repeat(500) {
+            set.round.options.forEach { assertTrue(it.meaningEn, it.toddlerWord); seen += it.meaningEn }
+            set = game.next(solve(set))
+        }
+        assertEquals(letters.count { it.toddlerWord }, seen.size)
+    }
+
+    @Test
     fun targetNeverRepeatsTheLastOne() {
         var set = game.start()
         repeat(500) {

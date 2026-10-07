@@ -42,6 +42,15 @@ class ContentContractTest {
     }
 
     @Test
+    fun nonToddlerWordsAreTheAgreedSeven() {
+        // Maintainer review 2026-10-07 (issue 016): words too abstract for an 18-36 month old.
+        assertEquals(
+            setOf("feather", "clock", "rocket", "envelope", "washing machine", "pencil", "pyramid"),
+            content.letters.filterNot { it.toddlerWord }.map { it.meaningEn }.toSet(),
+        )
+    }
+
+    @Test
     fun everyLetterBelongsToTheStageThatListsIt() {
         content.letters.forEach { l ->
             val stage = content.stages.single { it.stage == l.stage }

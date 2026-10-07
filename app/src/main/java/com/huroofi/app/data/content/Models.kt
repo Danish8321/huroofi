@@ -26,6 +26,8 @@ data class Letter(
     @SerialName("word_rest") val wordRest: String,
     @SerialName("meaning_en") val meaningEn: String,
     val picture: String,
+    /** False when a toddler is unlikely to know the picture word (e.g. washing machine); Find skips it. */
+    @SerialName("toddler_word") val toddlerWord: Boolean,
     val stage: Int,
     @SerialName("card_image") val cardImage: String,
     val audio: LetterAudio,

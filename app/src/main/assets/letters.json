@@ -10,6 +10,7 @@
       "word_rest": "سد",
       "meaning_en": "lion",
       "picture": "lion",
+      "toddler_word": true,
       "stage": 1,
       "card_image": "assets/cards/01_alif_lion.png",
       "audio": {
@@ -27,6 +28,7 @@
       "word_rest": "طة",
       "meaning_en": "duck",
       "picture": "duck",
+      "toddler_word": true,
       "stage": 1,
       "card_image": "assets/cards/02_baa_duck.png",
       "audio": {
@@ -44,6 +46,7 @@
       "word_rest": "فاح",
       "meaning_en": "apple",
       "picture": "apple",
+      "toddler_word": true,
       "stage": 1,
       "card_image": "assets/cards/03_taa_apple.png",
       "audio": {
@@ -61,6 +64,7 @@
       "word_rest": "علب",
       "meaning_en": "fox",
       "picture": "fox",
+      "toddler_word": true,
       "stage": 1,
       "card_image": "assets/cards/04_thaa_fox.png",
       "audio": {
@@ -78,6 +82,7 @@
       "word_rest": "زر",
       "meaning_en": "carrot",
       "picture": "carrot",
+      "toddler_word": true,
       "stage": 2,
       "card_image": "assets/cards/05_jiim_carrot.png",
       "audio": {
@@ -95,6 +100,7 @@
       "word_rest": "صان",
       "meaning_en": "horse",
       "picture": "horse",
+      "toddler_word": true,
       "stage": 2,
       "card_image": "assets/cards/06_haa_horse.png",
       "audio": {
@@ -112,6 +118,7 @@
       "word_rest": "روف",
       "meaning_en": "sheep",
       "picture": "sheep",
+      "toddler_word": true,
       "stage": 2,
       "card_image": "assets/cards/07_khaa_sheep.png",
       "audio": {
@@ -129,6 +136,7 @@
       "word_rest": "جاجة",
       "meaning_en": "hen",
       "picture": "hen",
+      "toddler_word": true,
       "stage": 2,
       "card_image": "assets/cards/08_daal_hen.png",
       "audio": {
@@ -146,6 +154,7 @@
       "word_rest": "رة",
       "meaning_en": "corn",
       "picture": "corn",
+      "toddler_word": true,
       "stage": 3,
       "card_image": "assets/cards/09_dhaal_corn.png",
       "audio": {
@@ -163,6 +172,7 @@
       "word_rest": "يشة",
       "meaning_en": "feather",
       "picture": "feather",
+      "toddler_word": false,
       "stage": 3,
       "card_image": "assets/cards/10_raa_feather.png",
       "audio": {
@@ -180,6 +190,7 @@
       "word_rest": "هرة",
       "meaning_en": "flower",
       "picture": "flower",
+      "toddler_word": true,
       "stage": 3,
       "card_image": "assets/cards/11_zaay_flower.png",
       "audio": {
@@ -197,6 +208,7 @@
       "word_rest": "اعة",
       "meaning_en": "clock",
       "picture": "clock",
+      "toddler_word": false,
       "stage": 3,
       "card_image": "assets/cards/12_siin_clock.png",
       "audio": {
@@ -214,6 +226,7 @@
       "word_rest": "جرة",
       "meaning_en": "tree",
       "picture": "tree",
+      "toddler_word": true,
       "stage": 4,
       "card_image": "assets/cards/13_shiin_tree.png",
       "audio": {
@@ -231,6 +244,7 @@
       "word_rest": "اروخ",
       "meaning_en": "rocket",
       "picture": "rocket",
+      "toddler_word": false,
       "stage": 4,
       "card_image": "assets/cards/14_saad_rocket.png",
       "audio": {
@@ -248,6 +262,7 @@
       "word_rest": "فدع",
       "meaning_en": "frog",
       "picture": "frog",
+      "toddler_word": true,
       "stage": 4,
       "card_image": "assets/cards/15_daad_frog.png",
       "audio": {
@@ -265,6 +280,7 @@
       "word_rest": "ائرة",
       "meaning_en": "airplane",
       "picture": "plane",
+      "toddler_word": true,
       "stage": 4,
       "card_image": "assets/cards/16_taa_plane.png",
       "audio": {
@@ -282,6 +298,7 @@
       "word_rest": "رف",
       "meaning_en": "envelope",
       "picture": "envelope",
+      "toddler_word": false,
       "stage": 5,
       "card_image": "assets/cards/17_zaa_envelope.png",
       "audio": {
@@ -299,6 +316,7 @@
       "word_rest": "صفور",
       "meaning_en": "sparrow",
       "picture": "bird",
+      "toddler_word": true,
       "stage": 5,
       "card_image": "assets/cards/18_ayn_bird.png",
       "audio": {
@@ -316,6 +334,7 @@
       "word_rest": "سالة",
       "meaning_en": "washing machine",
       "picture": "washer",
+      "toddler_word": false,
       "stage": 5,
       "card_image": "assets/cards/19_ghayn_washer.png",
       "audio": {
@@ -333,6 +352,7 @@
       "word_rest": "راولة",
       "meaning_en": "strawberry",
       "picture": "strawberry",
+      "toddler_word": true,
       "stage": 5,
       "card_image": "assets/cards/20_faa_strawberry.png",
       "audio": {
@@ -350,6 +370,7 @@
       "word_rest": "لم",
       "meaning_en": "pencil",
       "picture": "pencil",
+      "toddler_word": false,
       "stage": 6,
       "card_image": "assets/cards/21_qaaf_pencil.png",
       "audio": {
@@ -367,6 +388,7 @@
       "word_rest": "رة",
       "meaning_en": "ball",
       "picture": "ball",
+      "toddler_word": true,
       "stage": 6,
       "card_image": "assets/cards/22_kaaf_ball.png",
       "audio": {
@@ -384,6 +406,7 @@
       "word_rest": "يمون",
       "meaning_en": "lemon",
       "picture": "lemon",
+      "toddler_word": true,
       "stage": 6,
       "card_image": "assets/cards/23_laam_lemon.png",
       "audio": {
@@ -401,6 +424,7 @@
       "word_rest": "وز",
       "meaning_en": "banana",
       "picture": "banana",
+      "toddler_word": true,
       "stage": 6,
       "card_image": "assets/cards/24_miim_banana.png",
       "audio": {
@@ -418,6 +442,7 @@
       "word_rest": "جمة",
       "meaning_en": "star",
       "picture": "star",
+      "toddler_word": true,
       "stage": 7,
       "card_image": "assets/cards/25_nuun_star.png",
       "audio": {
@@ -435,6 +460,7 @@
       "word_rest": "رم",
       "meaning_en": "pyramid",
       "picture": "pyramid",
+      "toddler_word": false,
       "stage": 7,
       "card_image": "assets/cards/26_haa_pyramid.png",
       "audio": {
@@ -452,6 +478,7 @@
       "word_rest": "جه",
       "meaning_en": "face",
       "picture": "face",
+      "toddler_word": true,
       "stage": 7,
       "card_image": "assets/cards/27_waaw_face.png",
       "audio": {
@@ -469,6 +496,7 @@
       "word_rest": "د",
       "meaning_en": "hand",
       "picture": "hand",
+      "toddler_word": true,
       "stage": 7,
       "card_image": "assets/cards/28_yaa_hand.png",
       "audio": {
