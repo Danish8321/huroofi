@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,6 +42,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
@@ -51,6 +51,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,6 +79,7 @@ import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 import com.huroofi.app.ui.theme.fitGlyph
 import com.huroofi.app.ui.theme.toCanvas
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 /** Sizes and colours of Finger paint (`ToddlerPaint.html`, phone layout). */
@@ -90,6 +92,8 @@ object PaintSpec {
     val CanvasBorder = 6.dp
     val CanvasShadow = 8.dp
     const val CANVAS_ASPECT = 320f / 380f
+    /** On a tall phone the canvas grows down to this width : height instead of leaving a band (plan 14 decision 1). */
+    const val CANVAS_TALLEST = 320f / 460f
     val StrokeWidth = 30.dp
     /** A finger this close to the letter still counts as painting on it. */
     val OnLetterSlop = 8.dp
@@ -183,7 +187,7 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(Modifier.weight(1f, fill = false).aspectRatio(PaintSpec.CANVAS_ASPECT)) {
+            Box(Modifier.weight(1f, fill = false).canvasSize(PaintSpec.CANVAS_ASPECT, PaintSpec.CANVAS_TALLEST)) {
                 val shape = RoundedCornerShape(PaintSpec.CanvasCorner)
                 Box(
                     Modifier
@@ -353,4 +357,20 @@ private fun PopIn(key: Any, modifier: Modifier = Modifier, content: @Composable 
             alpha = pop.value
         },
     ) { content() }
+}
+
+/**
+ * Full width at [aspect] (width : height), then taller into any spare height down to [tallest].
+ * Short of room it keeps [aspect] and narrows, like `aspectRatio`.
+ */
+private fun Modifier.canvasSize(aspect: Float, tallest: Float) = layout { measurable, constraints ->
+    val width = constraints.maxWidth
+    val shortest = (width / aspect).roundToInt()
+    val (w, h) = when {
+        !constraints.hasBoundedHeight -> width to shortest
+        constraints.maxHeight >= shortest -> width to minOf(constraints.maxHeight, (width / tallest).roundToInt())
+        else -> (constraints.maxHeight * aspect).roundToInt() to constraints.maxHeight
+    }
+    val placeable = measurable.measure(Constraints.fixed(w, h))
+    layout(w, h) { placeable.place(0, 0) }
 }

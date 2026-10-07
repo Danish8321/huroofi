@@ -77,11 +77,12 @@ import kotlinx.coroutines.launch
 object FindSpec {
     val SunButton = 84.dp
     val NextButton = 96.dp
-    val TileHeight = 230.dp
+    /** Tallest a tile grows; on a tall phone the two tiles share the spare height up to this (plan 14 decision 1). */
+    val TileHeight = 300.dp
     val TileCorner = 40.dp
     val TileBorder = 6.dp
     val TileShadow = 8.dp
-    val PictureSize = 180.dp
+    val PictureSize = 210.dp
     val HeaderStar = 30.dp
     const val PROMPT_SP = 42f
     const val WORD_SP = 50f
