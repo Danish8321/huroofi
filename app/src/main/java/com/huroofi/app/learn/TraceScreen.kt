@@ -485,8 +485,10 @@ fun TraceScreen(
                     )
                 }
             }
+            // Centred under the paints instead of alone at the start (plan 14 decision 5).
             Box(
                 Modifier
+                    .align(Alignment.CenterHorizontally)
                     .width(TraceSpec.AgainWidth)
                     .height(TraceSpec.Again)
                     .clip(RoundedCornerShape(22.dp))
