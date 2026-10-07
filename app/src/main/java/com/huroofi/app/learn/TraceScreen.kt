@@ -70,8 +70,8 @@ import com.huroofi.app.data.content.TraceStroke
 import com.huroofi.app.toddler.paint.Crayon
 import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.CappedWidth
-import com.huroofi.app.ui.components.DemoBall
-import com.huroofi.app.ui.components.DemoBallSpec
+import com.huroofi.app.ui.components.DemoHand
+import com.huroofi.app.ui.components.DemoHandSpec
 import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.theme.ContrastPair
@@ -138,7 +138,7 @@ object TraceSpec {
         ContrastPair(FirstCoin, Band, large = true, "coin edge 1"),
         ContrastPair(OtherCoin, Band, large = true, "coin edge"),
         ContrastPair(StarEdge, Band, large = true, "finished star edge"),
-        ContrastPair(DemoBallSpec.Edge, Band, large = true, "demo ball edge"),
+        ContrastPair(DemoHandSpec.Edge, Band, large = true, "demo hand edge"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "picked crayon ring"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "Again icon"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "Again label"),
@@ -283,7 +283,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
     }
     var crayon by remember { mutableStateOf(TraceSpec.crayons.first().first) }
     var finished by remember { mutableStateOf(false) }
-    // Demo ball (plan 09 decision 4): the pure schedule decides, the overlay plays.
+    // Demo hand (plan 09 decision 4): the pure schedule decides, the overlay plays.
     val demoPaths = remember(glyph, strokes) { glyph?.let { g -> strokes.map { s -> s.points.map { toCanvas(it, g.ink) } } }.orEmpty() }
     var demoState by remember { mutableStateOf(DemoState()) }
     var demoRun by remember { mutableStateOf<DemoRun?>(null) }
@@ -302,7 +302,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
     }
     LaunchedEffect(Unit) { send(DemoEvent.Enter) }
     LaunchedEffect(introDone) { if (introDone) send(DemoEvent.SoundDone) }
-    // The wait only counts while the ball is still.
+    // The wait only counts while the hand is still.
     LaunchedEffect(Unit) {
         while (true) {
             delay(IDLE_TICK_MS)
@@ -413,7 +413,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
                         drawText(number, topLeft = Offset(coins[i].x - number.size.width / 2f, coins[i].y - number.size.height / 2f))
                     }
                 }
-                DemoBall(demoPaths, demoRun, onFinished = { demoRun = null })
+                DemoHand(demoPaths, demoRun, onFinished = { demoRun = null })
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 for ((color, label) in TraceSpec.crayons) {

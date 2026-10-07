@@ -4,7 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class DemoBallTest {
+class DemoHandTest {
     private val bend = listOf(Offset(0f, 0f), Offset(100f, 0f), Offset(100f, 100f))
 
     @Test fun `ends of the path`() {

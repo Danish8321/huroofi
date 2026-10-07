@@ -58,7 +58,7 @@ import com.huroofi.app.toddler.ToddlerHeader
 import com.huroofi.app.toddler.ToddlerPhrases
 import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ChevronIcon
-import com.huroofi.app.ui.components.DemoBall
+import com.huroofi.app.ui.components.DemoHand
 import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
@@ -134,7 +134,7 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     var page by remember { mutableStateOf(session.start()) }
     val colors = LocalHuroofiColors.current
     val star = page.painting.starEarned
-    // Demo ball: once per page over the outline, never repeated, stopped by the first touch.
+    // Demo hand: once per page over the outline, never repeated, stopped by the first touch.
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -206,7 +206,7 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                             .matchParentSize()
                             .semantics { contentDescription = "Paint over the letter ${page.letter.nameLatin} with your finger" },
                     )
-                    DemoBall(demoPaths, demoRun, onFinished = { demoRun = null })
+                    DemoHand(demoPaths, demoRun, onFinished = { demoRun = null })
                     if (star) {
                         PopIn(page.letter, Modifier.align(Alignment.TopEnd).padding(14.dp)) {
                             StarIcon(fill = colors.sun, size = PaintSpec.Star, outlineWidth = 1.1f)

@@ -84,7 +84,7 @@ class DemoStrokesTest {
         com.huroofi.app.data.content.TraceStroke(order, dot = points.size == 2, points = points.toList().chunked(2))
 
     @Test
-    fun ballSkipsDotsAndKeepsOrder() {
+    fun handSkipsDotsAndKeepsOrder() {
         val strokes = listOf(stroke(1, 0f, 0f, 1f, 1f), stroke(2, 0.5f, 0.5f), stroke(3, 0f, 1f, 1f, 0f))
         assertEquals(listOf(0, 2), demoStrokes(strokes))
     }

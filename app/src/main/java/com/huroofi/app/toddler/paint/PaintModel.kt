@@ -61,5 +61,5 @@ class PaintSession(private val letters: List<Letter>, private val random: Random
         PaintPage(pickExcept(letters, page.letter, random), page.painting.wipe())
 }
 
-/** The strokes the demo ball travels in Finger paint: the lines, in writing order. A dot has nothing to travel. */
+/** The strokes the demo hand travels in Finger paint: the lines, in writing order. A dot has nothing to travel. */
 fun demoStrokes(strokes: List<TraceStroke>): List<Int> = strokes.indices.filter { strokes[it].points.size >= 2 }
