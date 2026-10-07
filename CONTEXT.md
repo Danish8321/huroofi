@@ -14,6 +14,8 @@
 
 **Picture word**: the Arabic word shown with a letter's illustration (e.g. أسد for أ).
 
+**Toddler word**: a picture word an 18–36 month old is likely to know (`toddler_word` in `letters.json`). Toddler Find asks only for toddler words; Look & Listen and Paint keep all 28 letters.
+
 **Parent gate**: the screen that asks a grown-up to press and hold a circle for 2 seconds. Guards the Parent zone and exiting the app.
 
 **Parent lock**: the small lock button on child screens that leads to the Parent gate.

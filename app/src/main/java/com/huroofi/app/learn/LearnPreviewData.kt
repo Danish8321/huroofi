@@ -7,7 +7,7 @@ import com.huroofi.app.data.content.Stage
 /** Sample content for `@Preview` only (previews have no AppContainer). The app reads letters.json. */
 internal object LearnPreviewData {
     private fun letter(index: Int, glyph: String, nameLatin: String, first: String, rest: String, meaning: String) =
-        Letter(index, glyph, glyph, nameLatin, first + rest, first, rest, meaning, meaning, 1, "", LetterAudio("", ""))
+        Letter(index, glyph, glyph, nameLatin, first + rest, first, rest, meaning, meaning, true, 1, "", LetterAudio("", ""))
 
     val stage = Stage(1, "Sunny Meadow", listOf("أ", "ب", "ت", "ث"), "#F59E0B", "#FFEDC4", "#A35400")
     val nextStage = Stage(2, "Carrot Farm", emptyList(), "#16A34A", "#D6F2C8", "#0F5F35")

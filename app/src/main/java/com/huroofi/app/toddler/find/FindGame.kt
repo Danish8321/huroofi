@@ -20,8 +20,10 @@ data class FindSet(val round: FindRound, val stars: Int = 0) {
     val complete: Boolean get() = stars == FindGame.ROUNDS_PER_SET
 }
 
-/** Rules of Where's the…?: endless, no result screen, a wrong tap never costs a star. */
-class FindGame(private val letters: List<Letter>, private val random: Random) {
+/** Rules of Where's the…?: endless, no result screen, a wrong tap never costs a star. Toddler words only. */
+class FindGame(letters: List<Letter>, private val random: Random) {
+    private val letters = letters.filter { it.toddlerWord }
+
     init {
         require(letters.size >= 2) { "need at least two letters" }
     }
