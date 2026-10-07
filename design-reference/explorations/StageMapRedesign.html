@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Huroofi – Letter map redesign</title>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&amp;family=Noto+Naskh+Arabic:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F6FE0}a:hover{color:#1555B0}
+</style>
+</helmet>
+<div style="width: 390px; height: 1250px; box-sizing: border-box; background: #E8F4FF; font-family: 'Baloo Bhaijaan 2', system-ui, sans-serif; color: #13294B; display: flex; flex-direction: column; overflow: hidden">
+
+  <div style="display: flex; align-items: center; gap: 12px; padding: 22px 20px 0">
+    <div style="flex-grow: 1; display: flex; flex-direction: column">
+      <h1 style="margin: 0; font-size: 30px; font-weight: 800; line-height: 1.1">Letter map</h1>
+      <span style="font-size: 16px; font-weight: 600; color: #4A5D7A">1 of 28 letters learned</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; background: #FFC93C; border-radius: 999px; padding: 6px 14px 6px 10px; box-shadow: 0 4px 0 #E0A400">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z" fill="#FFFFFF" stroke="#13294B" stroke-width="1.6" stroke-linejoin="round"></path></svg>
+      <span style="font-size: 20px; font-weight: 800">12</span>
+    </div>
+  </div>
+
+  <div style="position: relative; margin: 18px 20px 0; display: flex; flex-direction: column; gap: 14px">
+    <span style="position: absolute; left: 43px; top: 40px; bottom: 40px; border-left: 6px dotted #A9CBF2"></span>
+    <sc-for list="{{stages}}" as="s" hint-placeholder-count="7">
+      <div style="position: relative; border-radius: 30px; background: {{s.bg}}; border: 4px solid {{s.border}}; box-sizing: border-box; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 6px 0 {{s.shadow}}">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="width: 56px; height: 56px; border-radius: 18px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: {{s.picOpacity}}">
+            <img src="{{s.img}}" alt="" style="width: 46px; height: 46px; object-fit: contain">
+          </span>
+          <span style="flex-grow: 1; display: flex; flex-direction: column">
+            <span style="font-size: 16px; font-weight: 700; color: {{s.sub}}">Stage {{s.num}}</span>
+            <span style="font-size: 20px; font-weight: 800; line-height: 1.1">{{s.name}}</span>
+            <sc-if value="{{s.locked}}" hint-placeholder-val="{{true}}">
+              <span dir="rtl" style="align-self: flex-start; font-family: 'Noto Naskh Arabic', serif; font-size: 20px; font-weight: 700; line-height: 1.5; color: #4A5D7A; white-space: nowrap">{{s.chars}}</span>
+            </sc-if>
+          </span>
+          <sc-if value="{{s.locked}}" hint-placeholder-val="{{true}}">
+            <span aria-label="Locked" style="width: 40px; height: 40px; border-radius: 50%; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: #4A5D7A">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+            </span>
+          </sc-if>
+          <sc-if value="{{s.current}}" hint-placeholder-val="{{false}}">
+            <span style="padding: 2px 12px; border-radius: 999px; background: #FFFFFF; font-size: 16px; font-weight: 800; color: #A35400">1/4</span>
+          </sc-if>
+        </div>
+        <sc-if value="{{s.current}}" hint-placeholder-val="{{false}}">
+          <div dir="rtl" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{s.letters}}" as="l" hint-placeholder-count="4">
+              <span aria-label="{{l.aria}}" style="height: 72px; box-sizing: border-box; border-radius: 18px; background: {{l.bg}}; border: {{l.border}}; color: {{l.fg}}; display: flex; align-items: center; justify-content: center; font-family: 'Noto Naskh Arabic', serif; font-size: 40px; font-weight: 700; line-height: 1">{{l.ch}}</span>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{s.current}}" hint-placeholder-val="{{false}}">
+          <a href="#" style="height: 56px; border-radius: 20px; background: #1F6FE0; box-shadow: 0 5px 0 #1555B0; color: #FFFFFF; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px; font-weight: 800">
+            Continue with <span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-size: 28px; font-weight: 700; line-height: 1">ب</span>
+          </a>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <nav style="margin-top: auto; background: #FFFFFF; border-radius: 28px 28px 0 0; box-shadow: 0 -4px 16px rgba(19, 41, 75, 0.08); display: flex; justify-content: space-around; padding: 10px 8px 16px">
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 64px; min-height: 52px; text-decoration: none; color: #4A5D7A; font-size: 16px; font-weight: 700">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>
+      Home
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 64px; min-height: 52px; text-decoration: none; color: #1F6FE0; font-size: 16px; font-weight: 800">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"></path><path d="M9 4v14M15 6v14"></path></svg>
+      Map
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 64px; min-height: 52px; text-decoration: none; color: #4A5D7A; font-size: 16px; font-weight: 700">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path></svg>
+      Stickers
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 64px; min-height: 52px; text-decoration: none; color: #4A5D7A; font-size: 16px; font-weight: 700">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      Parents
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1250}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const raw = [
+      ['Sunny Meadow', '#F59E0B', '#FFEDC4', '#C77F00', '../../assets/illustrations/png/lion.png', 'أبتث'],
+      ['Carrot Farm', '#EC4F8C', '#FFDDEA', '#B83A6B', '../../assets/illustrations/png/carrot.png', 'جحخد'],
+      ['Flower Hill', '#14A88E', '#D2F4EC', '#00695C', '../../assets/illustrations/png/flower.png', 'ذرزس'],
+      ['Rocket Base', '#7C5CE0', '#E8E0FF', '#4C2DB0', '../../assets/illustrations/png/rocket.png', 'شصضط'],
+      ['Birdy Forest', '#2F80ED', '#DAEAFF', '#0B4FB0', '../../assets/illustrations/png/bird.png', 'ظعغف'],
+      ['Pencil Town', '#4CAF3A', '#DFF5D5', '#1F6E1A', '../../assets/illustrations/png/pencil.png', 'قكلم'],
+      ['Star Castle', '#F07D2A', '#FFE2D7', '#9C430A', '../../assets/illustrations/png/star.png', 'نهوي']
+    ];
+    const stages = raw.map(([name, border, pastel, dark, img, chars], i) => {
+      const current = i === 0;
+      const letters = Array.from(chars).map((ch, j) => {
+        if (!current) return { ch, aria: ch + ', locked', bg: '#FFFFFF', border: 'none', fg: '#4A5D7A' };
+        if (j === 0) return { ch, aria: ch + ', learned', bg: '#158048', border: 'none', fg: '#FFFFFF' };
+        if (j === 1) return { ch, aria: ch + ', today', bg: '#FFFFFF', border: '4px solid #1F6FE0', fg: '#13294B' };
+        return { ch, aria: ch + ', coming up', bg: '#FFFFFF', border: 'none', fg: '#4A5D7A' };
+      });
+      return {
+        num: i + 1,
+        name,
+        img,
+        letters,
+        current,
+        locked: !current,
+        border: current ? border : '#FFFFFF',
+        bg: current ? pastel : '#F4F7FB',
+        shadow: current ? dark : '#CFE2F7',
+        sub: current ? dark : '#4A5D7A',
+        chars: Array.from(chars).join(' '),
+        picOpacity: current ? '1' : '0.6'
+      };
+    });
+    return { stages };
+  }
+}
+</script>
+</body>
+</html>
