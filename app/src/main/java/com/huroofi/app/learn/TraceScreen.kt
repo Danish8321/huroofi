@@ -106,6 +106,9 @@ object TraceSpec {
     val AgainBorder = Color(0xFFA9CBF2)
     /** The band: the glyph filled pale blue. Darker than `Trace.html`'s `#EEF3F9`, which toddlers could not see (kid review, 2026-10-07). */
     val Band = Color(0xFFC8DCF4)
+    /** The letter's edge, drawn over the ink like a colouring book (plan 12 decision 3). */
+    val Outline = HuroofiTokens.Navy
+    val OutlineWidth = 3.dp
     val Dot = HuroofiTokens.Muted
     val FirstCoin = HuroofiTokens.Success
     val OtherCoin = HuroofiTokens.Primary
@@ -138,6 +141,7 @@ object TraceSpec {
     /** The guide is the shape to trace, so it counts as a cue. Crayon colours are content, like Paint's. */
     val textPairs: List<ContrastPair> = listOf(
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "helper bubble"),
+        ContrastPair(Outline, HuroofiTokens.Card, large = true, "letter outline"),
         ContrastPair(Dot, Band, large = true, "trace dot"),
         ContrastPair(DoneDot, Band, large = true, "covered trace dot"),
         ContrastPair(CoinNumber, FirstCoin, large = true, "coin number 1"),
@@ -400,6 +404,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
                         }
                         drawPath(path, s.color, style = style)
                     }
+                    glyph?.let { drawText(it.layout, TraceSpec.Outline, it.topLeft, drawStyle = Stroke(TraceSpec.OutlineWidth.toPx(), join = StrokeJoin.Round)) }
                     if (guide == null || glyph == null) return@Canvas
                     val next = guide.nextStroke()
                     for ((i, dots) in guide.dots.withIndex()) {
