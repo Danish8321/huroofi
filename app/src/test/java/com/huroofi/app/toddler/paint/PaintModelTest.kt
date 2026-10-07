@@ -27,6 +27,14 @@ class PaintModelTest {
     }
 
     @Test
+    fun paintOffTheLetterEarnsNothing() {
+        val off = Painting().start(PaintPoint(0f, 0f)).moveTo(PaintPoint(500f, 0f), onLetter = false)
+        assertEquals(0f, off.totalDp)
+        assertFalse(off.starEarned)
+        assertEquals(2, off.strokes.single().points.size)
+    }
+
+    @Test
     fun distanceAddsUpAcrossStrokes() {
         val p = line(300f).start(PaintPoint(0f, 100f)).moveTo(PaintPoint(60f, 180f))
         assertEquals(400f, p.totalDp, 0.001f)
@@ -84,7 +92,7 @@ class DemoStrokesTest {
         com.huroofi.app.data.content.TraceStroke(order, dot = points.size == 2, points = points.toList().chunked(2))
 
     @Test
-    fun ballSkipsDotsAndKeepsOrder() {
+    fun handSkipsDotsAndKeepsOrder() {
         val strokes = listOf(stroke(1, 0f, 0f, 1f, 1f), stroke(2, 0.5f, 0.5f), stroke(3, 0f, 1f, 1f, 0f))
         assertEquals(listOf(0, 2), demoStrokes(strokes))
     }

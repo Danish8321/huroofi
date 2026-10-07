@@ -1,6 +1,6 @@
 package com.huroofi.app.learn
 
-/** What happens in Trace that the demo ball cares about (plan 09 decision 4). */
+/** What happens in Trace that the demo hand cares about (plan 09 decision 4). */
 sealed interface DemoEvent {
     /** The screen opened; the letter sound starts playing. */
     data object Enter : DemoEvent
@@ -27,10 +27,10 @@ sealed interface DemoEvent {
     data object Done : DemoEvent
 }
 
-/** What the ball should do after an event: keep going as it is, stop, show every stroke, or only the next unfinished one. */
+/** What the hand should do after an event: keep going as it is, stop, show every stroke, or only the next unfinished one. */
 enum class DemoPlay { Keep, Stop, All, Next }
 
-/** Quiet time before the ball hints at the next stroke, and again after each further wait. */
+/** Quiet time before the hand hints at the next stroke, and again after each further wait. */
 const val DEMO_IDLE_MS = 5_000L
 
 data class DemoState(
@@ -41,7 +41,7 @@ data class DemoState(
 )
 
 /**
- * Pure schedule of the demo ball. The caller sends [DemoEvent.Idle] only while the ball is not
+ * Pure schedule of the demo hand. The caller sends [DemoEvent.Idle] only while the hand is not
  * moving, so the wait counts from the end of a demo. No event produces a fail state.
  */
 fun reduceDemo(state: DemoState, event: DemoEvent): Pair<DemoState, DemoPlay> = when (event) {

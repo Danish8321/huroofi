@@ -63,7 +63,7 @@ class TraceDemoTest {
         assertFalse(state.done)
     }
 
-    @Test fun `done stops the ball`() =
+    @Test fun `done stops the hand`() =
         assertEquals(DemoPlay.Stop, last(DemoEvent.Enter, DemoEvent.SoundDone, DemoEvent.Done))
 
     @Test fun `no idle replay once done`() =

@@ -33,10 +33,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -46,6 +49,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -58,7 +62,7 @@ import com.huroofi.app.toddler.ToddlerHeader
 import com.huroofi.app.toddler.ToddlerPhrases
 import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ChevronIcon
-import com.huroofi.app.ui.components.DemoBall
+import com.huroofi.app.ui.components.DemoHand
 import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
@@ -68,6 +72,8 @@ import com.huroofi.app.ui.components.WipeIcon
 import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.ContrastPair
+import com.huroofi.app.ui.theme.FittedGlyph
+import com.huroofi.app.ui.theme.GlyphMask
 import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 import com.huroofi.app.ui.theme.fitGlyph
@@ -85,6 +91,8 @@ object PaintSpec {
     val CanvasShadow = 8.dp
     const val CANVAS_ASPECT = 320f / 380f
     val StrokeWidth = 30.dp
+    /** A finger this close to the letter still counts as painting on it. */
+    val OnLetterSlop = 8.dp
     const val STROKE_ALPHA = 0.9f
     val Star = 86.dp
     val NextButton = 96.dp
@@ -134,19 +142,17 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     var page by remember { mutableStateOf(session.start()) }
     val colors = LocalHuroofiColors.current
     val star = page.painting.starEarned
-    // Demo ball: once per page over the outline, never repeated, stopped by the first touch.
+    // Demo hand: once per page over the outline, never repeated, stopped by the first touch.
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val strokes = remember(page.letter) { strokesOf(page.letter.index) }
-    val demoPaths = remember(page.letter, canvasSize, strokes) {
-        if (canvasSize == IntSize.Zero) {
-            emptyList()
-        } else {
-            val ink = fitGlyph(measurer, page.letter.letter, Size(canvasSize.width.toFloat(), canvasSize.height.toFloat()), LetterOutlineSpec.INK_SHARE, density).ink
-            strokes.map { s -> s.points.map { toCanvas(it, ink) } }
-        }
+    val glyph = remember(page.letter, canvasSize) {
+        if (canvasSize == IntSize.Zero) null else fitGlyph(measurer, page.letter.letter, Size(canvasSize.width.toFloat(), canvasSize.height.toFloat()), LetterOutlineSpec.INK_SHARE, density)
     }
+    // Only paint on the letter shows and counts towards the star (plan 12 decision 4).
+    val onLetter = remember(glyph) { glyph?.let { GlyphMask(it, canvasSize, density) } }
+    val demoPaths = remember(glyph, strokes) { glyph?.let { g -> strokes.map { s -> s.points.map { toCanvas(it, g.ink) } } }.orEmpty() }
     var demoRun by remember(page.letter) { mutableStateOf<DemoRun?>(DemoRun(demoStrokes(strokes), 0)) }
 
     LaunchedEffect(page.letter) { audio.ask(page.letter) }
@@ -194,19 +200,24 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                         .border(PaintSpec.CanvasBorder, PaintSpec.Pink, shape)
                         .onSizeChanged { canvasSize = it },
                 ) {
-                    LetterOutline(page.letter.letter, Modifier.matchParentSize())
                     PaintLayer(
                         painting = page.painting,
+                        glyph = glyph,
                         onStart = {
                             demoRun = null
                             page = page.copy(painting = page.painting.start(it))
                         },
-                        onMove = { page = page.copy(painting = page.painting.moveTo(it)) },
+                        onMove = {
+                            val at = with(density) { Offset(it.x.dp.toPx(), it.y.dp.toPx()) }
+                            val counts = onLetter?.contains(at, with(density) { PaintSpec.OnLetterSlop.toPx() }) ?: true
+                            page = page.copy(painting = page.painting.moveTo(it, counts))
+                        },
                         modifier = Modifier
                             .matchParentSize()
                             .semantics { contentDescription = "Paint over the letter ${page.letter.nameLatin} with your finger" },
                     )
-                    DemoBall(demoPaths, demoRun, onFinished = { demoRun = null })
+                    LetterOutline(page.letter.letter, Modifier.matchParentSize(), fill = false)
+                    DemoHand(demoPaths, demoRun, onFinished = { demoRun = null })
                     if (star) {
                         PopIn(page.letter, Modifier.align(Alignment.TopEnd).padding(14.dp)) {
                             StarIcon(fill = colors.sun, size = PaintSpec.Star, outlineWidth = 1.1f)
@@ -253,16 +264,20 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     }
 }
 
-/** The strokes, and the finger input that makes them. Pointer positions become dp here. */
+/**
+ * The letter's fill with the strokes over it, and the finger input that makes them. Paint lands
+ * only on the fill, out to the edge's middle (plan 12 decision 4). Pointer positions become dp here.
+ */
 @Composable
 private fun PaintLayer(
     painting: Painting,
+    glyph: FittedGlyph?,
     onStart: (PaintPoint) -> Unit,
     onMove: (PaintPoint) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Canvas(
-        modifier.pointerInput(Unit) {
+        modifier.graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen).pointerInput(Unit) {
             fun point(p: Offset) = PaintPoint(p.x.toDp().value, p.y.toDp().value)
             awaitEachGesture {
                 val down = awaitFirstDown()
@@ -277,19 +292,22 @@ private fun PaintLayer(
             }
         },
     ) {
+        val g = glyph ?: return@Canvas
+        drawText(g.layout, LetterOutlineSpec.FillColor, g.topLeft, drawStyle = Fill)
+        drawText(g.layout, LetterOutlineSpec.FillColor, g.topLeft, drawStyle = Stroke(LetterOutlineSpec.EdgeWidth.toPx()))
         val width = PaintSpec.StrokeWidth.toPx()
         val style = Stroke(width = width, cap = StrokeCap.Round, join = StrokeJoin.Round)
         for (stroke in painting.strokes) {
             val points = stroke.points.map { Offset(it.x.dp.toPx(), it.y.dp.toPx()) }
             if (points.size == 1) {
-                drawCircle(stroke.crayon.color, width / 2f, points[0], alpha = PaintSpec.STROKE_ALPHA)
+                drawCircle(stroke.crayon.color, width / 2f, points[0], alpha = PaintSpec.STROKE_ALPHA, blendMode = BlendMode.SrcAtop)
                 continue
             }
             val path = Path().apply {
                 moveTo(points[0].x, points[0].y)
                 for (p in points.drop(1)) lineTo(p.x, p.y)
             }
-            drawPath(path, stroke.crayon.color, alpha = PaintSpec.STROKE_ALPHA, style = style)
+            drawPath(path, stroke.crayon.color, alpha = PaintSpec.STROKE_ALPHA, style = style, blendMode = BlendMode.SrcAtop)
         }
     }
 }

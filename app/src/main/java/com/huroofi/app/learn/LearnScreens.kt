@@ -117,7 +117,7 @@ fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit) {
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
     val strokes = remember(index) { container.content.strokes(index) }
-    // Sound first: the letter clip plays on entry, and the demo ball starts when it ends (plan 09 decision 4).
+    // Sound first: the letter clip plays on entry, and the demo hand starts when it ends (plan 09 decision 4).
     var introDone by remember(index) { mutableStateOf(false) }
     LaunchedEffect(index) {
         prompt.play(Clips.letter(letter)).join()
