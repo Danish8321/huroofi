@@ -43,12 +43,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -254,7 +258,8 @@ private fun DrawScope.drawArrow(dots: List<Offset>, color: Color, towards: Offse
 /**
  * Trace over the pale band with dotted strokes and numbered start coins (plan 09 decision 6).
  * Completes on its own once every stroke is at [STROKE_NEED] coverage; there is no button to skip it
- * (plan 09 decision 3, 2026-10-06). Order, direction and ink outside the letter are never punished.
+ * (plan 09 decision 3, 2026-10-06). Order and direction are never punished; ink off the letter just
+ * doesn't show (plan 12 decision 4).
  */
 @Composable
 fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, onBack: () -> Unit, onDone: () -> Unit) {
@@ -387,23 +392,29 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
                         }
                     },
             ) {
-                Canvas(Modifier.fillMaxSize()) {
-                    val guide = check
-                    if (guide != null && guide.revision < 0) return@Canvas // reading it redraws the canvas as the guide changes
-                    glyph?.let { drawText(it.layout, TraceSpec.Band, it.topLeft) }
+                // Ink shows only on the letter (plan 12 decision 4): the band is drawn first, out to
+                // the outline's middle, and the ink lands only where the band is.
+                Canvas(Modifier.fillMaxSize().graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)) {
+                    val g = glyph ?: return@Canvas
+                    drawText(g.layout, TraceSpec.Band, g.topLeft, drawStyle = Fill) // the outline below leaves Stroke set on the layout
+                    drawText(g.layout, TraceSpec.Band, g.topLeft, drawStyle = Stroke(TraceSpec.OutlineWidth.toPx(), join = StrokeJoin.Round))
                     val width = TraceSpec.Ink.toPx()
                     val style = Stroke(width = width, cap = StrokeCap.Round, join = StrokeJoin.Round)
                     for (s in inkStrokes) {
                         if (s.points.size == 1) {
-                            drawCircle(s.color, width / 2f, s.points[0])
+                            drawCircle(s.color, width / 2f, s.points[0], blendMode = BlendMode.SrcAtop)
                             continue
                         }
                         val path = Path().apply {
                             moveTo(s.points[0].x, s.points[0].y)
                             for (p in s.points.drop(1)) lineTo(p.x, p.y)
                         }
-                        drawPath(path, s.color, style = style)
+                        drawPath(path, s.color, style = style, blendMode = BlendMode.SrcAtop)
                     }
+                }
+                Canvas(Modifier.fillMaxSize()) {
+                    val guide = check
+                    if (guide != null && guide.revision < 0) return@Canvas // reading it redraws the canvas as the guide changes
                     glyph?.let { drawText(it.layout, TraceSpec.Outline, it.topLeft, drawStyle = Stroke(TraceSpec.OutlineWidth.toPx(), join = StrokeJoin.Round)) }
                     if (guide == null || glyph == null) return@Canvas
                     val next = guide.nextStroke()
