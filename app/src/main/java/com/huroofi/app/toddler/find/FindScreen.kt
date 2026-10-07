@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -79,7 +81,7 @@ object FindSpec {
     val TileCorner = 40.dp
     val TileBorder = 6.dp
     val TileShadow = 8.dp
-    val PictureSize = 140.dp
+    val PictureSize = 180.dp
     val HeaderStar = 30.dp
     const val PROMPT_SP = 42f
     const val WORD_SP = 50f
@@ -122,6 +124,8 @@ object FindSpec {
             PartyStarSpot(48.dp, Alignment.TopEnd, end = 22.dp, top = 28.dp),
             PartyStarSpot(54.dp, Alignment.BottomEnd, end = 34.dp, bottom = 26.dp),
         ),
+        // The phone tile is wide and short; stacked, the word left the picture 96 dp (plan 11 decision 5).
+        sideBySide = true,
     )
 }
 
@@ -198,8 +202,10 @@ class FindTileStyle(
     val picture: Dp,
     val wordSp: Float,
     val stars: List<PartyStarSpot>,
+    /** Picture beside the word, for wide short tiles (phone), so the picture can fill the tile's height. */
+    val sideBySide: Boolean = false,
 ) {
-    fun scaled(s: Float) = FindTileStyle(corner * s, border * s, shadow * s, picture * s, wordSp * s, stars.map { it.scaled(s) })
+    fun scaled(s: Float) = FindTileStyle(corner * s, border * s, shadow * s, picture * s, wordSp * s, stars.map { it.scaled(s) }, sideBySide)
 }
 
 /**
@@ -484,32 +490,49 @@ private fun FindTile(letter: Letter, round: FindRound, onClick: () -> Unit, styl
                 .padding(top = style.shadow)
                 .background(shadow, shape),
         )
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(bottom = style.shadow)
-                .background(background, shape)
-                .border(style.border, border, shape),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Image(
-                letterPicture(letter),
-                contentDescription = null,
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .size(style.picture)
-                    .graphicsLayer {
-                        rotationZ = tilt.value
-                        scaleX = scale.value
-                        scaleY = scale.value
-                    },
-            )
+        val face = Modifier
+            .fillMaxSize()
+            .padding(bottom = style.shadow)
+            .background(background, shape)
+            .border(style.border, border, shape)
+        val wiggle = Modifier.graphicsLayer {
+            rotationZ = tilt.value
+            scaleX = scale.value
+            scaleY = scale.value
+        }
+        val word = @Composable {
             ArabicText(
                 highlightedWord(letter.wordFirst, letter.wordRest, content.stageColors(letter).accent),
                 size = style.wordSp.sp,
                 color = colors.navy,
             )
+        }
+        if (style.sideBySide) {
+            Row(
+                face.padding(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
+                    letterPicture(letter),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxHeight(0.82f)
+                        .sizeIn(maxWidth = style.picture, maxHeight = style.picture)
+                        .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                        .then(wiggle),
+                )
+                word()
+            }
+        } else {
+            Column(face, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                Image(
+                    letterPicture(letter),
+                    contentDescription = null,
+                    modifier = Modifier.weight(1f, fill = false).size(style.picture).then(wiggle),
+                )
+                word()
+            }
         }
         if (solvedHere) {
             val fills = listOf(colors.sun, FindSpec.PartyPink, FindSpec.PartyBlue)

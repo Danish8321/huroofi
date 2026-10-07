@@ -47,15 +47,15 @@ internal fun Loading() {
 
 @Composable
 fun HomeRoute(
-    steps: List<PathStep>,
     navTabs: List<NavTab>,
-    onStep: (PathStep, Int) -> Unit,
-    onMap: (() -> Unit)?,
+    onGo: (Int) -> Unit,
     onTab: (NavTab) -> Unit,
 ) {
     val container = LocalAppContainer.current
     val content = container.content
     val completed by container.progress.completedLetters.collectAsStateWithLifecycle<Set<Int>?>(null)
+    val scope = rememberCoroutineScope()
+    val prompt = remember { PromptPlayer(container.sound, scope) }
     val done = completed ?: return Loading()
     val stageOf = remember { content.letters.associate { it.index to it.stage } }
     val open = unlockedStage(done, stageOf)
@@ -69,9 +69,12 @@ fun HomeRoute(
         review = today.index in done,
         strip = content.lettersInStage(open).sortedBy { it.index }.map { StageChip(it, states.getValue(it.index)) },
         stripStage = content.stage(open),
-        steps = steps,
-        onStep = { onStep(it, today.index) },
-        onStrip = onMap,
+        onGo = {
+            prompt.stop()
+            onGo(today.index)
+        },
+        onHearLetter = { prompt.play(Clips.letter(today)) },
+        onHearWord = { prompt.play(Clips.word(today)) },
         navTabs = navTabs,
         onTab = onTab,
     )
@@ -155,6 +158,7 @@ fun RewardRoute(stage: Int, onNext: () -> Unit) {
         stage = content.stage(stage),
         letters = content.lettersInStage(stage),
         next = content.stages.firstOrNull { it.stage == stage + 1 },
+        onSticker = { prompt.play(content.lettersInStage(stage).sortedBy { it.index }.map(Clips::letter)) },
         onNext = {
             prompt.stop()
             onNext()

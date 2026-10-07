@@ -52,6 +52,8 @@ import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StepTabs
 import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.components.rememberWiggle
+import com.huroofi.app.ui.components.wiggle
 import com.huroofi.app.ui.components.stepTabsPairs
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.ContrastPair
@@ -186,24 +188,40 @@ fun LessonScreen(
                             // Naskh line metrics are much taller than the glyph; a fixed box keeps the card compact.
                             val baseBox = if (showShapes) LessonSpec.LetterBoxWithShapes else LessonSpec.LetterBox
                             val box = baseBox + with(LocalDensity.current) { extraPx.toDp() }
-                            Box(Modifier.fillMaxWidth().height(box), contentAlignment = Alignment.Center) {
+                            val letterWiggle = rememberWiggle()
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(box)
+                                    // No clip and no ripple: the glyph overflows its box, and the wiggle is the answer.
+                                    .clickable(interactionSource = null, indication = null, role = Role.Button, onClickLabel = "Hear it again") {
+                                        letterWiggle.play()
+                                        onHear()
+                                    }
+                                    .wiggle(letterWiggle),
+                                contentAlignment = Alignment.Center,
+                            ) {
                                 val growth = (box / baseBox).coerceAtMost(LessonSpec.MAX_LETTER_GROWTH)
                                 val letterSp = growth * if (showShapes) LessonSpec.LETTER_WITH_SHAPES_SP else LessonSpec.LETTER_SP
                                 IgnoreFontScale {
                                     ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = letterSp.sp, color = HuroofiTokens.Navy)
                                 }
                             }
+                            val pictureWiggle = rememberWiggle()
                             Row(
                                 Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(22.dp))
                                     .background(colors.pastel)
-                                    .clickable(role = Role.Button, onClickLabel = "Hear it again", onClick = onHear)
+                                    .clickable(role = Role.Button, onClickLabel = "Hear it again") {
+                                        pictureWiggle.play()
+                                        onHear()
+                                    }
                                     .padding(horizontal = 16.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
-                                Image(letterPicture(letter), contentDescription = letter.meaningEn, modifier = Modifier.size(LessonSpec.Picture))
+                                Image(letterPicture(letter), contentDescription = letter.meaningEn, modifier = Modifier.size(LessonSpec.Picture).wiggle(pictureWiggle))
                                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                                     ArabicText(highlightedWord(letter.wordFirst, letter.wordRest, colors.accent), size = LessonSpec.WORD_SP.sp, color = HuroofiTokens.Navy)
                                     Text(letter.meaningEn, style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold), color = HuroofiTokens.Muted)

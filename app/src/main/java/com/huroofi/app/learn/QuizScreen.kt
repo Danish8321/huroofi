@@ -37,6 +37,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -109,7 +111,7 @@ object QuizSpec {
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "Which one starts with"),
         ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "right tile border"),
         ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "right tile tick"),
-        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "idle panel"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "idle hint"),
         ContrastPair(WrongText, WrongBackground, large = true, "Almost! Try again"),
         ContrastPair(HuroofiTokens.Navy, WrongBackground, large = false, "wrong explanation"),
         ContrastPair(RightText, RightBackground, large = true, "Great job!"),
@@ -191,7 +193,8 @@ fun QuizScreen(
                     containerColor = HuroofiTokens.Sun,
                     shadowColor = HuroofiTokens.SunShadow,
                 ) { SoundIcon(HuroofiTokens.Navy, size = 30.dp) }
-                Text("Which one starts with", Modifier.weight(1f), style = HuroofiText.buttonPrimary, color = HuroofiTokens.Navy)
+                // Heading breaks balance the lines ("Which one / starts with"), never a lone word (plan 11 decision 4).
+                Text("Which one starts with", Modifier.weight(1f), style = HuroofiText.buttonPrimary.copy(lineBreak = LineBreak.Heading), color = HuroofiTokens.Navy)
                 Box(Modifier.size(QuizSpec.Chip).background(colors.pastel, RoundedCornerShape(20.dp)), contentAlignment = Alignment.Center) {
                     CenteredLetter(target.letter, size = QuizSpec.CHIP_SP.sp, color = HuroofiTokens.Navy)
                 }
@@ -202,12 +205,14 @@ fun QuizScreen(
                 when {
                     game.solved -> RightPanel(target, colors.accent, showContinue = game.finished, canContinue = canContinue, onContinue = onContinue)
                     wrong != null -> WrongPanel(wrong)
-                    else -> Box(
-                        Modifier.fillMaxWidth().height(64.dp).background(HuroofiTokens.Card, RoundedCornerShape(22.dp)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text("Listen, then tap a picture", style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Muted)
-                    }
+                    // Plain text on the page, not a white pill that looks pressable (plan 11 decision 4).
+                    else -> Text(
+                        "Listen, then tap a picture",
+                        Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                        style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
+                        color = HuroofiTokens.Muted,
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }

@@ -1,7 +1,5 @@
 package com.huroofi.app.learn
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,12 +26,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -69,11 +68,14 @@ import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.RoundIconButton
+import com.huroofi.app.ui.components.rememberWiggle
+import com.huroofi.app.ui.components.wiggle
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.StageColors
+import kotlin.random.Random
 
 /** Sizes and colours of the Letter Map (`StageMap.html`, plan 07 decision 8). */
 object MapSpec {
@@ -94,7 +96,7 @@ object MapSpec {
     const val NAME_SP = 20f
     val textSizes = listOf(NAME_SP)
 
-    /** The play button, a locked card (tap = boing + wiggle) and the nav items. */
+    /** The play button, a finished card (tap = replay a letter), a locked card (tap = boing + wiggle) and the nav items. */
     val touchSizes = listOf(Play, CardHeight, NavSpec.Item)
     val colors = listOf(
         HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Primary,
@@ -126,13 +128,15 @@ data class MapStage(val stage: Stage, val state: StageState, val chips: List<Sta
 private val PlayTriangle = "M8 5v14l11-7z"
 
 /**
- * Seven zig-zag stage cards over a dotted path, opened at the current stage. Finished cards do nothing,
- * the current card's play button opens Meet, a locked card says no with [onLocked] and a lock wiggle.
+ * Seven zig-zag stage cards over a dotted path, opened at the current stage. A finished card replays
+ * one of its letters with [onReplay] (plan 11 decision 2), the current card's play button opens Meet,
+ * a locked card says no with [onLocked] and a wiggle.
  */
 @Composable
 fun MapScreen(
     stages: List<MapStage>,
     onPlay: () -> Unit,
+    onReplay: (Stage) -> Unit,
     onLocked: () -> Unit,
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
@@ -163,6 +167,7 @@ fun MapScreen(
                                 s,
                                 Modifier.padding(start = starts[i % 2]).width(cardWidth).height(MapSpec.CardHeight),
                                 onPlay = onPlay,
+                                onReplay = { onReplay(s.stage) },
                                 onLocked = onLocked,
                             )
                         }
@@ -208,7 +213,7 @@ private fun DottedPath(count: Int, starts: List<Dp>, cardWidth: Dp, modifier: Mo
 }
 
 @Composable
-private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onLocked: () -> Unit) {
+private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onReplay: () -> Unit, onLocked: () -> Unit) {
     val colors = s.stage.colors()
     val shape = RoundedCornerShape(MapSpec.CardCorner)
     val locked = s.state == StageState.LOCKED
@@ -217,17 +222,7 @@ private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onLocke
         StageState.FINISHED -> Triple(HuroofiTokens.Success, MapSpec.Ring, MapSpec.QuietBorder)
         StageState.LOCKED -> Triple(MapSpec.QuietBorder, MapSpec.QuietRing, MapSpec.QuietBorder)
     }
-    val tilt = remember { Animatable(0f) }
-    var taps by remember { mutableIntStateOf(0) }
-    LaunchedEffect(taps) {
-        if (taps == 0) return@LaunchedEffect
-        tilt.animateTo(0f, keyframes {
-            durationMillis = 500
-            -14f at 100
-            14f at 250
-            -8f at 380
-        })
-    }
+    val wiggle = rememberWiggle()
     val stateLabel = when (s.state) {
         StageState.FINISHED -> "finished"
         StageState.CURRENT -> "playing now"
@@ -235,17 +230,22 @@ private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onLocke
     }
     Column(
         modifier
+            .wiggle(wiggle)
             .dropEdge(edge, 6.dp, shape)
-            .background(HuroofiTokens.Card, shape)
+            .clip(shape)
+            .background(HuroofiTokens.Card)
             .border(ringWidth, ring, shape)
             .then(
-                if (locked) {
-                    Modifier.clickable(role = Role.Button) {
-                        taps++
+                when (s.state) {
+                    StageState.LOCKED -> Modifier.clickable(role = Role.Button) {
+                        wiggle.play()
                         onLocked()
                     }
-                } else {
-                    Modifier
+                    StageState.FINISHED -> Modifier.clickable(role = Role.Button, onClickLabel = "Play a letter again") {
+                        wiggle.play()
+                        onReplay()
+                    }
+                    StageState.CURRENT -> Modifier
                 },
             )
             .semantics { contentDescription = "Stage ${s.stage.stage}, ${s.stage.name}, $stateLabel" }
@@ -280,7 +280,7 @@ private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onLocke
                     contentAlignment = Alignment.Center,
                 ) { LineIcon(LearnIcons.Check, HuroofiTokens.Card, size = 24.dp, strokeWidth = 3.2f) }
                 StageState.LOCKED -> Box(
-                    Modifier.size(MapSpec.Badge).rotate(tilt.value).background(LockedChip, CircleShape),
+                    Modifier.size(MapSpec.Badge).background(LockedChip, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) { LineIcon(LearnIcons.Lock, HuroofiTokens.Muted, size = 22.dp) }
             }
@@ -303,7 +303,10 @@ private fun PlayIcon(color: Color) {
     }
 }
 
-/** Letter Map for the stored progress. Play opens Meet for Today's letter, the learning letter. */
+/**
+ * Letter Map for the stored progress. Play opens Meet for Today's letter, the learning letter. A
+ * finished card opens Meet for one of its letters at random, never the same one twice in a row.
+ */
 @Composable
 fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Unit) {
     val container = LocalAppContainer.current
@@ -311,6 +314,7 @@ fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Un
     val completed by container.progress.completedLetters.collectAsStateWithLifecycle<Set<Int>?>(null)
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
+    var lastReplay by rememberSaveable { mutableIntStateOf(0) }
     val done = completed ?: return Loading()
     val stageOf = remember { content.letters.associate { it.index to it.stage } }
     val open = unlockedStage(done, stageOf)
@@ -328,6 +332,12 @@ fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Un
         onPlay = {
             prompt.stop()
             learning?.let { onPlay(it.index) }
+        },
+        onReplay = { stage ->
+            prompt.stop()
+            val pick = replayLetter(content.lettersInStage(stage.stage).map { it.index }, lastReplay, Random)
+            lastReplay = pick
+            onPlay(pick)
         },
         onLocked = { prompt.play(Clips.boing) },
         navTabs = navTabs,
@@ -363,6 +373,7 @@ private fun MapPreview() {
                 MapStage(stage, state, chips)
             },
             onPlay = {},
+            onReplay = {},
             onLocked = {},
             navTabs = NavTab.entries,
             onTab = {},

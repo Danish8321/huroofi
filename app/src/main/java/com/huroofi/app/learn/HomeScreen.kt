@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -37,7 +36,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
@@ -50,10 +48,11 @@ import com.huroofi.app.parent.LetterState
 import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
-import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.components.rememberWiggle
+import com.huroofi.app.ui.components.wiggle
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
@@ -64,21 +63,21 @@ import com.huroofi.app.ui.theme.IgnoreFontScale
 import com.huroofi.app.ui.theme.StageColors
 import com.huroofi.app.ui.theme.highlightedWord
 
-/** Sizes and colours of Home (`Main.html`, plan 07 decision 7). */
+/**
+ * Sizes and colours of Home (`Main.html`, plan 07 decision 7). One main action: "Let's go!" starts
+ * today's letter at Meet. The Learn/Trace/Play tiles and the strip's Map link are gone (plan 11 decision 3).
+ */
 object HomeSpec {
     val Avatar = 58.dp
     val Gap = 22.dp
     val CardCorner = 30.dp
     val CardShadow = Color(0xFFCFE2F7)
     val Edge = 8.dp
-    val Picture = 128.dp
-    val LetterBox = 150.dp
-    val TileHeight = 80.dp
-    val TileCorner = 24.dp
-    val TileIconBox = 48.dp
+    val Picture = 150.dp
+    val LetterBox = 170.dp
+    val StripCorner = 24.dp
     val Chip = 40.dp
-    val StripMinHeight = 64.dp
-    const val LETTER_SP = 112f
+    const val LETTER_SP = 128f
     const val WORD_SP = 32f
     const val CHIP_SP = 28f
     const val GREETING_SP = 26f
@@ -87,16 +86,8 @@ object HomeSpec {
     val ChipLearned = HuroofiTokens.Success
     val ChipLearningRing = HuroofiTokens.Primary
 
-    /** Tile face, bottom edge, icon colour, as in the prototype. */
-    val tileColors = mapOf(
-        PathStep.MEET to Triple(Color(0xFFCFE4FF), Color(0xFFA9CBF2), HuroofiTokens.Primary),
-        PathStep.TRACE to Triple(Color(0xFFFFD0E2), Color(0xFFF2A9C6), Color(0xFFD6246E)),
-        PathStep.PLAY to Triple(Color(0xFFD6F2C8), Color(0xFFB2DDA0), HuroofiTokens.Success),
-    )
-
-    val touchSizes = listOf(TileHeight, StripMinHeight, NavSpec.Item)
-    val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, CardShadow) +
-        tileColors.values.flatMap { it.toList() } + NavSpec.colors
+    val touchSizes = listOf(NavSpec.Item)
+    val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, CardShadow) + NavSpec.colors
 
     /** Letter chips, shared with the Map. Arabic is bold 28 sp, so large. */
     val chipPairs = listOf(
@@ -118,14 +109,7 @@ object HomeSpec {
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "letter name"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "word"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "stage strip title"),
-        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = false, "strip Map link"),
-        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = true, "strip chevron"),
-    ) + tileColors.flatMap { (step, c) ->
-        listOf(
-            ContrastPair(c.third, HuroofiTokens.Card, large = true, "$step tile icon"),
-            ContrastPair(HuroofiTokens.Navy, c.first, large = false, "$step tile label"),
-        )
-    } + ButtonKind.Primary.contrastPairs() + chipPairs + NavSpec.textPairs
+    ) + ButtonKind.Primary.contrastPairs() + chipPairs + NavSpec.textPairs
 
     fun stagePairs(stage: StageColors) =
         listOf(ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "word first letter")) + chipStagePairs(stage)
@@ -141,9 +125,9 @@ fun HomeScreen(
     review: Boolean,
     strip: List<StageChip>,
     stripStage: Stage,
-    steps: List<PathStep>,
-    onStep: (PathStep) -> Unit,
-    onStrip: (() -> Unit)?,
+    onGo: () -> Unit,
+    onHearLetter: () -> Unit,
+    onHearWord: () -> Unit,
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
 ) {
@@ -154,13 +138,9 @@ fun HomeScreen(
                 Column(Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(horizontal = 20.dp, vertical = 20.dp)) {
                     Greeting(review)
                     SectionGap()
-                    TodayCard(today, todayStage, onGo = { onStep(PathStep.MEET) })
+                    TodayCard(today, todayStage, onGo, onHearLetter, onHearWord)
                     SectionGap()
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        for (step in steps) StepTile(step, Modifier.weight(1f)) { onStep(step) }
-                    }
-                    SectionGap()
-                    StageStrip(strip, stripStage, onStrip)
+                    StageStrip(strip, stripStage)
                 }
             }
             LearnNav(NavTab.HOME, navTabs, onTab)
@@ -199,7 +179,7 @@ private fun Greeting(review: Boolean) {
 }
 
 @Composable
-private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
+private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit, onHearLetter: () -> Unit, onHearWord: () -> Unit) {
     val colors = stage.colors()
     val shape = RoundedCornerShape(HomeSpec.CardCorner)
     Column(
@@ -221,7 +201,19 @@ private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
                     color = HuroofiTokens.Primary,
                 )
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
+                    // Letter and picture answer a tap with their sound and a wiggle (plan 11 decision 2).
+                    val letterWiggle = rememberWiggle()
+                    val pictureWiggle = rememberWiggle()
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            // No clip and no ripple: the glyph overflows its box, and the wiggle is the answer.
+                            .clickable(interactionSource = null, indication = null, role = Role.Button, onClickLabel = "Hear the letter") {
+                                letterWiggle.play()
+                                onHearLetter()
+                            }
+                            .wiggle(letterWiggle),
+                    ) {
                         Box(Modifier.height(HomeSpec.LetterBox), contentAlignment = Alignment.Center) {
                             IgnoreFontScale {
                                 ArabicText(letter.letter, Modifier.wrapContentHeight(unbounded = true), size = HomeSpec.LETTER_SP.sp, color = HuroofiTokens.Navy)
@@ -229,7 +221,16 @@ private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
                         }
                         Text(letter.nameLatin, style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
                     }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable(role = Role.Button, onClickLabel = "Hear the word") {
+                                pictureWiggle.play()
+                                onHearWord()
+                            }
+                            .wiggle(pictureWiggle),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         Image(letterPicture(letter), contentDescription = letter.meaningEn, modifier = Modifier.size(HomeSpec.Picture))
                         ArabicText(
                             highlightedWord(letter.wordFirst, letter.wordRest, colors.accent),
@@ -246,37 +247,14 @@ private fun TodayCard(letter: Letter, stage: Stage, onGo: () -> Unit) {
 }
 
 @Composable
-private fun StepTile(step: PathStep, modifier: Modifier, onClick: () -> Unit) {
-    val (face, edge, icon) = HomeSpec.tileColors.getValue(step)
-    val shape = RoundedCornerShape(HomeSpec.TileCorner)
-    Column(
-        modifier
-            .height(HomeSpec.TileHeight)
-            .dropEdge(edge, 5.dp, shape)
-            .clip(shape)
-            .background(face)
-            .clickable(role = Role.Button, onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Box(
-            Modifier.size(HomeSpec.TileIconBox - 12.dp).background(HuroofiTokens.Card, RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center,
-        ) { LineIcon(LearnIcons.forStep(step), icon, size = 24.dp) }
-        Text(step.tile, style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
-    }
-}
-
-@Composable
-private fun StageStrip(chips: List<StageChip>, stage: Stage, onClick: (() -> Unit)?) {
-    val shape = RoundedCornerShape(HomeSpec.TileCorner)
+private fun StageStrip(chips: List<StageChip>, stage: Stage) {
+    val shape = RoundedCornerShape(HomeSpec.StripCorner)
     Row(
         Modifier
             .fillMaxWidth()
             .dropEdge(HomeSpec.CardShadow, 5.dp, shape)
             .clip(shape)
             .background(HuroofiTokens.Card)
-            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -291,11 +269,6 @@ private fun StageStrip(chips: List<StageChip>, stage: Stage, onClick: (() -> Uni
                     for (chip in chips) StageLetterChip(chip, stage)
                 }
             }
-        }
-        if (onClick != null) {
-            Spacer(Modifier.width(8.dp))
-            Text("Map", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Primary)
-            LineIcon(LearnIcons.Next, HuroofiTokens.Primary, size = 22.dp, strokeWidth = 2.6f)
         }
     }
 }
@@ -347,9 +320,9 @@ private fun HomePreview() {
                 StageChip(l, if (i == 0) LetterState.LEARNED else if (i == 1) LetterState.LEARNING else LetterState.TO_GO)
             },
             stripStage = stage,
-            steps = PathStep.entries,
-            onStep = {},
-            onStrip = {},
+            onGo = {},
+            onHearLetter = {},
+            onHearWord = {},
             navTabs = NavTab.entries,
             onTab = {},
         )

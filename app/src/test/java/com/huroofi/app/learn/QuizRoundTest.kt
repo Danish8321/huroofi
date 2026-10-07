@@ -50,6 +50,27 @@ class QuizRoundTest {
     }
 
     @Test
+    fun theRightPictureMovesEveryRound() {
+        for (count in listOf(3, 4)) for (slot in 0 until count) for (seed in 1..30) {
+            val options = quizRound(baa, letters, count, Random(seed), avoidSlot = slot)
+            assertTrue("count $count slot $slot seed $seed", options[slot].index != baa.index)
+            assertEquals(1, options.count { it.index == baa.index })
+        }
+    }
+
+    @Test
+    fun theRightPictureCanReachEveryOtherSlot() {
+        val slots = (1..40).map { seed -> quizRound(baa, letters, 3, Random(seed), avoidSlot = 0).indexOfFirst { it.index == baa.index } }.toSet()
+        assertEquals(setOf(1, 2), slots)
+    }
+
+    @Test
+    fun targetSlotFindsTheRightPicture() {
+        val game = QuizGame(baa, round())
+        assertEquals(baa.index, game.options[game.targetSlot].index)
+    }
+
+    @Test
     fun wrongPickDimsButNeverAdvances() {
         val game = QuizGame(baa, round())
         val wrong = game.options.first { it.index != baa.index }

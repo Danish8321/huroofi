@@ -102,7 +102,7 @@ fun QuizRoute(index: Int, onClose: () -> Unit, onContinue: (PathNext) -> Unit) {
                     return@launch
                 }
                 shown.join()
-                game = game?.nextRound(quizRound(target, content.letters, count, random))
+                game = game?.let { it.nextRound(quizRound(target, content.letters, count, random, avoidSlot = it.targetSlot)) }
                 prompt.play(question)
             }
         },

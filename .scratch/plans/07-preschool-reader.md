@@ -39,7 +39,7 @@ Glossary terms used here (see `CONTEXT.md`): Letter path, Learned letter, Learni
 
 ### 5. Reward, stickers, sticker book
 - One Sticker per stage (7), named "<stage name> sticker". Drawn in code: round badge in the stage pastel and border colours with the stage's 4 letter pictures. No new art, no JSON change.
-- Reward: confetti, always 3 stars, `cheer`, "Stage N complete!", "You learned 4 new letters", 4 letter tiles, the sticker card, "<next stage name> unlocked" (last stage: "All letters learned!"). One button: "Next stage" → Map.
+- Reward: confetti, always 3 stars, `cheer`, "Stage N complete!", "You learned 4 new letters", 4 letter tiles, the sticker card, "<next stage name> unlocked" (2026-10-07, plan 11 decision 6: the sticker is now the big animated hero with its name under it; the card, "NEW STICKER" and "You learned 4 new letters" are gone) (last stage: "All letters learned!"). One button: "Next stage" → Map.
 - The sticker is awarded (`awardSticker`) in the same step that marks the stage's 4th letter learned, before Reward opens, so killing the app on the way never loses it. The next stage unlocks by the existing `unlockedStage` rule.
 - Stickers tab = Sticker book: 7 slots; earned shows badge and name, unearned a soft pastel outline with "?". No lock, no grey, not tappable.
 - No stars currency anywhere (no star pill, no "+12").
@@ -51,7 +51,7 @@ Glossary terms used here (see `CONTEXT.md`): Letter path, Learned letter, Learni
 ### 7. Home and bottom nav
 - Lion avatar + "Hi there!". No name, no star pill.
 - Today card: "TODAY'S LETTER", big letter, Latin name, picture, picture word with its first letter highlighted, "Let's go!" → Meet.
-- One row of 3 tiles: Learn, Trace, Play. No Songs.
+- One row of 3 tiles: Learn, Trace, Play. No Songs. *Removed 2026-10-07 (plan 11 decision 3): Home has one main action, "Let's go!".*
 - Stage strip: the open stage's 4 chips (learned green, learning white + blue ring, rest pastel). Tap → Map.
 - Bottom nav: Home, Map, Stickers, Parents (active `#1F6FE0`). Parents opens the Parent gate; it is never a tab. Nav shows on Home, Map, Stickers only.
 - Preschool and Reader start on Home; the `Placeholder` route is deleted.
