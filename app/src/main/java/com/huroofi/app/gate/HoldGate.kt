@@ -9,8 +9,11 @@ sealed interface HoldState {
     data object Unlocked : HoldState
 }
 
+/** How long a grown-up holds the gate: 2 s (plan 13 decision 1; was 3 s). */
+const val GATE_HOLD_MS = 2_000L
+
 /** Press-and-hold gate for grown-ups. Pure: time is passed in, so tests need no clock. */
-class HoldGate(private val holdMillis: Long = 3_000) {
+class HoldGate(private val holdMillis: Long = GATE_HOLD_MS) {
     var state: HoldState = HoldState.Idle
         private set
 
