@@ -158,6 +158,7 @@ fun RewardRoute(stage: Int, onNext: () -> Unit) {
         stage = content.stage(stage),
         letters = content.lettersInStage(stage),
         next = content.stages.firstOrNull { it.stage == stage + 1 },
+        onSticker = { prompt.play(content.lettersInStage(stage).sortedBy { it.index }.map(Clips::letter)) },
         onNext = {
             prompt.stop()
             onNext()

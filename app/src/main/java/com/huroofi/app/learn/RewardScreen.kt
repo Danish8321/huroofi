@@ -1,14 +1,19 @@
 package com.huroofi.app.learn
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,22 +26,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,6 +61,8 @@ import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.StarIcon
 import com.huroofi.app.ui.components.contrastPairs
+import com.huroofi.app.ui.components.rememberWiggle
+import com.huroofi.app.ui.components.wiggle
 import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiDimens
@@ -63,36 +75,32 @@ import kotlin.random.Random
 /** Sizes and colours of Reward (`Reward.html`, plan 07 decision 5). */
 object RewardSpec {
     val Background = Color(0xFFFFF4D6)
-    val StickerEdge = Color(0xFFF3DC9C)
-    val NewSticker = Color(0xFFA35F00)
     val StarOutline = Color(0xFFC98A00)
-    val BigStar = 104.dp
-    val SmallStar = 78.dp
+    val BigStar = 72.dp
+    val SmallStar = 54.dp
+
+    /** The new sticker is the hero (plan 11 decision 6); the words under it are for the grown-up. */
+    val Hero = 260.dp
     val Tile = 58.dp
     val TileBorder = 3.dp
-    val CardCorner = 32.dp
-    const val TITLE_SP = 36f
+    const val TITLE_SP = 28f
     const val TILE_SP = 34f
-    const val STICKER_NAME_SP = 24f
-    val textSizes = listOf(TITLE_SP, TILE_SP, STICKER_NAME_SP)
+    val textSizes = listOf(TITLE_SP, TILE_SP)
 
     /** Confetti from the prototype, minus its red-orange (no red on child screens). */
     val confetti = listOf(Color(0xFFFF6FA5), Color(0xFF3B8CF0), Color(0xFF3BAA5C), Color(0xFF8A6CE8), HuroofiTokens.Sun)
 
     val touchSizes = listOf(HuroofiDimens.PrimaryButtonHeight)
     val colors = listOf(
-        Background, StickerEdge, NewSticker, StarOutline, HuroofiTokens.Sun, HuroofiTokens.Success,
+        Background, StarOutline, HuroofiTokens.Sun, HuroofiTokens.Success,
         HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted,
     ) + confetti
 
     /** Stars and confetti are celebration, not cues. Text is checked on the page colour. */
     val textPairs: List<ContrastPair> = listOf(
-        ContrastPair(HuroofiTokens.Navy, Background, large = true, "Stage complete"),
-        ContrastPair(HuroofiTokens.Muted, Background, large = false, "letters learned"),
+        ContrastPair(HuroofiTokens.Navy, Background, large = true, "sticker name"),
+        ContrastPair(HuroofiTokens.Muted, Background, large = false, "Stage complete, added to your sticker book"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "learned letter tile"),
-        ContrastPair(NewSticker, HuroofiTokens.Card, large = false, "NEW STICKER"),
-        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "sticker name"),
-        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "Added to your sticker book"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "next stage unlocked"),
     ) + ButtonKind.Primary.contrastPairs() + StickerSpec.textPairs
 
@@ -100,11 +108,12 @@ object RewardSpec {
 }
 
 /**
- * Stage complete: confetti, always 3 stars, the stage's letters, its sticker and what opens next.
- * One button. [next] is null after the last stage.
+ * Stage complete: confetti, always 3 stars, the new sticker big in the middle, the stage's letters
+ * and what opens next. One button. Tapping the sticker says its letters. [next] is null after the
+ * last stage.
  */
 @Composable
-fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onNext: () -> Unit) {
+fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onSticker: () -> Unit, onNext: () -> Unit) {
     Box(Modifier.fillMaxSize().background(RewardSpec.Background)) {
         Confetti(Modifier.fillMaxSize())
         CappedWidth(Color.Transparent) {
@@ -117,23 +126,23 @@ fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onNext: () -
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Stars()
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(12.dp))
+                    StickerHero(stage, letters, onSticker)
+                    Spacer(Modifier.height(16.dp))
                     Text(
-                        "Stage ${stage.stage} complete!",
+                        stickerName(stage),
                         style = HuroofiText.screenTitle.copy(fontSize = RewardSpec.TITLE_SP.sp),
                         color = HuroofiTokens.Navy,
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        "You learned ${letters.size} new letters",
+                        "Stage ${stage.stage} complete · added to your sticker book",
                         style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
                         color = HuroofiTokens.Muted,
                         textAlign = TextAlign.Center,
                     )
                     Spacer(Modifier.height(18.dp))
                     LetterTiles(letters)
-                    Spacer(Modifier.height(26.dp))
-                    StickerCard(stage, letters)
                     Spacer(Modifier.height(16.dp))
                     Text(
                         next?.let { "${it.name} unlocked" } ?: "All letters learned!",
@@ -178,34 +187,44 @@ private fun LetterTiles(letters: List<Letter>) {
     }
 }
 
+/**
+ * The new sticker, big: it springs in, then bobs gently while the screen is open. A tap wiggles it
+ * and says its letters (plan 11 decisions 2 and 6).
+ */
 @Composable
-private fun StickerCard(stage: Stage, letters: List<Letter>) {
-    val shape = RoundedCornerShape(RewardSpec.CardCorner)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .dropEdge(RewardSpec.StickerEdge, 8.dp, shape)
-            .background(HuroofiTokens.Card, shape)
-            .padding(18.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        StickerBadge(stage, letters)
-        Column {
-            Text(
-                "NEW STICKER",
-                style = HuroofiText.caption.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp),
-                color = RewardSpec.NewSticker,
-            )
-            Text(
-                stickerName(stage),
-                style = HuroofiText.screenTitle.copy(fontSize = RewardSpec.STICKER_NAME_SP.sp, lineHeight = 26.sp),
-                color = HuroofiTokens.Navy,
-            )
-            Text("Added to your sticker book", style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold), color = HuroofiTokens.Muted)
-        }
-    }
+private fun StickerHero(stage: Stage, letters: List<Letter>, onTap: () -> Unit) {
+    val pop = remember { Animatable(0f) }
+    LaunchedEffect(Unit) { pop.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessLow)) }
+    val bob by rememberInfiniteTransition(label = "sticker bob").animateFloat(
+        initialValue = -1f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(BOB_MS, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "bob",
+    )
+    val wiggle = rememberWiggle()
+    StickerBadge(
+        stage,
+        letters,
+        size = RewardSpec.Hero,
+        modifier = Modifier
+            .graphicsLayer {
+                scaleX = pop.value
+                scaleY = pop.value
+                rotationZ = bob * BOB_DEGREES
+                translationY = bob * BOB_DP.dp.toPx()
+            }
+            .wiggle(wiggle)
+            .clip(CircleShape)
+            .clickable(role = Role.Button, onClickLabel = "Hear the letters") {
+                wiggle.play()
+                onTap()
+            },
+    )
 }
+
+private const val BOB_MS = 1400
+private const val BOB_DEGREES = 4f
+private const val BOB_DP = 6
 
 /** One confetti piece: where it starts, how fast it falls, its turn and colour. Fractions of the box. */
 private class Piece(val x: Float, val phase: Float, val speed: Float, val spin: Float, val color: Color, val round: Boolean)
@@ -248,11 +267,11 @@ private const val CONFETTI_LOOP_MS = 6_000
 @Preview(widthDp = 390, heightDp = 844)
 @Composable
 private fun RewardStage1Preview() {
-    HuroofiTheme { RewardScreen(LearnPreviewData.stage, LearnPreviewData.letters, LearnPreviewData.nextStage, onNext = {}) }
+    HuroofiTheme { RewardScreen(LearnPreviewData.stage, LearnPreviewData.letters, LearnPreviewData.nextStage, onSticker = {}, onNext = {}) }
 }
 
 @Preview(widthDp = 390, heightDp = 844)
 @Composable
 private fun RewardLastStagePreview() {
-    HuroofiTheme { RewardScreen(LearnPreviewData.stages.last(), LearnPreviewData.letters, next = null, onNext = {}) }
+    HuroofiTheme { RewardScreen(LearnPreviewData.stages.last(), LearnPreviewData.letters, next = null, onSticker = {}, onNext = {}) }
 }
