@@ -17,3 +17,15 @@ Grilled 2026-10-07: Q1 scope 1–5, with 6 and 7 parked as issues. The maintaine
 ## Out of scope
 
 Quiz, Reward and Rest layouts (not reviewed this round); dark mode; new art; recording the hint clip (maintainer).
+
+## Built
+
+On `feat/design-polish`: decision 1 `b00ebbc`, 2 `83dccf3`, 3 `5d3d531`, 4 `d41b5f1`, 5 `e1a6fd4`. Gates `check.sh`, `test-fast.sh`, `contract.sh` pass on each.
+
+- Decision 1, `huroofi_phone`: Find tiles and Paint canvas now reach the reserved Next slot; Home's card takes the spare height (capped 460 dp) with the letter row centred, no clipping at text size 1.3x; `a11y.sh` PASS on Home. `huroofi_tablet` landscape Home fits without scrolling. Home's card cannot grow sideways (letter and picture already fill its width), so the gain is height around the row, not bigger art.
+- Decision 2, `huroofi_tablet`: bubble shows the speaker and is a 64 dp+ button ("Hear the hint"); `a11y.sh` PASS. Order letter, hint, demo is by code only: `trace_hint.mp3` is a silent placeholder (added to `tools/make-placeholders.sh` and `docs/review/toddler-phrases.md`).
+- Decision 3: Compose already snaps wiggle, sticker spring and bob when the animator scale is 0, and the Map already jumped (`scrollTo`). Fixed the two gaps: the demo hand now runs at real speed (seen mid-stroke on `huroofi_tablet` with all animation scales 0) and Reward drops confetti. Reward under calm motion not walked on the emulator.
+- Decision 4, `huroofi_tablet`: Vibration switch in the Parent zone (`a11y.sh --parent` PASS); tracing alif logged a SEGMENT_TICK for stroke 1 and a CONFIRM for the letter in `dumpsys vibrator_manager`; with the switch off a full trace logged none. Quiz, Find, Paint star and Reward buzz are by code and `BuzzTest` only.
+- Decision 5, `huroofi_tablet`: Again centred (x 1160–1400 of 2560).
+
+Not checked: `huroofi_tablet_small`, real devices.
