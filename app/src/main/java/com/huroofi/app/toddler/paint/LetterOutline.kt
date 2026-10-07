@@ -18,7 +18,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.huroofi.app.ui.theme.fitGlyph
 
-/** The letter to paint over: pale pink fill, dashed pink edge. Drawn from the font (plan 05 decision 4). */
+/**
+ * The letter to paint over: pale pink fill, dashed pink edge. Drawn from the font (plan 05 decision 4).
+ * Paint draws the fill itself, under its paint, and this edge over it ([fill] false; plan 12 decision 4).
+ */
 object LetterOutlineSpec {
     val FillColor = Color(0xFFFFF0F5)
     val EdgeColor = Color(0xFFEC4F8C)
@@ -30,7 +33,7 @@ object LetterOutlineSpec {
 }
 
 @Composable
-fun LetterOutline(letter: String, modifier: Modifier = Modifier) {
+fun LetterOutline(letter: String, modifier: Modifier = Modifier, fill: Boolean = true) {
     val measurer = rememberTextMeasurer()
     // Fitting draws offscreen, so it runs once per size, not on every frame.
     Spacer(modifier.drawWithCache {
@@ -38,7 +41,7 @@ fun LetterOutline(letter: String, modifier: Modifier = Modifier) {
         val dash = LetterOutlineSpec.Dash.toPx()
         val edge = Stroke(width = LetterOutlineSpec.EdgeWidth.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, dash)))
         onDrawBehind {
-            drawText(layout, LetterOutlineSpec.FillColor, topLeft, drawStyle = Fill)
+            if (fill) drawText(layout, LetterOutlineSpec.FillColor, topLeft, drawStyle = Fill)
             drawText(layout, LetterOutlineSpec.EdgeColor, topLeft, drawStyle = edge)
         }
     })

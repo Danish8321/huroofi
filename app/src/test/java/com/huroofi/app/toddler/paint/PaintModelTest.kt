@@ -27,6 +27,14 @@ class PaintModelTest {
     }
 
     @Test
+    fun paintOffTheLetterEarnsNothing() {
+        val off = Painting().start(PaintPoint(0f, 0f)).moveTo(PaintPoint(500f, 0f), onLetter = false)
+        assertEquals(0f, off.totalDp)
+        assertFalse(off.starEarned)
+        assertEquals(2, off.strokes.single().points.size)
+    }
+
+    @Test
     fun distanceAddsUpAcrossStrokes() {
         val p = line(300f).start(PaintPoint(0f, 100f)).moveTo(PaintPoint(60f, 180f))
         assertEquals(400f, p.totalDp, 0.001f)

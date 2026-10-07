@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
@@ -16,7 +17,10 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
+import kotlin.math.PI
+import kotlin.math.cos
 import kotlin.math.min
+import kotlin.math.sin
 
 /** Font size, in px, of the glyph drawn offscreen to find its ink. Layout scales linearly from it. */
 private const val PROBE_PX = 200f
@@ -78,4 +82,29 @@ internal fun inkBounds(layout: TextLayoutResult, density: Density): Rect? {
         }
     }
     return if (right < 0) null else Rect(left.toFloat(), top.toFloat(), right + 1f, bottom + 1f)
+}
+
+/**
+ * Which canvas pixels a fitted [glyph] covers on a canvas of [size], to ask "is this point on the
+ * letter?" (plan 12 decision 4). Draws offscreen, so build it once per glyph and size.
+ */
+class GlyphMask(glyph: FittedGlyph, size: IntSize, density: Density) {
+    private val width = size.width
+    private val height = size.height
+    private val pixels = ImageBitmap(width.coerceAtLeast(1), height.coerceAtLeast(1)).also { bitmap ->
+        CanvasDrawScope().draw(density, LayoutDirection.Ltr, Canvas(bitmap), Size(width.toFloat(), height.toFloat())) {
+            drawText(glyph.layout, Color.Black, glyph.topLeft, drawStyle = Fill)
+        }
+    }.toPixelMap()
+
+    /** True when [point], or any point [slopPx] away from it in eight directions, is on the letter. */
+    fun contains(point: Offset, slopPx: Float): Boolean =
+        (listOf(Offset.Zero) + List(8) { i -> Offset(cos(i * PI / 4).toFloat(), sin(i * PI / 4).toFloat()) * slopPx })
+            .any { inked(point + it) }
+
+    private fun inked(p: Offset): Boolean {
+        val x = p.x.toInt()
+        val y = p.y.toInt()
+        return x in 0 until width && y in 0 until height && pixels[x, y].alpha > 0.5f
+    }
 }
