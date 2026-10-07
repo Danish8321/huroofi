@@ -35,6 +35,7 @@ import com.huroofi.app.learn.LearnBackHandler
 import com.huroofi.app.learn.LearnRoutes
 import com.huroofi.app.learn.LessonRoute
 import com.huroofi.app.learn.MapRoute
+import com.huroofi.app.learn.PracticeRoute
 import com.huroofi.app.learn.PathNext
 import com.huroofi.app.learn.QuizRoute
 import com.huroofi.app.learn.RewardRoute
@@ -209,6 +210,7 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
         launchSingleTop = true
     }
     val toMap: () -> Unit = { nav.navigate(LearnRoutes.Map, tabOptions) }
+    val toPractice: (Int) -> Unit = { index -> nav.navigate(LearnRoutes.practice(index), overHome) }
     val navTabs = NavTab.entries
     val onTab: (NavTab) -> Unit = { tab ->
         when (tab) {
@@ -220,7 +222,7 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
     }
     composable(LearnRoutes.Home) {
         LearnBackHandler(LearnRoutes.Home, onToGate = toGate)
-        HomeRoute(navTabs, onGo = { index -> nav.navigate(LearnRoutes.lesson(index), overHome) }, onTab = onTab)
+        HomeRoute(navTabs, onGo = { index -> nav.navigate(LearnRoutes.lesson(index), overHome) }, onPractice = toPractice, onTab = onTab)
     }
     composable(LearnRoutes.Stickers) { StickerBookRoute(navTabs, onTab) }
     composable(LearnRoutes.Lesson, arguments = indexArg) { entry ->
@@ -232,6 +234,10 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
         val toLesson = { nav.navigate(LearnRoutes.lesson(index), overHome) }
         LearnBackHandler(LearnRoutes.Trace, onToLesson = toLesson)
         TraceRoute(index, onBack = toLesson, onDone = { nav.navigate(LearnRoutes.quiz(index), overHome) })
+    }
+    composable(LearnRoutes.Practice, arguments = indexArg) { entry ->
+        val index = entry.arguments?.getInt(LearnRoutes.ARG_INDEX) ?: return@composable
+        PracticeRoute(index, onBack = toHome, onNext = toPractice)
     }
     composable(LearnRoutes.Quiz, arguments = indexArg) { entry ->
         val index = entry.arguments?.getInt(LearnRoutes.ARG_INDEX) ?: return@composable
@@ -249,6 +255,6 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
         RewardRoute(stage, onNext = toMap)
     }
     composable(LearnRoutes.Map) {
-        MapRoute(navTabs, onTab, onPlay = { index -> nav.navigate(LearnRoutes.lesson(index), overHome) })
+        MapRoute(navTabs, onTab, onPlay = { index -> nav.navigate(LearnRoutes.lesson(index), overHome) }, onPractice = toPractice)
     }
 }

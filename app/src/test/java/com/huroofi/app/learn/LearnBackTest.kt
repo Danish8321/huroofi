@@ -21,7 +21,7 @@ class LearnBackTest {
 
     @Test
     fun othersPopToHome() {
-        for (r in listOf(LearnRoutes.Lesson, LearnRoutes.Quiz, LearnRoutes.Map, LearnRoutes.Stickers, null)) {
+        for (r in listOf(LearnRoutes.Lesson, LearnRoutes.Practice, LearnRoutes.Quiz, LearnRoutes.Map, LearnRoutes.Stickers, null)) {
             assertEquals("$r", LearnBack.Default, learnBack(r))
         }
     }
@@ -30,6 +30,7 @@ class LearnBackTest {
     fun routeBuildersMatchPatterns() {
         assertEquals("lesson/3", LearnRoutes.lesson(3))
         assertEquals("trace/3", LearnRoutes.trace(3))
+        assertEquals("practice/3", LearnRoutes.practice(3))
         assertEquals("quiz/3", LearnRoutes.quiz(3))
         assertEquals("reward/2", LearnRoutes.reward(2))
     }

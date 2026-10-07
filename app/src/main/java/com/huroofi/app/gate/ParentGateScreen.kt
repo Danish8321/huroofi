@@ -72,7 +72,7 @@ object GateSpec {
 }
 
 /**
- * Parent gate: press and hold the circle for 3 seconds. Both actions appear only after the hold;
+ * Parent gate: press and hold the circle for 2 seconds. Both actions appear only after the hold;
  * "Back to play" is always there (ParentGate.html). Not unit-tested (drawing and touch); the hold rules live in [HoldGate].
  */
 @Composable
@@ -116,7 +116,7 @@ fun ParentGateScreen(
                     modifier = Modifier.padding(top = 14.dp),
                 )
                 Text(
-                    "Press and hold the circle for 3 seconds to open settings.",
+                    "Press and hold the circle for 2 seconds to open settings.",
                     style = HuroofiText.body,
                     color = GateSpec.GateBody,
                     textAlign = TextAlign.Center,
@@ -127,7 +127,7 @@ fun ParentGateScreen(
                         .padding(top = 56.dp)
                         .size(200.dp)
                         .background(GateSpec.HoldPad, CircleShape)
-                        .semantics { contentDescription = "Press and hold for 3 seconds" }
+                        .semantics { contentDescription = "Press and hold for 2 seconds" }
                         .pointerInput(Unit) {
                             detectTapGestures(onPress = {
                                 gate.press(withFrameMillis { it })

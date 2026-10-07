@@ -110,10 +110,11 @@ object RewardSpec {
 /**
  * Stage complete: confetti, always 3 stars, the new sticker big in the middle, the stage's letters
  * and what opens next. One button. Tapping the sticker says its letters. [next] is null after the
- * last stage.
+ * last stage. [unlocked] is false for a stage finished ahead of progress under Unlock all: no pill,
+ * and the button goes back to the map (plan 13 decision 3).
  */
 @Composable
-fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onSticker: () -> Unit, onNext: () -> Unit) {
+fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onSticker: () -> Unit, onNext: () -> Unit, unlocked: Boolean = true) {
     Box(Modifier.fillMaxSize().background(RewardSpec.Background)) {
         Confetti(Modifier.fillMaxSize())
         CappedWidth(Color.Transparent) {
@@ -143,16 +144,18 @@ fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onSticker: (
                     )
                     Spacer(Modifier.height(18.dp))
                     LetterTiles(letters)
-                    Spacer(Modifier.height(16.dp))
-                    Text(
-                        next?.let { "${it.name} unlocked" } ?: "All letters learned!",
-                        Modifier.background(HuroofiTokens.Card, RoundedCornerShape(50)).padding(horizontal = 16.dp, vertical = 8.dp),
-                        style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold),
-                        color = HuroofiTokens.Navy,
-                    )
+                    if (unlocked) {
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            next?.let { "${it.name} unlocked" } ?: "All letters learned!",
+                            Modifier.background(HuroofiTokens.Card, RoundedCornerShape(50)).padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold),
+                            color = HuroofiTokens.Navy,
+                        )
+                    }
                 }
                 Spacer(Modifier.height(16.dp))
-                PrimaryButton("Next stage", onClick = onNext, icon = ButtonIcons.Next)
+                PrimaryButton(if (unlocked) "Next stage" else "Back to map", onClick = onNext, icon = ButtonIcons.Next)
             }
         }
     }

@@ -29,11 +29,13 @@ object ProgressKeys {
     val usageDay = stringPreferencesKey("usage_day")
     val usageSeconds = intPreferencesKey("usage_seconds")
     val offlinePackReady = booleanPreferencesKey("offline_pack_ready")
+    val unlockAll = booleanPreferencesKey("unlock_all")
+    val traceOnly = booleanPreferencesKey("trace_only")
 
     val names: List<String> = listOf(
         schemaVersion.name, mode.name, completedLetters.name, stickers.name, voiceEnabled.name,
         harakatEnabled.name, dailyLimitMinutes.name, usageDay.name, usageSeconds.name,
-        offlinePackReady.name,
+        offlinePackReady.name, unlockAll.name, traceOnly.name,
     )
 }
 
@@ -69,6 +71,12 @@ class ProgressRepository(
         usageForToday(it[ProgressKeys.usageDay], it[ProgressKeys.usageSeconds] ?: 0, today())
     }
 
+    /** Parent setting: every stage can be started from the Map (plan 13 decision 3). */
+    val unlockAll: Flow<Boolean> = store.data.map { it[ProgressKeys.unlockAll] ?: false }
+
+    /** Parent setting: letters open straight into Trace, as practice (plan 13 decision 4). */
+    val traceOnly: Flow<Boolean> = store.data.map { it[ProgressKeys.traceOnly] ?: false }
+
     val offlinePackReady: Flow<Boolean> = store.data.map { it[ProgressKeys.offlinePackReady] ?: false }
 
     val unlockedStage: Flow<Int> = completedLetters.map { unlockedStage(it, stageOf) }
@@ -100,6 +108,14 @@ class ProgressRepository(
         }
     }
 
+    /** Clears learned letters and stickers, so the Map is back at stage 1. Every setting stays (plan 13 decision 2). */
+    suspend fun startOver() {
+        store.edit { p ->
+            p.remove(ProgressKeys.completedLetters)
+            p.remove(ProgressKeys.stickers)
+        }
+    }
+
     suspend fun setVoiceEnabled(enabled: Boolean) {
         store.edit { it[ProgressKeys.voiceEnabled] = enabled }
     }
@@ -120,6 +136,14 @@ class ProgressRepository(
             p[ProgressKeys.usageDay] = day
             p[ProgressKeys.usageSeconds] = current + seconds
         }
+    }
+
+    suspend fun setUnlockAll(enabled: Boolean) {
+        store.edit { it[ProgressKeys.unlockAll] = enabled }
+    }
+
+    suspend fun setTraceOnly(enabled: Boolean) {
+        store.edit { it[ProgressKeys.traceOnly] = enabled }
     }
 
     suspend fun setOfflinePackReady(ready: Boolean) {

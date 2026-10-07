@@ -56,6 +56,25 @@ class ProgressRepositoryTest {
     }
 
     @Test
+    fun startOverClearsLettersAndStickersButKeepsSettings() = runTest {
+        val r = repo()
+        r.setMode(AgeMode.READER)
+        r.setDailyLimitMinutes(30)
+        r.addUsageSeconds(90)
+        (1..4).forEach { r.markLetterComplete(it) }
+        r.awardSticker(1)
+
+        r.startOver()
+
+        assertEquals(emptySet<Int>(), r.completedLetters.first())
+        assertEquals(emptySet<Int>(), r.stickers.first())
+        assertEquals(1, r.unlockedStage.first())
+        assertEquals(AgeMode.READER, r.mode.first())
+        assertEquals(30, r.dailyLimitMinutes.first())
+        assertEquals(90, r.usageSecondsToday.first())
+    }
+
+    @Test
     fun completingAStageUnlocksTheNextAndKeepsSetSemantics() = runTest {
         val r = repo()
         (1..4).forEach { r.markLetterComplete(it) }
@@ -130,7 +149,7 @@ class ProgressRepositoryTest {
             listOf(
                 "schema_version", "mode", "completed_letters", "stickers", "voice_enabled",
                 "harakat_enabled", "daily_limit_minutes", "usage_day", "usage_seconds",
-                "offline_pack_ready",
+                "offline_pack_ready", "unlock_all", "trace_only",
             ),
             ProgressKeys.names,
         )

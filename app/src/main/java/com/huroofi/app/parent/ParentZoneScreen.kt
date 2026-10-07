@@ -27,9 +27,14 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -134,6 +139,7 @@ object ZoneSpec {
         ContrastPair(SwitchOff, Color.White, large = true, "switch track, off"),
         ContrastPair(Color.White, SwitchOn, large = true, "switch knob, on"),
         ContrastPair(Color.White, SwitchOff, large = true, "switch knob, off"),
+        ContrastPair(HuroofiTokens.Primary, Color.White, large = false, "Start over and Cancel buttons"),
     )
 }
 
@@ -153,6 +159,11 @@ fun ParentZoneScreen(
     onHarakatChange: (Boolean) -> Unit,
     limitMinutes: Int,
     onLimitChange: (Int) -> Unit,
+    unlockAll: Boolean,
+    onUnlockAllChange: (Boolean) -> Unit,
+    traceOnly: Boolean,
+    onTraceOnlyChange: (Boolean) -> Unit,
+    onStartOver: () -> Unit,
     footer: @Composable ColumnScope.() -> Unit = {},
 ) {
     CappedWidth(LocalHuroofiColors.current.parentBg) {
@@ -172,6 +183,8 @@ fun ParentZoneScreen(
                 LetterGrid(letters)
             }
             SettingsCard(voice, onVoiceChange, harakat, onHarakatChange, limitMinutes, onLimitChange)
+            LessonsCard(unlockAll, onUnlockAllChange, traceOnly, onTraceOnlyChange)
+            StartOverCard(onStartOver)
             footer()
         }
     }
@@ -357,6 +370,61 @@ private fun ZoneDivider() {
     Box(Modifier.fillMaxWidth().height(1.dp).background(ZoneSpec.Divider))
 }
 
+/** How lessons open (plan 13 decisions 3 and 4). */
+@Composable
+private fun LessonsCard(unlockAll: Boolean, onUnlockAllChange: (Boolean) -> Unit, traceOnly: Boolean, onTraceOnlyChange: (Boolean) -> Unit) {
+    ZoneCard {
+        Text("Lessons", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy, modifier = Modifier.semantics { heading() })
+        ToggleRow("Unlock all", AnnotatedString("Start any stage from the Letter Map"), unlockAll, onUnlockAllChange)
+        ZoneDivider()
+        ToggleRow("Trace only", AnnotatedString("Letters open straight into tracing, as practice"), traceOnly, onTraceOnlyChange)
+    }
+}
+
+/** "Start over" behind a confirm step: it clears learned letters and stickers for good (plan 13 decision 2). */
+@Composable
+private fun StartOverCard(onStartOver: () -> Unit) {
+    var asking by rememberSaveable { mutableStateOf(false) }
+    ZoneCard {
+        SettingRow("Start over", AnnotatedString("Clears every learned letter and sticker")) {
+            ZoneTextButton("Start over", outlined = true) { asking = true }
+        }
+    }
+    if (asking) {
+        AlertDialog(
+            onDismissRequest = { asking = false },
+            title = { Text("Start over?", style = HuroofiText.sectionHeading, color = HuroofiTokens.Navy) },
+            text = {
+                Text("This clears every learned letter and sticker. It can't be undone.", style = HuroofiText.body, color = HuroofiTokens.Navy)
+            },
+            confirmButton = {
+                ZoneTextButton("Start over") {
+                    asking = false
+                    onStartOver()
+                }
+            },
+            dismissButton = { ZoneTextButton("Cancel") { asking = false } },
+            containerColor = Color.White,
+        )
+    }
+}
+
+@Composable
+private fun ZoneTextButton(label: String, outlined: Boolean = false, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(ZoneSpec.StepperRadius)
+    Box(
+        Modifier
+            .heightIn(min = ZoneSpec.Stepper)
+            .clip(shape)
+            .then(if (outlined) Modifier.border(2.dp, ZoneSpec.CardBorder, shape) else Modifier)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Primary)
+    }
+}
+
 @Composable
 private fun SettingRow(
     title: String,
@@ -528,5 +596,5 @@ private fun ParentZonePreview() {
         GridLetter(glyphs[i % glyphs.size], "letter ${i + 1}", state)
     }
     val progress = ParentProgress(stage, 7, letters.mapIndexed { i, l -> i + 1 to l.state }.toMap())
-    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}, limitMinutes = 20, onLimitChange = {}) }
+    HuroofiTheme { ParentZoneScreen(progress, letters, AgeMode.TODDLER, onBack = {}, onModeChange = {}, voice = true, onVoiceChange = {}, harakat = false, onHarakatChange = {}, limitMinutes = 20, onLimitChange = {}, unlockAll = false, onUnlockAllChange = {}, traceOnly = false, onTraceOnlyChange = {}, onStartOver = {}) }
 }

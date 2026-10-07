@@ -14,7 +14,7 @@
 
 **Picture word**: the Arabic word shown with a letter's illustration (e.g. أسد for أ).
 
-**Parent gate**: the screen that asks a grown-up to press and hold a circle for 3 seconds. Guards the Parent zone and exiting the app.
+**Parent gate**: the screen that asks a grown-up to press and hold a circle for 2 seconds. Guards the Parent zone and exiting the app.
 
 **Parent lock**: the small lock button on child screens that leads to the Parent gate.
 
@@ -24,9 +24,13 @@
 
 **Learned letter**: a letter whose Play step the child has answered correctly. Meet and Trace alone do not make a letter learned. Toddler play never makes a letter learned.
 
+**Trace practice**: the Parent-zone setting "Trace only": letters open straight into Trace, skipping Meet and Play. A trace finished there is practice: it never makes a letter learned, never gives a sticker and never completes or unlocks a stage.
+
 **Today's letter**: the letter Home offers. It is the learning letter; once all 28 are learned, a random learned letter for review.
 
 **Stage complete**: all four letters of a stage are learned. Only then does the Reward screen appear, give the stage's sticker and unlock the next stage.
+
+**Unlock all**: the Parent-zone setting that lets the child start any stage from the Letter Map. The open stage is still the one progress has reached; Today's letter and the learning letter follow it.
 
 **Sticker**: the reward for a completed stage; one per stage, seven in all, named after the stage (e.g. "Sunny Meadow sticker"). The app has no other score or currency.
 

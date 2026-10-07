@@ -262,7 +262,7 @@ private fun DrawScope.drawArrow(dots: List<Offset>, color: Color, towards: Offse
  * doesn't show (plan 12 decision 4).
  */
 @Composable
-fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, onBack: () -> Unit, onDone: () -> Unit) {
+fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, onBack: () -> Unit, onDone: () -> Unit, practice: Boolean = false) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -343,7 +343,7 @@ fun TraceScreen(letter: String, strokes: List<TraceStroke>, introDone: Boolean, 
             Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 20.dp, vertical = 18.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            PathHeader(PathStep.TRACE, "Back to lesson", onBack)
+            if (practice) PathHeader(null, "Back to home", onBack) else PathHeader(PathStep.TRACE, "Back to lesson", onBack)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(
                     Modifier
