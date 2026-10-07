@@ -12,14 +12,21 @@ fun optionCount(mode: AgeMode): Int = if (mode == AgeMode.READER) 4 else 3
 
 /**
  * The target plus distractors from all letters, shuffled. A distractor never has a word that also
- * starts with the target letter, so exactly one picture is right.
+ * starts with the target letter, so exactly one picture is right. The target never lands on
+ * [avoidSlot], the place it held last round, so a child cannot win by tapping the same spot
+ * (plan 11 decision 4).
  */
-fun quizRound(target: Letter, letters: List<Letter>, optionCount: Int, random: Random): List<Letter> {
+fun quizRound(target: Letter, letters: List<Letter>, optionCount: Int, random: Random, avoidSlot: Int = -1): List<Letter> {
     val distractors = letters
         .filter { it.index != target.index && it.wordFirst != target.letter && it.wordFirst != target.wordFirst }
         .shuffled(random)
         .take(optionCount - 1)
-    return (distractors + target).shuffled(random)
+    val options = (distractors + target).shuffled(random).toMutableList()
+    if (options.getOrNull(avoidSlot)?.index == target.index) {
+        val swap = (options.indices - avoidSlot).random(random)
+        options[avoidSlot] = options[swap].also { options[swap] = options[avoidSlot] }
+    }
+    return options
 }
 
 /**
@@ -41,6 +48,9 @@ data class QuizGame(
     val finished: Boolean get() = roundsDone >= rounds
 
     fun isRight(pick: Letter): Boolean = pick.index == target.index
+
+    /** Where the right picture sits this round. */
+    val targetSlot: Int get() = options.indexOfFirst(::isRight)
 
     fun answer(pick: Letter): QuizGame = when {
         solved || finished -> this
