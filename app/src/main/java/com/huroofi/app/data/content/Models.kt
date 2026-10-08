@@ -47,8 +47,12 @@ data class Stage(
     val border: String,
     val pastel: String,
     @SerialName("accent_dark") val accentDark: String,
+    /** The stage's own picture, on its sticker and Map card, e.g. `lion` -> `pic_lion`. */
+    val picture: String,
 ) {
     fun colors(): StageColors = StageColors.fromHex(border, pastel, accentDark)
+
+    fun pictureResourceName(): String = "pic_$picture"
 }
 
 @Serializable

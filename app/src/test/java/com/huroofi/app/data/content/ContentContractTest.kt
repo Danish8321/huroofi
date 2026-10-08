@@ -94,6 +94,9 @@ class ContentContractTest {
             assertTrue("missing ${l.cardResourceName()}", File(drawables, l.cardResourceName() + ".png").exists())
             assertTrue("missing ${l.pictureResourceName()}", File(drawables, l.pictureResourceName() + ".png").exists())
         }
+        content.stages.forEach { s ->
+            assertTrue("missing ${s.pictureResourceName()}", File(drawables, s.pictureResourceName() + ".png").exists())
+        }
     }
 
     @Test

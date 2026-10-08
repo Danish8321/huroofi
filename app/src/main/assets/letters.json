@@ -517,7 +517,8 @@
       ],
       "border": "#F59E0B",
       "pastel": "#FFEDC4",
-      "accent_dark": "#A35400"
+      "accent_dark": "#A35400",
+      "picture": "lion"
     },
     {
       "stage": 2,
@@ -530,7 +531,8 @@
       ],
       "border": "#EC4F8C",
       "pastel": "#FFDDEA",
-      "accent_dark": "#B0185A"
+      "accent_dark": "#B0185A",
+      "picture": "carrot"
     },
     {
       "stage": 3,
@@ -543,7 +545,8 @@
       ],
       "border": "#14A88E",
       "pastel": "#D2F4EC",
-      "accent_dark": "#00695C"
+      "accent_dark": "#00695C",
+      "picture": "flower"
     },
     {
       "stage": 4,
@@ -556,7 +559,8 @@
       ],
       "border": "#7C5CE0",
       "pastel": "#E8E0FF",
-      "accent_dark": "#4C2DB0"
+      "accent_dark": "#4C2DB0",
+      "picture": "rocket"
     },
     {
       "stage": 5,
@@ -569,7 +573,8 @@
       ],
       "border": "#2F80ED",
       "pastel": "#DAEAFF",
-      "accent_dark": "#0B4FB0"
+      "accent_dark": "#0B4FB0",
+      "picture": "bird"
     },
     {
       "stage": 6,
@@ -582,7 +587,8 @@
       ],
       "border": "#4CAF3A",
       "pastel": "#DFF5D5",
-      "accent_dark": "#1F6E1A"
+      "accent_dark": "#1F6E1A",
+      "picture": "pencil"
     },
     {
       "stage": 7,
@@ -595,7 +601,8 @@
       ],
       "border": "#F07D2A",
       "pastel": "#FFE2D7",
-      "accent_dark": "#9C430A"
+      "accent_dark": "#9C430A",
+      "picture": "star"
     }
   ]
 }

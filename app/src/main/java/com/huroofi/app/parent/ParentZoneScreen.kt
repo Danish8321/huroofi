@@ -591,7 +591,7 @@ private fun LetterCell(letter: GridLetter, modifier: Modifier) {
 @Preview(widthDp = 390, heightDp = 1000)
 @Composable
 private fun ParentZonePreview() {
-    val stage = Stage(1, "Sunny Meadow", emptyList(), "#FFC93C", "#FFF4D6", "#8A5A00")
+    val stage = Stage(1, "Sunny Meadow", emptyList(), "#FFC93C", "#FFF4D6", "#8A5A00", "lion")
     val glyphs = listOf("أ", "ب", "ت", "ث", "ج", "ح", "خ")
     val letters = List(28) { i ->
         val state = when (i) {

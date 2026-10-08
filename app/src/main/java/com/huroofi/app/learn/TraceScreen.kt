@@ -60,13 +60,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -90,7 +86,7 @@ import com.huroofi.app.ui.theme.GlyphMask
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
-import com.huroofi.app.ui.theme.NotoNaskhArabic
+import com.huroofi.app.ui.theme.withArabic
 import com.huroofi.app.ui.theme.fitGlyph
 import com.huroofi.app.ui.theme.toCanvas
 import kotlin.math.PI
@@ -639,13 +635,6 @@ fun TraceScreen(
             }
         }
     }
-}
-
-/** [before], the Arabic [letter] in Naskh a little larger, then [after]: English labels that name a letter. */
-private fun withArabic(before: String, letter: String, after: String): AnnotatedString = buildAnnotatedString {
-    append(before)
-    withStyle(SpanStyle(fontFamily = NotoNaskhArabic, fontSize = 30.sp)) { append(letter) }
-    append(after)
 }
 
 /** "You traced ب!" on a green pill with the lion, over the bottom of the finished canvas. */

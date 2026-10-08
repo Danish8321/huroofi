@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -37,7 +36,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -130,7 +128,7 @@ fun RewardScreen(stage: Stage, letters: List<Letter>, next: Stage?, onSticker: (
                 ) {
                     Stars()
                     Spacer(Modifier.height(12.dp))
-                    StickerHero(stage, letters, onSticker)
+                    StickerHero(stage, onSticker)
                     Spacer(Modifier.height(16.dp))
                     Text(
                         stickerName(stage),
@@ -197,7 +195,7 @@ private fun LetterTiles(letters: List<Letter>) {
  * and says its letters (plan 11 decisions 2 and 6).
  */
 @Composable
-private fun StickerHero(stage: Stage, letters: List<Letter>, onTap: () -> Unit) {
+private fun StickerHero(stage: Stage, onTap: () -> Unit) {
     val pop = remember { Animatable(0f) }
     LaunchedEffect(Unit) { pop.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessLow)) }
     val bob by rememberInfiniteTransition(label = "sticker bob").animateFloat(
@@ -209,7 +207,6 @@ private fun StickerHero(stage: Stage, letters: List<Letter>, onTap: () -> Unit) 
     val wiggle = rememberWiggle()
     StickerBadge(
         stage,
-        letters,
         size = RewardSpec.Hero,
         modifier = Modifier
             .graphicsLayer {
@@ -219,8 +216,7 @@ private fun StickerHero(stage: Stage, letters: List<Letter>, onTap: () -> Unit) 
                 translationY = bob * BOB_DP.dp.toPx()
             }
             .wiggle(wiggle)
-            .clip(CircleShape)
-            .clickable(role = Role.Button, onClickLabel = "Hear the letters") {
+            .clickable(interactionSource = null, indication = null, role = Role.Button, onClickLabel = "Hear the letters") {
                 wiggle.play()
                 onTap()
             },

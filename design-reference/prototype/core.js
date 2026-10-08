@@ -2,7 +2,6 @@
 const LETTERS = DATA.letters;
 const STAGES = DATA.stages;
 const STROKES = Object.fromEntries(DATA.strokes.letters.map((l) => [l.index, l.strokes]));
-const STAGE_PIC = { 1: 'lion', 2: 'carrot', 3: 'flower', 4: 'rocket', 5: 'bird', 6: 'pencil', 7: 'star' };
 const NON_JOINING = 'أدذرزو';
 const ZWJ = '‍';
 const L = (i) => LETTERS[i - 1];
@@ -174,7 +173,7 @@ function stepBar(step) {
 function stickerBadge(n, size = 120, earned = true) {
   const st = stageOf(n);
   if (!earned) return `<span class="sticker empty" style="width:${size}px;height:${size}px;border-color:${st.border};background:${st.pastel}"><span style="color:${st.accent_dark}">?</span></span>`;
-  return `<span class="sticker" style="width:${size}px;height:${size}px;border-color:${st.border};box-shadow:0 6px 0 ${st.accent_dark}"><img src="${img(STAGE_PIC[n])}" alt=""></span>`;
+  return `<span class="sticker" style="width:${size}px;height:${size}px;border-color:${st.border};box-shadow:0 6px 0 ${st.accent_dark}"><img src="${img(stageOf(n).picture)}" alt=""></span>`;
 }
 const pictureWord = (l, cls = '') => `<span dir="rtl" class="ar word ${cls}"><span class="first" style="color:${stageOf(l.stage).accent_dark}">${l.word_first}</span>${l.word_rest}</span>`;
 function bindGo(root) {

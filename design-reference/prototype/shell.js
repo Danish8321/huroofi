@@ -119,7 +119,7 @@ function designSystem() {
       ${sw('primary', '#1F6FE0', 'Main buttons')}${sw('primary shadow', '#1555B0', '3D edge')}${sw('sun', '#FFC93C', 'Sound buttons, stars')}
       ${sw('success', '#158048', 'Right answer, done')}${sw('guide', '#C8DCF4', 'Trace letter band')}${sw('almost', '#FFE4D6', 'Gentle wrong hint')}
       ${sw('parent bg', '#F4F7FB', 'Parent zone')}${sw('gate bg', '#13294B', 'Parent gate')}${sw('rest', '#24345E', 'Rest screen')}</div></section>
-    <section><h2>Stage families</h2><div class="stage-fams">${STAGES.map((s) => `<div class="fam" style="background:${s.pastel};border-color:${s.border}"><img src="${img(STAGE_PIC[s.stage])}" alt=""><b style="color:${s.accent_dark}">${s.stage}. ${s.name}</b><span dir="rtl" class="ar">${s.letters.join(' ')}</span></div>`).join('')}</div></section>
+    <section><h2>Stage families</h2><div class="stage-fams">${STAGES.map((s) => `<div class="fam" style="background:${s.pastel};border-color:${s.border}"><img src="${img(s.picture)}" alt=""><b style="color:${s.accent_dark}">${s.stage}. ${s.name}</b><span dir="rtl" class="ar">${s.letters.join(' ')}</span></div>`).join('')}</div></section>
     <section><h2>Type</h2><div class="type-scale">
       <p style="font:800 30px/1.1 var(--app-en)">Screen title 26–36</p><p style="font:800 22px/1.2 var(--app-en)">Primary button 22</p><p style="font:800 20px/1.2 var(--app-en)">Section heading 20</p><p style="font:600 18px/1.3 var(--app-en)">Body 18 · never below 16</p>
       <p><span dir="rtl" class="ar" style="font-size:42px">أين البطة؟</span> <small>Toddler sentence 34–42</small></p><p><span dir="rtl" class="ar" style="font-size:96px;line-height:1.3">ب</span> <small>Lesson letter (170 on device)</small></p></div></section>

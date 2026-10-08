@@ -1,12 +1,12 @@
 package com.huroofi.app.learn
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,116 +26,149 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.huroofi.app.LocalAppContainer
 import com.huroofi.app.audio.Clips
+import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.data.progress.unlockedStage
 import com.huroofi.app.parent.LetterState
 import com.huroofi.app.parent.parentProgress
 import com.huroofi.app.toddler.PromptPlayer
+import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
-import com.huroofi.app.ui.components.RoundIconButton
+import com.huroofi.app.ui.components.PrimaryButton
+import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.rememberWiggle
+import com.huroofi.app.ui.components.stagePicture
 import com.huroofi.app.ui.components.wiggle
+import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
+import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.StageColors
+import com.huroofi.app.ui.theme.withArabic
 import kotlin.random.Random
 
-/** Sizes and colours of the Letter Map (`StageMap.html`, plan 07 decision 8). */
+/** Sizes and colours of the Letter map (`StageMap.html`, plan 15 decision 6). */
 object MapSpec {
-    val CardWidth = 284.dp
-    val CardHeight = 144.dp
-    val Gap = 22.dp
-    val Inset = 18.dp
-    val CardCorner = 26.dp
-    val Ring = 4.dp
-    val QuietRing = 3.dp
-    val Play = 64.dp
-    val Badge = 44.dp
-    val NumberCircle = 34.dp
-    val PathWidth = 8.dp
-    val TopFade = 24.dp
-    val PathColor = Color(0xFFA9CBF2)
-    val QuietBorder = Color(0xFFD5E2F0)
-    const val NAME_SP = 20f
-    val textSizes = listOf(NAME_SP)
+    val Gap = 14.dp
+    val CardCorner = 30.dp
+    val CardRing = 4.dp
+    val CardEdge = 6.dp
+    val Picture = 56.dp
+    val PictureImage = 46.dp
+    val PictureCorner = 18.dp
+    val Badge = 40.dp
+    val Play = 52.dp
+    val Chip = 72.dp
+    val ChipCorner = 18.dp
+    val ChipRing = 4.dp
+    /** The dotted line runs down through the pictures: card ring + padding + half a picture. */
+    val LineX = CardRing + 14.dp + Picture / 2
+    val LineWidth = 6.dp
+    /** The shortest card: a picture row inside the card's padding and ring. */
+    val CardMin = Picture + (12.dp + CardRing) * 2
 
-    /** The play button, a finished card (tap = replay a letter), a locked card (tap = boing + wiggle) and the nav items. */
-    val touchSizes = listOf(Play, CardHeight, NavSpec.Item)
+    val Quiet = Color(0xFFF4F7FB)
+    val QuietEdge = Color(0xFFCFE2F7)
+    val LineColor = Color(0xFFA9CBF2)
+    /** The current card's ring is navy, as in the approved snapshot. */
+    val CurrentRing = HuroofiTokens.Navy
+
+    const val NAME_SP = 20f
+    const val CHIP_SP = 40f
+    const val LETTERS_SP = 20f
+    val textSizes = listOf(NAME_SP, CHIP_SP, LETTERS_SP)
+
+    /** Finished, open and locked cards are buttons; the current card's button; the nav items. */
+    val touchSizes = listOf(CardMin, HuroofiDimens.PrimaryButtonHeight, NavSpec.Item)
     val colors = listOf(
         HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Primary,
-        HuroofiTokens.PrimaryShadow, HuroofiTokens.Success, PathColor, QuietBorder, LockedChip,
+        HuroofiTokens.PrimaryShadow, HuroofiTokens.Success, HuroofiTokens.SuccessShadow, Quiet, QuietEdge, LineColor,
     ) + NavSpec.colors
 
-    /** The dotted path is decoration; a locked card also shows a lock. Names are 20 sp ExtraBold, so large. */
+    /** The dotted line is decoration. Names are 20 sp ExtraBold and chips 40 sp, so large; the rest is 16–18 sp. */
     val textPairs: List<ContrastPair> = listOf(
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "title"),
         ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "subtitle"),
+        ContrastPair(HuroofiTokens.Navy, Quiet, large = true, "stage name"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "open stage name"),
+        ContrastPair(HuroofiTokens.Muted, Quiet, large = false, "stage number and letters"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "open stage number and letters"),
+        ContrastPair(CurrentRing, HuroofiTokens.Sky, large = true, "current card ring"),
         ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "finished card ring"),
-        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "stage name"),
-        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = true, "locked stage name"),
-        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Primary, large = true, "play triangle"),
         ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "finished tick"),
-        ContrastPair(HuroofiTokens.Muted, LockedChip, large = true, "lock icon"),
-        ContrastPair(HuroofiTokens.Muted, LockedChip, large = true, "locked chip letter"),
-    ) + HomeSpec.chipPairs + NavSpec.textPairs
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Primary, large = true, "play triangle"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = true, "lock icon"),
+        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "learned chip"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "learning chip"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = true, "learning chip ring"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = true, "to-go chip"),
+    ) + ButtonKind.Primary.contrastPairs() + NavSpec.textPairs
 
     fun stagePairs(stage: StageColors) = listOf(
-        ContrastPair(stage.accent, HuroofiTokens.Sky, large = true, "current card ring"),
-        ContrastPair(HuroofiTokens.Navy, stage.pastel, large = false, "stage number"),
-    ) + HomeSpec.chipStagePairs(stage)
+        ContrastPair(stage.accent, Quiet, large = false, "current stage number"),
+        ContrastPair(stage.accent, HuroofiTokens.Card, large = false, "current count"),
+    )
 }
 
-/** One card of the map: the stage, how it shows, and its 4 chips. */
+/** One letter of a stage and where the child is with it. */
+data class StageChip(val letter: Letter, val state: LetterState)
+
+/** One card of the map: the stage, how it shows, and its 4 letters. */
 data class MapStage(val stage: Stage, val state: StageState, val chips: List<StageChip>)
+
+/** "16 of 28 letters learned · finish one stage to unlock the next". Counts come from content. */
+fun mapSubtitle(stages: List<MapStage>): String {
+    val learned = stages.sumOf { s -> s.chips.count { it.state == LetterState.LEARNED } }
+    val how = if (stages.any { it.state == StageState.OPEN }) "start any stage" else "finish one stage to unlock the next"
+    return "$learned of ${stages.sumOf { it.chips.size }} letters learned · $how"
+}
 
 private val PlayTriangle = "M8 5v14l11-7z"
 
 /**
- * Seven zig-zag stage cards over a dotted path, opened at the current stage. A finished card replays
- * one of its letters with [onReplay] (plan 11 decision 2), the current card's play button opens Meet,
- * an open card's play button (Unlock all) starts its stage with [onOpen], a locked card says no with
- * [onLocked] and a wiggle.
+ * Seven stage cards down a dotted line, scrolled to the current one. The current card shows its
+ * letters and a "Continue with" button ([onPlay]); a finished card replays one of its letters
+ * ([onReplay], plan 11 decision 2); an open card (Unlock all) starts its stage ([onOpen]); a locked
+ * card says no with [onLocked] and a wiggle. In trace-only mode the button reads "Trace".
  */
 @Composable
 fun MapScreen(
     stages: List<MapStage>,
+    traceOnly: Boolean,
     onPlay: () -> Unit,
     onReplay: (Stage) -> Unit,
     onOpen: (Stage) -> Unit,
@@ -145,29 +178,28 @@ fun MapScreen(
 ) {
     CappedWidth(HuroofiTokens.Sky) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-            Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp)) {
-                Text("Letter Map", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
-                Text(
-                    subtitle(stages),
-                    // Balanced lines, so the wrap never leaves one word alone.
-                    style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold, lineBreak = LineBreak.Heading),
-                    color = HuroofiTokens.Muted,
-                )
-            }
-            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                val cardWidth = min(MapSpec.CardWidth, maxWidth - MapSpec.Inset * 2)
-                val starts = listOf(MapSpec.Inset, maxWidth - MapSpec.Inset - cardWidth)
-                val scroll = rememberScrollState()
-                val step = with(LocalDensity.current) { (MapSpec.CardHeight + MapSpec.Gap).roundToPx() }
-                val current = stages.indexOfFirst { it.state == StageState.CURRENT }
-                LaunchedEffect(current) { if (current > 0) scroll.scrollTo(current * step) }
-                Box(Modifier.fillMaxSize().verticalScroll(scroll).padding(vertical = 24.dp)) {
-                    DottedPath(stages.size, starts, cardWidth, Modifier.matchParentSize())
+            val scroll = rememberScrollState()
+            var currentTop by remember { mutableIntStateOf(-1) }
+            // Open at the current stage, with the card above it peeking in.
+            LaunchedEffect(currentTop) { if (currentTop > 0) scroll.scrollTo(currentTop / 2) }
+            Column(
+                Modifier.weight(1f).verticalScroll(scroll).padding(horizontal = 20.dp, vertical = 22.dp),
+                verticalArrangement = Arrangement.spacedBy(MapSpec.Gap),
+            ) {
+                Column {
+                    Text("Letter map", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
+                    Text(mapSubtitle(stages), style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold), color = HuroofiTokens.Muted)
+                }
+                Box {
+                    DottedLine(Modifier.matchParentSize())
                     Column(verticalArrangement = Arrangement.spacedBy(MapSpec.Gap)) {
-                        stages.forEachIndexed { i, s ->
+                        for (s in stages) {
                             MapCard(
                                 s,
-                                Modifier.padding(start = starts[i % 2]).width(cardWidth).height(MapSpec.CardHeight),
+                                traceOnly,
+                                modifier = if (s.state == StageState.CURRENT) {
+                                    Modifier.onGloballyPositioned { currentTop = it.positionInParent().y.toInt() }
+                                } else Modifier,
                                 onPlay = onPlay,
                                 onReplay = { onReplay(s.stage) },
                                 onOpen = { onOpen(s.stage) },
@@ -176,143 +208,180 @@ fun MapScreen(
                         }
                     }
                 }
-                // Cards scrolled under the header fade out instead of being cut sharply.
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(MapSpec.TopFade)
-                        .background(Brush.verticalGradient(listOf(HuroofiTokens.Sky, HuroofiTokens.Sky.copy(alpha = 0f)))),
-                )
             }
             LearnNav(NavTab.MAP, navTabs, onTab)
         }
     }
 }
 
-/** Counts come from content, so the subtitle never disagrees with letters.json. */
-private fun subtitle(stages: List<MapStage>): String {
-    val how = if (stages.any { it.state == StageState.OPEN }) "start any stage" else "finish one to unlock the next"
-    return "${stages.sumOf { it.chips.size }} letters · ${stages.size} stages · $how"
-}
-
-/** Dots from card centre to card centre, drawn behind the cards so they show in the gaps. */
+/** The prototype's `.map-line`: a dotted line from the first card to the last, behind the cards. */
 @Composable
-private fun DottedPath(count: Int, starts: List<Dp>, cardWidth: Dp, modifier: Modifier) {
-    Canvas(modifier) {
-        val step = (MapSpec.CardHeight + MapSpec.Gap).toPx()
-        val half = MapSpec.CardHeight.toPx() / 2f
-        val centres = List(count) { i -> Offset((starts[i % 2] + cardWidth / 2).toPx(), i * step + half) }
-        if (centres.size < 2) return@Canvas
-        val path = Path().apply {
-            moveTo(centres[0].x, centres[0].y)
-            for (i in 1 until centres.size) {
-                val a = centres[i - 1]
-                val b = centres[i]
-                cubicTo(a.x, a.y + step / 2f, b.x, b.y - step / 2f, b.x, b.y)
-            }
-        }
-        val width = MapSpec.PathWidth.toPx()
-        val dots = PathEffect.dashPathEffect(floatArrayOf(1f, 18.dp.toPx()))
-        drawPath(path, MapSpec.PathColor, style = Stroke(width = width, cap = StrokeCap.Round, pathEffect = dots))
+private fun DottedLine(modifier: Modifier) {
+    Canvas(modifier.padding(top = 40.dp, bottom = 60.dp)) {
+        val x = MapSpec.LineX.toPx()
+        val w = MapSpec.LineWidth.toPx()
+        drawLine(
+            MapSpec.LineColor,
+            Offset(x, 0f),
+            Offset(x, size.height),
+            strokeWidth = w,
+            cap = StrokeCap.Round,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(0.1f, w * 2f)),
+        )
     }
 }
 
 @Composable
-private fun MapCard(s: MapStage, modifier: Modifier, onPlay: () -> Unit, onReplay: () -> Unit, onOpen: () -> Unit, onLocked: () -> Unit) {
+private fun MapCard(
+    s: MapStage,
+    traceOnly: Boolean,
+    modifier: Modifier,
+    onPlay: () -> Unit,
+    onReplay: () -> Unit,
+    onOpen: () -> Unit,
+    onLocked: () -> Unit,
+) {
     val colors = s.stage.colors()
     val shape = RoundedCornerShape(MapSpec.CardCorner)
-    val locked = s.state == StageState.LOCKED
-    val (ring, ringWidth, edge) = when (s.state) {
-        StageState.CURRENT -> Triple(colors.accent, MapSpec.Ring, colors.pastel)
-        StageState.FINISHED -> Triple(HuroofiTokens.Success, MapSpec.Ring, MapSpec.QuietBorder)
-        StageState.OPEN -> Triple(colors.pastel, MapSpec.QuietRing, colors.pastel)
-        StageState.LOCKED -> Triple(MapSpec.QuietBorder, MapSpec.QuietRing, MapSpec.QuietBorder)
+    val (fill, ring, edge) = when (s.state) {
+        StageState.CURRENT -> Triple(MapSpec.Quiet, MapSpec.CurrentRing, colors.accent)
+        StageState.FINISHED -> Triple(HuroofiTokens.Card, HuroofiTokens.Success, HuroofiTokens.SuccessShadow)
+        StageState.OPEN -> Triple(HuroofiTokens.Card, HuroofiTokens.Card, MapSpec.QuietEdge)
+        StageState.LOCKED -> Triple(MapSpec.Quiet, HuroofiTokens.Card, MapSpec.QuietEdge)
     }
     val wiggle = rememberWiggle()
-    val stateLabel = when (s.state) {
-        StageState.FINISHED -> "finished"
-        StageState.CURRENT -> "playing now"
-        StageState.OPEN -> "open"
-        StageState.LOCKED -> "locked"
+    val name = "Stage ${s.stage.stage}, ${s.stage.name}"
+    val tap: Modifier = when (s.state) {
+        StageState.LOCKED -> Modifier
+            .clickable(role = Role.Button) {
+                wiggle.play()
+                onLocked()
+            }
+            .clearAndSetSemantics { contentDescription = "$name, locked" }
+        StageState.FINISHED -> Modifier
+            .clickable(role = Role.Button) {
+                wiggle.play()
+                onReplay()
+            }
+            .clearAndSetSemantics { contentDescription = "$name, finished. Tap to play a letter again" }
+        StageState.OPEN -> Modifier
+            .clickable(role = Role.Button, onClick = onOpen)
+            .clearAndSetSemantics { contentDescription = "$name. Start" }
+        StageState.CURRENT -> Modifier.semantics { contentDescription = "$name, playing now" }
     }
     Column(
         modifier
+            .fillMaxWidth()
             .wiggle(wiggle)
-            .dropEdge(edge, 6.dp, shape)
+            .dropEdge(edge, MapSpec.CardEdge, shape)
             .clip(shape)
-            .background(HuroofiTokens.Card)
-            .border(ringWidth, ring, shape)
-            .then(
-                when (s.state) {
-                    StageState.LOCKED -> Modifier.clickable(role = Role.Button) {
-                        wiggle.play()
-                        onLocked()
-                    }
-                    StageState.FINISHED -> Modifier.clickable(role = Role.Button, onClickLabel = "Play a letter again") {
-                        wiggle.play()
-                        onReplay()
-                    }
-                    StageState.CURRENT, StageState.OPEN -> Modifier
-                },
-            )
-            .semantics { contentDescription = "Stage ${s.stage.stage}, ${s.stage.name}, $stateLabel" }
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .background(fill)
+            .border(MapSpec.CardRing, ring, shape)
+            .then(tap)
+            .padding(horizontal = 14.dp + MapSpec.CardRing, vertical = 12.dp + MapSpec.CardRing),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Row(Modifier.fillMaxWidth().height(MapSpec.Play + 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            // Number and name are in the card's label; hidden here so TalkBack does not read them twice (plan 08 task 6.2).
-            Box(Modifier.size(MapSpec.NumberCircle).background(colors.pastel, CircleShape).clearAndSetSemantics {}, contentAlignment = Alignment.Center) {
-                Text("${s.stage.stage}", style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(
+                Modifier.size(MapSpec.Picture).background(HuroofiTokens.Card, RoundedCornerShape(MapSpec.PictureCorner)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    stagePicture(s.stage),
+                    contentDescription = null,
+                    modifier = Modifier.size(MapSpec.PictureImage).alpha(if (s.state == StageState.LOCKED) 0.6f else 1f),
+                )
             }
-            Text(
-                s.stage.name,
-                Modifier.weight(1f).clearAndSetSemantics {},
-                style = HuroofiText.sectionHeading.copy(fontSize = MapSpec.NAME_SP.sp, lineHeight = 22.sp),
-                color = if (locked) HuroofiTokens.Muted else HuroofiTokens.Navy,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
+            // Number, name and letters are in the card's label; hidden so TalkBack reads them once (plan 08 task 6.2).
+            Column(Modifier.weight(1f).clearAndSetSemantics {}) {
+                Text(
+                    "Stage ${s.stage.stage}",
+                    style = HuroofiText.caption.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    color = if (s.state == StageState.CURRENT) colors.accent else HuroofiTokens.Muted,
+                )
+                Text(
+                    s.stage.name,
+                    style = HuroofiText.sectionHeading.copy(fontSize = MapSpec.NAME_SP.sp, lineHeight = 22.sp),
+                    color = HuroofiTokens.Navy,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (s.state != StageState.CURRENT) {
+                    ArabicText(s.chips.joinToString(" ") { it.letter.letter }, size = MapSpec.LETTERS_SP.sp, color = HuroofiTokens.Muted)
+                }
+            }
             when (s.state) {
-                StageState.CURRENT, StageState.OPEN -> RoundIconButton(
-                    contentDescription = "Play ${s.stage.name}",
-                    onClick = if (s.state == StageState.OPEN) onOpen else onPlay,
-                    toddler = true,
-                    size = MapSpec.Play,
-                    containerColor = HuroofiTokens.Primary,
-                    shadowColor = HuroofiTokens.PrimaryShadow,
-                    shadowDepth = 4.dp,
+                StageState.CURRENT -> Text(
+                    "${s.chips.count { it.state == LetterState.LEARNED }}/${s.chips.size}",
+                    Modifier
+                        .background(HuroofiTokens.Card, CircleShape)
+                        .padding(horizontal = 12.dp, vertical = 2.dp)
+                        .clearAndSetSemantics {},
+                    style = HuroofiText.caption.copy(fontSize = 16.sp, fontWeight = FontWeight.ExtraBold),
+                    color = colors.accent,
+                )
+                StageState.FINISHED -> Badge(HuroofiTokens.Success) { LineIcon(LearnIcons.Check, HuroofiTokens.Card, size = 20.dp, strokeWidth = 3.2f) }
+                StageState.OPEN -> Box(
+                    Modifier
+                        .size(MapSpec.Play)
+                        .dropEdge(HuroofiTokens.PrimaryShadow, 4.dp, CircleShape)
+                        .background(HuroofiTokens.Primary, CircleShape),
+                    contentAlignment = Alignment.Center,
                 ) { PlayIcon(HuroofiTokens.Card) }
-                StageState.FINISHED -> Box(
-                    Modifier.size(MapSpec.Badge).background(HuroofiTokens.Success, CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) { LineIcon(LearnIcons.Check, HuroofiTokens.Card, size = 24.dp, strokeWidth = 3.2f) }
-                StageState.LOCKED -> Box(
-                    Modifier.size(MapSpec.Badge).background(LockedChip, CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) { LineIcon(LearnIcons.Lock, HuroofiTokens.Muted, size = 22.dp) }
+                StageState.LOCKED -> Badge(HuroofiTokens.Card) { LineIcon(LearnIcons.Lock, HuroofiTokens.Muted, size = 20.dp) }
             }
         }
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (chip in s.chips) StageLetterChip(chip, s.stage, locked = locked)
+        if (s.state == StageState.CURRENT) {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for (chip in s.chips) MapChip(chip, Modifier.weight(1f))
+                }
             }
+            val learning = s.chips.firstOrNull { it.state == LetterState.LEARNING } ?: s.chips.first { it.state != LetterState.LEARNED }
+            val label = if (traceOnly) withArabic("Trace ", s.chips.first().letter.letter) else withArabic("Continue with ", learning.letter.letter)
+            PrimaryButton(label, onClick = onPlay)
         }
     }
 }
 
-/** Filled play triangle from the prototype. Decorative: the button carries the label. */
+@Composable
+private fun Badge(fill: Color, content: @Composable () -> Unit) {
+    Box(Modifier.size(MapSpec.Badge).background(fill, CircleShape), contentAlignment = Alignment.Center) { content() }
+}
+
+/** A letter of the current stage: learned green, today's ringed in blue, the rest white. */
+@Composable
+private fun MapChip(chip: StageChip, modifier: Modifier) {
+    val shape = RoundedCornerShape(MapSpec.ChipCorner)
+    val (fill, text) = when (chip.state) {
+        LetterState.LEARNED -> HuroofiTokens.Success to HuroofiTokens.Card
+        LetterState.LEARNING -> HuroofiTokens.Card to HuroofiTokens.Navy
+        else -> HuroofiTokens.Card to HuroofiTokens.Muted
+    }
+    Box(
+        modifier
+            .height(MapSpec.Chip)
+            .background(fill, shape)
+            .then(if (chip.state == LetterState.LEARNING) Modifier.border(MapSpec.ChipRing, HuroofiTokens.Primary, shape) else Modifier),
+        contentAlignment = Alignment.Center,
+    ) {
+        CenteredLetter(chip.letter.letter, size = MapSpec.CHIP_SP.sp, color = text, style = HuroofiText.arabicChip)
+    }
+}
+
+/** Filled play triangle from the prototype. Decorative: the card carries the label. */
 @Composable
 private fun PlayIcon(color: Color) {
     val path = remember { PathParser().parsePathString(PlayTriangle).toPath() }
-    Canvas(Modifier.size(30.dp)) {
+    Canvas(Modifier.width(26.dp).height(26.dp)) {
         val u = size.width / 24f
         scale(u, u, pivot = Offset.Zero) { drawPath(path, color) }
     }
 }
 
 /**
- * Letter Map for the stored progress. Play opens Meet for Today's letter, the learning letter. A
- * finished card opens Meet for one of its letters at random, never the same one twice in a row.
+ * Letter map for the stored progress. "Continue with" opens Meet for the learning letter. A finished
+ * card opens Meet for one of its letters at random, never the same one twice in a row.
  */
 @Composable
 fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Unit, onPractice: (Int) -> Unit) {
@@ -340,6 +409,7 @@ fun MapRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit, onPlay: (Int) -> Un
                 content.lettersInStage(stage.stage).sortedBy { it.index }.map { StageChip(it, letterStates.getValue(it.index)) },
             )
         },
+        traceOnly = traceOnly,
         onPlay = {
             prompt.stop()
             if (traceOnly) practiceStage(open) else learning?.let { onPlay(it.index) }
@@ -391,6 +461,7 @@ private fun MapPreview() {
                 }
                 MapStage(stage, state, chips)
             },
+            traceOnly = false,
             onPlay = {},
             onReplay = {},
             onOpen = {},

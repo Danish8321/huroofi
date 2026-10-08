@@ -54,7 +54,7 @@ SCREENS.map = {
     const cards = STAGES.map((s) => {
       const state = stageState(s.stage);
       const letters = stageLetters(s.stage);
-      const pic = `<span class="map-pic"><img src="${img(STAGE_PIC[s.stage])}" alt=""></span>`;
+      const pic = `<span class="map-pic"><img src="${img(s.picture)}" alt=""></span>`;
       const name = `<span class="map-name"><span class="map-num" style="color:${state === 'current' ? s.accent_dark : ''}">Stage ${s.stage}</span><b>${s.name}</b>${state !== 'current' ? `<span dir="rtl" class="ar map-chars">${letters.map((l) => l.letter).join(' ')}</span>` : ''}</span>`;
       if (state === 'current') {
         const ll = learningLetter();
@@ -422,7 +422,7 @@ SCREENS.reward = {
     const after = all
       ? `<div class="unlock-card" style="border-color:#158048;background:#E3F5EA"><span class="unlock-pic">${starSvg(56)}</span><span class="unlock-text"><small style="color:#0F5F35">ALL DONE</small><b>All 28 letters learned!</b></span></div>`
       : unlocked
-        ? `<div class="unlock-card" style="border-color:${next.border};background:${next.pastel}"><span class="unlock-pic"><img src="${img(STAGE_PIC[next.stage])}" alt=""></span><span class="unlock-text"><small style="color:${next.accent_dark}">UNLOCKED</small><b>${next.name}</b></span>${AR(stageLetters(next.stage).map((l) => l.letter).join(' '), 'unlock-ar')}</div>`
+        ? `<div class="unlock-card" style="border-color:${next.border};background:${next.pastel}"><span class="unlock-pic"><img src="${img(next.picture)}" alt=""></span><span class="unlock-text"><small style="color:${next.accent_dark}">UNLOCKED</small><b>${next.name}</b></span>${AR(stageLetters(next.stage).map((l) => l.letter).join(' '), 'unlock-ar')}</div>`
         : '';
     return `<div class="learn-wrap reward" style="background:${st.pastel}">
       ${S.calm ? '' : conf}
