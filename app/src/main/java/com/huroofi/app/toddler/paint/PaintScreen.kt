@@ -82,7 +82,6 @@ import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarBurst
-import com.huroofi.app.ui.components.ToddlerHomeButtonSpec
 import com.huroofi.app.ui.components.WipeIcon
 import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.theme.ArabicText
@@ -131,6 +130,10 @@ object PaintSpec {
     val WipeBorder = 3.dp
     val Pink = ToddlerActivity.PAINT.tile.border
     val PinkShadow = ToddlerActivity.PAINT.tile.shadow
+
+    /** The Home button turns pink here, as in the prototype. */
+    val HomeIcon = ToddlerActivity.PAINT.tile.text
+    val HomeShadow = Color(0xFFF2B5CC)
     val WipeBorderColor = Color(0xFFA9CBF2)
     val CrayonShadowColor = Color(0xFF13294B).copy(alpha = 0.2f)
 
@@ -142,7 +145,7 @@ object PaintSpec {
     val touchSizes = listOf(BubbleHeight, CrayonSize, Wipe, Again, CountdownSpec.Ring)
 
     /** Every colour except the crayons, which are an allow-list (plan 05 decision 2). */
-    val colors = listOf(Pink, PinkShadow, WipeBorderColor, CrayonShadowColor, AgainColor, RingTrack)
+    val colors = listOf(Pink, PinkShadow, HomeIcon, HomeShadow, WipeBorderColor, CrayonShadowColor, AgainColor, RingTrack)
 
     /**
      * The star burst and cheering Leo are a reward, not a cue. A crayon's colour is the content itself, like a
@@ -157,7 +160,8 @@ object PaintSpec {
         ContrastPair(AgainColor, HuroofiTokens.Card, large = true, "paint it again icon"),
         ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "done canvas frame"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "picked crayon ring"),
-    ) + ToddlerHomeButtonSpec.textPairs + parentLockPairs
+        ContrastPair(HomeIcon, HuroofiTokens.Card, large = true, "pink home icon"),
+    ) + parentLockPairs
 }
 
 /**
@@ -198,7 +202,7 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     DisposableEffect(Unit) { onDispose { audio.stop() } }
 
     ToddlerScaffold {
-        ToddlerHeader(onHome = onHome, onRequestParentZone = onRequestParentZone) {
+        ToddlerHeader(onHome = onHome, onRequestParentZone = onRequestParentZone, homeIcon = PaintSpec.HomeIcon, homeShadow = PaintSpec.HomeShadow) {
             Row(
                 Modifier
                     .height(PaintSpec.BubbleHeight)
