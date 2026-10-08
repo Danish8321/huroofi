@@ -177,7 +177,7 @@ fun PracticeRoute(index: Int, onBack: () -> Unit, onNext: (Int) -> Unit) {
 
 /** Reward for [stage]: `cheer` on open (decision 5). The sticker was saved before this opened. */
 @Composable
-fun RewardRoute(stage: Int, onNext: () -> Unit) {
+fun RewardRoute(stage: Int, onNext: () -> Unit, onStickers: () -> Unit) {
     val container = LocalAppContainer.current
     val content = container.content
     val scope = rememberCoroutineScope()
@@ -199,6 +199,10 @@ fun RewardRoute(stage: Int, onNext: () -> Unit) {
         onNext = {
             prompt.stop()
             onNext()
+        },
+        onStickers = {
+            prompt.stop()
+            onStickers()
         },
     )
 }

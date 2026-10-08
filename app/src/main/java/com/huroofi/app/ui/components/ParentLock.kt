@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -30,15 +31,16 @@ val parentLockPairs = listOf(ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Car
 
 /**
  * Small lock button. It only reports [onRequestParentZone]; it never opens anything itself.
- * The 3-second hold lives on the parent gate screen.
+ * The 2-second hold lives on the parent gate screen. [face] and [icon] change only on the night-time Rest screen.
  */
 @Composable
 fun ParentLock(
     onRequestParentZone: () -> Unit,
     contentDescription: String,
     modifier: Modifier = Modifier,
+    face: Color = LocalHuroofiColors.current.card,
+    icon: Color = LocalHuroofiColors.current.muted,
 ) {
-    val colors = LocalHuroofiColors.current
     Box(
         modifier = modifier
             .size(ParentLockSize.Hit)
@@ -47,8 +49,8 @@ fun ParentLock(
         contentAlignment = Alignment.Center,
     ) {
         Box(
-            modifier = Modifier.size(ParentLockSize.Visible).background(colors.card, CircleShape),
+            modifier = Modifier.size(ParentLockSize.Visible).background(face, CircleShape),
             contentAlignment = Alignment.Center,
-        ) { LockIcon(color = colors.muted, size = 28.dp) }
+        ) { LockIcon(color = icon, size = 28.dp) }
     }
 }
