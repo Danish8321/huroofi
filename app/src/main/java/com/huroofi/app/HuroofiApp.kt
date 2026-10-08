@@ -256,7 +256,7 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
     composable(LearnRoutes.Reward, arguments = listOf(navArgument(LearnRoutes.ARG_STAGE) { type = NavType.IntType })) { entry ->
         val stage = entry.arguments?.getInt(LearnRoutes.ARG_STAGE) ?: return@composable
         LearnBackHandler(LearnRoutes.Reward, onToMap = toMap)
-        RewardRoute(stage, onNext = toMap)
+        RewardRoute(stage, onNext = toMap, onStickers = { onTab(NavTab.STICKERS) })
     }
     composable(LearnRoutes.Map) {
         MapRoute(navTabs, onTab, onPlay = { index -> nav.navigate(LearnRoutes.lesson(index), overHome) }, onPractice = toPractice)
