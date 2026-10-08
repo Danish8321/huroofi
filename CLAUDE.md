@@ -2,7 +2,7 @@
 
 - Read `HANDOFF.md` before writing code. It is the source of truth for screens, tokens and rules.
 - Target: Android, Kotlin + Jetpack Compose, Material 3, Navigation Compose. Offline, no ads, no third-party analytics in child screens.
-- Look and behaviour: match `design-reference/screens/*.html` (approved prototypes). Rebuild natively; never embed them in a WebView.
+- Look and behaviour: match `design-reference/prototype.html` (approved interactive prototype; `design-reference/screens/*.html` are snapshots of it). Rebuild natively; never embed them in a WebView. Design changes go into `design-reference/prototype/` and are checked with `.claude/scripts/design.sh`.
 - Content: load letters, words, stages and colours from `data/letters.json`. Do not hard-code letter lists.
 - Fonts: `assets/fonts/` — Baloo Bhaijaan 2 for English, Noto Naskh Arabic Bold for every Arabic string.
 - Toddler mode rules are strict: sound first, no fail states, max 2–3 choices, touch targets ≥ 64 dp, parent gate (2-second hold; plan 13 changed it from HANDOFF's 3 s) in front of settings and exit.
