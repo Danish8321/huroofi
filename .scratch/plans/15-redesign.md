@@ -20,7 +20,8 @@ Approved 2026-10-08 by the maintainer ("Go ahead") after the prototype `design-r
    - At 400 dp on the letter: confirm buzz and praise, the frame and its edge turn green, the star pops in and Leo hops into the corner and sways. Painting stops.
    - The crayons and wipe give way to "Paint it again" (72 dp, keeps the letter, clears the canvas) and the shared ring Next (decision 4) with a pink track; after 1 + 4 s it opens a new letter, a tap opens it at once.
    - The prototype's star burst waits for the shared-components slice (decision 6), as in Trace.
-6. Shared components, then the layouts screen by screen: Home / Map / Stickers, Meet / Trace / Quiz, Reward / gate / Parent zone / Rest, Toddler home and Look & listen (§9 items 1, 6, 7, 8, 11).
+6. Shared components, then the layouts screen by screen: Home / Map / Stickers, Meet / Trace / Quiz, Reward / gate / Parent zone / Rest, Toddler home and Look & listen (§9 items 1, 6, 7, 8, 11). One branch per part.
+   - **Star burst** (`feat/redesign-burst`): the prototype's `burst()` as `ui/components/StarBurst.kt`. Ten stars (sun yellow, every third a lighter yellow, sun-shadow edge) fly out from one point over 900 ms, 50 ms apart, with a little overshoot, turning as they go. Shown on success only: over the letter when Trace is done, over the canvas when Paint is done (replaces the single star), and from the found picture in Find (replaces the three party stars, smaller spread on the phone). Spread scales; star size never drops below 60 %, so a small burst still reads as stars. Decorative, no touches, no semantics.
 
 Slices 2–6 are sharpened before each starts.
 
@@ -39,3 +40,5 @@ The unapproved explorations (ToddlerIntro, ToddlerWellDone, ParentProgress); rec
 - Not verified: the tablet ring on a device, sound.
 - Decision 5, `feat/redesign-paint`. `check.sh`, `test-fast.sh` PASS (`PaintModelTest` renamed to the goal, `PaintSpecTest` covers the new targets and colours). Emulator `huroofi_phone` (clock a day ahead again): painting ت past 400 dp showed the green frame, star, Leo, "Paint it again" and the ring, which then opened و by itself; on ف, "Paint it again" kept ف with a clean canvas and the picked crayon, and nothing moved on in the next 5 s. `a11y.sh` PASS on the done screen (5 targets, min 64 dp).
 - Not verified: tapping the ring, tablet, sound.
+- Decision 6, star burst, `feat/redesign-burst`. `check.sh`, `test-fast.sh` PASS; `StarBurstTest` (ten stars at the prototype spots, scale spreads fully but keeps size, light every third, none red). Emulator `huroofi_phone` (clock a day ahead): finding the lemon burst stars out of its tile, spilling a little past the edge as in the prototype; painting ظ to the goal burst ten stars over the canvas with the green frame, Leo and the ring. `a11y.sh` PASS on Paint (7 targets, min 64 dp).
+- Not verified: the Trace burst on the emulator, tablet, calm motion.

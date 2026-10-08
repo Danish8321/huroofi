@@ -61,7 +61,8 @@ import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.ParentLock
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
-import com.huroofi.app.ui.components.StarIcon
+import com.huroofi.app.ui.components.StarBurst
+import com.huroofi.app.ui.components.StarBurstSpec
 import com.huroofi.app.ui.components.ToddlerHomeButton
 import com.huroofi.app.ui.components.ToddlerHomeButtonSpec
 import com.huroofi.app.ui.components.letterPicture
@@ -93,16 +94,14 @@ object FindSpec {
     val SolvedBackground = Color(0xFFDFF5D5)
     val SolvedBorder = HuroofiTokens.Success
     val SolvedShadow = Color(0xFF9FD58A)
-    val PartyPink = Color(0xFFFF6FA5)
-    val PartyBlue = Color(0xFF3B8CF0)
 
     /** Two pictures; the sun button repeats the question and is not a choice. */
     const val CHOICES = 2
     val touchSizes = listOf(SunButton, CountdownSpec.BarHeight, TileHeight)
-    val colors = listOf(IdleShadow, SolvedBackground, SolvedBorder, SolvedShadow, PartyPink, PartyBlue, CountdownSpec.BarFill)
+    val colors = listOf(IdleShadow, SolvedBackground, SolvedBorder, SolvedShadow, StarBurstSpec.Light, CountdownSpec.BarFill)
 
     /**
-     * Party stars are reward decoration (a toddler loses nothing if they are missed); the English
+     * The star burst is reward decoration (a toddler loses nothing if they are missed); the English
      * line and the hint are 18 sp, so normal text.
      */
     val textPairs: List<ContrastPair> = listOf(
@@ -124,11 +123,7 @@ object FindSpec {
 
     val tile = FindTileStyle(
         corner = TileCorner, border = TileBorder, shadow = TileShadow, picture = PictureSize, wordSp = WORD_SP,
-        stars = listOf(
-            PartyStarSpot(64.dp, Alignment.TopStart, start = 18.dp, top = 14.dp),
-            PartyStarSpot(48.dp, Alignment.TopEnd, end = 22.dp, top = 28.dp),
-            PartyStarSpot(54.dp, Alignment.BottomEnd, end = 34.dp, bottom = 26.dp),
-        ),
+        burstScale = 0.75f,
         // The phone tile is wide and short; stacked, the word left the picture 96 dp (plan 11 decision 5).
         sideBySide = true,
     )
@@ -164,11 +159,7 @@ object FindTabletSpec {
 
     val tile = FindTileStyle(
         corner = 48.dp, border = 8.dp, shadow = 10.dp, picture = 250.dp, wordSp = 72f,
-        stars = listOf(
-            PartyStarSpot(84.dp, Alignment.TopStart, start = 26.dp, top = 22.dp),
-            PartyStarSpot(64.dp, Alignment.TopEnd, end = 30.dp, top = 40.dp),
-            PartyStarSpot(72.dp, Alignment.BottomEnd, end = 44.dp, bottom = 26.dp),
-        ),
+        burstScale = 0.9f,
     )
 
     /** Touch sizes after scaling: buttons go through [minTouch]; tiles stay far above 64 dp. */
@@ -183,18 +174,6 @@ object FindTabletSpec {
     fun stagePairs(stage: StageColors) = FindSpec.stagePairs(stage)
 }
 
-/** Where a party star sits on a solved tile. */
-class PartyStarSpot(
-    val size: Dp,
-    val alignment: Alignment,
-    val start: Dp = 0.dp,
-    val top: Dp = 0.dp,
-    val end: Dp = 0.dp,
-    val bottom: Dp = 0.dp,
-) {
-    fun scaled(s: Float) = PartyStarSpot(size * s, alignment, start * s, top * s, end * s, bottom * s)
-}
-
 /** Sizes of one picture tile; the phone and tablet layouts differ only in these. */
 class FindTileStyle(
     val corner: Dp,
@@ -202,11 +181,12 @@ class FindTileStyle(
     val shadow: Dp,
     val picture: Dp,
     val wordSp: Float,
-    val stars: List<PartyStarSpot>,
+    /** Spread of the [StarBurst] from the found picture. */
+    val burstScale: Float,
     /** Picture beside the word, for wide short tiles (phone), so the picture can fill the tile's height. */
     val sideBySide: Boolean = false,
 ) {
-    fun scaled(s: Float) = FindTileStyle(corner * s, border * s, shadow * s, picture * s, wordSp * s, stars.map { it.scaled(s) }, sideBySide)
+    fun scaled(s: Float) = FindTileStyle(corner * s, border * s, shadow * s, picture * s, wordSp * s, burstScale * s, sideBySide)
 }
 
 /**
@@ -504,36 +484,6 @@ private fun FindTile(letter: Letter, round: FindRound, onClick: () -> Unit, styl
                 word()
             }
         }
-        if (solvedHere) {
-            val fills = listOf(colors.sun, FindSpec.PartyPink, FindSpec.PartyBlue)
-            style.stars.forEachIndexed { i, spot ->
-                PartyStar(
-                    fills[i],
-                    spot.size,
-                    i * PARTY_STAR_STAGGER_MS,
-                    Modifier.align(spot.alignment).padding(start = spot.start, top = spot.top, end = spot.end, bottom = spot.bottom),
-                )
-            }
-        }
+        if (solvedHere) StarBurst(scale = style.burstScale, topFraction = 0.5f)
     }
-}
-
-private const val PARTY_STAR_STAGGER_MS = 150
-
-/** A star that pops in after [delayMs]. Decorative. */
-@Composable
-private fun PartyStar(fill: Color, size: Dp, delayMs: Int, modifier: Modifier) {
-    val pop = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { pop.animateTo(1f, tween(400, delayMillis = delayMs)) }
-    StarIcon(
-        fill = fill,
-        size = size,
-        outlineWidth = 1.2f,
-        modifier = modifier.graphicsLayer {
-            scaleX = pop.value
-            scaleY = pop.value
-            rotationZ = -30f * (1f - pop.value)
-            alpha = pop.value
-        },
-    )
 }
