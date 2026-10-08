@@ -15,12 +15,7 @@ data class FindRound(
     val lastWrong: Letter? = null,
 )
 
-/** A set of three rounds; [stars] counts rounds solved in this set (plan 05 decision 5). */
-data class FindSet(val round: FindRound, val stars: Int = 0) {
-    val complete: Boolean get() = stars == FindGame.ROUNDS_PER_SET
-}
-
-/** Rules of Where's the…?: endless, no result screen, a wrong tap never costs a star. Toddler words only. */
+/** Rules of Where's the…?: endless rounds, no score, no result screen (plan 15 decision 4). Toddler words only. */
 class FindGame(letters: List<Letter>, private val random: Random) {
     private val letters = letters.filter { it.toddlerWord }
 
@@ -28,33 +23,23 @@ class FindGame(letters: List<Letter>, private val random: Random) {
         require(letters.size >= 2) { "need at least two letters" }
     }
 
-    fun start(): FindSet = FindSet(newRound(previousTarget = null))
+    fun start(): FindRound = newRound(previousTarget = null)
 
-    fun tap(set: FindSet, picked: Letter): Pair<FindSet, TapResult> {
-        val round = set.round
-        return when {
-            round.solved || picked !in round.options -> set to TapResult.IGNORED
-            picked == round.target ->
-                set.copy(round = round.copy(solved = true), stars = set.stars + 1) to TapResult.CORRECT
-            else ->
-                set.copy(round = round.copy(wrongTaps = round.wrongTaps + 1, lastWrong = picked)) to TapResult.NUDGE
-        }
+    fun tap(round: FindRound, picked: Letter): Pair<FindRound, TapResult> = when {
+        round.solved || picked !in round.options -> round to TapResult.IGNORED
+        picked == round.target -> round.copy(solved = true) to TapResult.CORRECT
+        else -> round.copy(wrongTaps = round.wrongTaps + 1, lastWrong = picked) to TapResult.NUDGE
     }
 
-    /** Next round after a solve. After the third star a fresh set starts with no stars. */
-    fun next(set: FindSet): FindSet {
-        require(set.round.solved) { "next only after the round is solved" }
-        val round = newRound(previousTarget = set.round.target)
-        return FindSet(round, stars = if (set.complete) 0 else set.stars)
+    /** The round after a solve. */
+    fun next(round: FindRound): FindRound {
+        require(round.solved) { "next only after the round is solved" }
+        return newRound(previousTarget = round.target)
     }
 
     private fun newRound(previousTarget: Letter?): FindRound {
         val target = pickExcept(letters, previousTarget, random)
         val distractor = pickExcept(letters, target, random)
         return FindRound(target, listOf(target, distractor).shuffled(random))
-    }
-
-    companion object {
-        const val ROUNDS_PER_SET = 3
     }
 }

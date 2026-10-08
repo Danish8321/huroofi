@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FindAudioTest {
@@ -31,15 +32,15 @@ class FindAudioTest {
         runCurrent()
     }
 
-    private fun wrong(set: FindSet) = set.round.options.first { it != set.round.target }
+    private fun wrong(set: FindRound) = set.options.first { it != set.target }
 
     @Test
     fun askPlaysTheWhereIsPrompt() = runTest {
         val (sound, audio) = setup()
         val set = game.start()
-        audio.ask(set.round.target)
+        audio.ask(set.target)
         runCurrent()
-        assertEquals(listOf(Clips.whereIs(set.round.target).path), sound.played)
+        assertEquals(listOf(Clips.whereIs(set.target).path), sound.played)
     }
 
     @Test
@@ -57,7 +58,7 @@ class FindAudioTest {
         assertEquals(listOf(Clips.boing.path), sound.played)
         advanceTimeBy(2)
         runCurrent()
-        assertEquals(listOf(Clips.boing.path, Clips.whereIs(after.round.target).path), sound.played)
+        assertEquals(listOf(Clips.boing.path, Clips.whereIs(after.target).path), sound.played)
     }
 
     @Test
@@ -77,7 +78,7 @@ class FindAudioTest {
         var set = game.start()
         val praises = mutableListOf<String>()
         repeat(30) {
-            val (after, result) = game.tap(set, set.round.target)
+            val (after, result) = game.tap(set, set.target)
             audio.onTap(result, after)
             drain(sound)
             praises += sound.played.filter { it.contains("praise") }.last()
@@ -87,14 +88,16 @@ class FindAudioTest {
     }
 
     @Test
-    fun thirdStarAlsoCheers() = runTest {
+    fun rightTapsOnlyEverPraise() = runTest {
         val (sound, audio) = setup()
         var set = game.start()
-        repeat(2) { set = game.next(game.tap(set, set.round.target).first) }
-        val (after, result) = game.tap(set, set.round.target)
-        audio.onTap(result, after)
-        drain(sound)
-        assertEquals(2, sound.played.size)
-        assertEquals(Clips.cheer.path, sound.played.last())
+        repeat(6) {
+            val (after, result) = game.tap(set, set.target)
+            audio.onTap(result, after)
+            drain(sound)
+            set = game.next(after)
+        }
+        assertEquals(6, sound.played.size)
+        sound.played.forEach { assertTrue(it, it.contains("praise")) }
     }
 }

@@ -17,11 +17,11 @@ class FindAudio(private val prompt: PromptPlayer, private val random: Random) {
     }
 
     /** After a tap, given the state the tap produced. */
-    fun onTap(result: TapResult, after: FindSet) {
-        val target = after.round.target
+    fun onTap(result: TapResult, after: FindRound) {
+        val target = after.target
         when (result) {
             TapResult.NUDGE ->
-                if (after.round.wrongTaps == 1) {
+                if (after.wrongTaps == 1) {
                     prompt.run {
                         play(Clips.boing)
                         delay(HINT_DELAY_MS)
@@ -33,8 +33,7 @@ class FindAudio(private val prompt: PromptPlayer, private val random: Random) {
             TapResult.CORRECT -> {
                 val n = pickExcept((1..Clips.PRAISE_COUNT).toList(), lastPraise, random)
                 lastPraise = n
-                val clips = listOf(Clips.praise(n)) + if (after.complete) listOf(Clips.cheer) else emptyList()
-                prompt.play(clips)
+                prompt.play(Clips.praise(n))
             }
             TapResult.IGNORED -> Unit
         }
