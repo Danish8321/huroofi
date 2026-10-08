@@ -16,7 +16,10 @@ Approved 2026-10-08 by the maintainer ("Go ahead") after the prototype `design-r
    - Sets of three, the header stars and the set-complete cheer go; a right tap plays praise only.
    - Before the answer, the phone shows "Tap a picture" with a pointing hand where Next will be.
    - Once found: the phone shows a full-width green Next (96 dp) that a darker bar fills over 4 s after a 1 s pause; the tablet shows a 120 dp ring around a round Next, filling clockwise on the same clock. When full it moves on; a tap moves on at once. Both live in `toddler/CountdownNext.kt` for Paint (decision 5) to reuse.
-5. **Paint**: celebration, 4 s ring countdown, "Paint it again" (§9 item 4).
+5. **Paint celebrates, then a ring counts down to a new letter** (§9 item 4). Branch `feat/redesign-paint`.
+   - At 400 dp on the letter: confirm buzz and praise, the frame and its edge turn green, the star pops in and Leo hops into the corner and sways. Painting stops.
+   - The crayons and wipe give way to "Paint it again" (72 dp, keeps the letter, clears the canvas) and the shared ring Next (decision 4) with a pink track; after 1 + 4 s it opens a new letter, a tap opens it at once.
+   - The prototype's star burst waits for the shared-components slice (decision 6), as in Trace.
 6. Shared components, then the layouts screen by screen: Home / Map / Stickers, Meet / Trace / Quiz, Reward / gate / Parent zone / Rest, Toddler home and Look & listen (§9 items 1, 6, 7, 8, 11).
 
 Slices 2–6 are sharpened before each starts.
@@ -34,3 +37,5 @@ The unapproved explorations (ToddlerIntro, ToddlerWellDone, ParentProgress); rec
 - Decision 3, `feat/redesign-practice-time`. `check.sh`, `test-fast.sh` PASS; `PlayTimeTest.tracePracticeCountsAsPlay`. Not walked on the emulator (needs a 5-minute limit to run out).
 - Decision 4, `feat/redesign-find`. `check.sh`, `test-fast.sh` PASS; `FindGameTest` (no sets, `next` needs a solve and starts clean), `FindAudioTest.rightTapsOnlyEverPraise`, `FindSpecTest` (1 s + 4 s). Emulator `huroofi_phone` (its clock moved a day ahead, because today's 60 minutes were used up): no star counter, "Tap a picture" before the answer; after the fox the bar was about a third full at 2.5 s and the next round opened by 6 s with nothing tapped; a wrong tap kept the round open; tapping Next 0.5 s after a solve opened the next round at once. `a11y.sh` PASS on the solved screen (6 targets, min 64 dp).
 - Not verified: the tablet ring on a device, sound.
+- Decision 5, `feat/redesign-paint`. `check.sh`, `test-fast.sh` PASS (`PaintModelTest` renamed to the goal, `PaintSpecTest` covers the new targets and colours). Emulator `huroofi_phone` (clock a day ahead again): painting ت past 400 dp showed the green frame, star, Leo, "Paint it again" and the ring, which then opened و by itself; on ف, "Paint it again" kept ف with a clean canvas and the picked crayon, and nothing moved on in the next 5 s. `a11y.sh` PASS on the done screen (5 targets, min 64 dp).
+- Not verified: tapping the ring, tablet, sound.
