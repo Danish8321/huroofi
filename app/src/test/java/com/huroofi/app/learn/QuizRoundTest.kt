@@ -117,4 +117,20 @@ class QuizRoundTest {
         assertFalse(next.solved)
         assertEquals(round(seed = 9), next.options)
     }
+
+    @Test
+    fun aRightAnswerBeforeTheLastRoundSaysNext() {
+        val game = QuizGame(baa, round()).answer(baa)
+        assertEquals("Great job! Next", quizNextLabel(game, next = null, allLearned = false))
+    }
+
+    @Test
+    fun theLastRoundNamesWhereItGoes() {
+        val last = QuizGame(baa, round(), roundsDone = QUIZ_ROUNDS - 1).answer(baa)
+        assertTrue(last.finished)
+        assertEquals("Next letter", quizNextLabel(last, PathNext.Meet(3), allLearned = false))
+        assertEquals("Get your sticker", quizNextLabel(last, PathNext.Reward(1), allLearned = false))
+        assertEquals("See your sticker", quizNextLabel(last, PathNext.Reward(7), allLearned = true))
+        assertEquals("Back home", quizNextLabel(last, PathNext.Home, allLearned = false))
+    }
 }

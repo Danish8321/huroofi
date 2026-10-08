@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
+import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
@@ -81,7 +82,6 @@ object QuizSpec {
     val EdgeColor = Color(0xFFCFE2F7)
     val RightShadow = Color(0xFF9FD58A)
     val RightBackground = Color(0xFFD6F2C8)
-    val RightText = HuroofiTokens.SuccessShadow
     /** Soft orange, never red (the prototype's red-orange fails the no-red rule). */
     val WrongBackground = Color(0xFFFFE4D6)
     val WrongText = Color(0xFFA35400)
@@ -99,7 +99,7 @@ object QuizSpec {
     val touchSizes = listOf(Close, Sound, TileMin)
     val colors = listOf(
         HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Sun, HuroofiTokens.SunShadow,
-        HuroofiTokens.Success, EdgeColor, RightShadow, RightBackground, RightText, WrongBackground, WrongText,
+        HuroofiTokens.Success, EdgeColor, RightShadow, RightBackground, WrongBackground, WrongText,
     )
 
     /** A dimmed wrong tile is inactive, so it is not checked. 22 sp ExtraBold is large; 18 sp is normal. */
@@ -114,7 +114,6 @@ object QuizSpec {
         ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "idle hint"),
         ContrastPair(WrongText, WrongBackground, large = true, "Almost! Try again"),
         ContrastPair(HuroofiTokens.Navy, WrongBackground, large = false, "wrong explanation"),
-        ContrastPair(RightText, RightBackground, large = true, "Great job!"),
         ContrastPair(HuroofiTokens.Navy, RightBackground, large = true, "right word"),
         ContrastPair(HuroofiTokens.Navy, RightBackground, large = false, "starts with"),
     ) + ButtonKind.Success.contrastPairs()
@@ -131,13 +130,25 @@ private val CloseIcon = listOf("M6 6l12 12M18 6L6 18")
 private const val HINT_DELAY_MS = 300L
 
 /**
+ * The button under a right answer (plan 15 decision 2): "Great job! Next" between rounds; after the
+ * last round it names where it goes, once [next] is known.
+ */
+fun quizNextLabel(game: QuizGame, next: PathNext?, allLearned: Boolean): String = when {
+    !game.finished -> "Great job! Next"
+    next is PathNext.Reward -> if (allLearned) "See your sticker" else "Get your sticker"
+    next == PathNext.Home -> "Back home"
+    else -> "Next letter"
+}
+
+/**
  * "Which one starts with …?". A wrong tap dims that picture and wiggles the right one; a right tap
- * turns it green. Continue appears once the last round is right and progress is saved.
+ * turns it green and shows [nextLabel]'s button, which nothing presses but the child.
  */
 @Composable
 fun QuizScreen(
     game: QuizGame,
     stage: Stage,
+    nextLabel: String,
     canContinue: Boolean,
     onClose: () -> Unit,
     onHear: () -> Unit,
@@ -203,7 +214,7 @@ fun QuizScreen(
             Box(Modifier.fillMaxWidth().height(QuizSpec.Panel), contentAlignment = Alignment.BottomCenter) {
                 val wrong = game.wrongPick
                 when {
-                    game.solved -> RightPanel(target, colors.accent, showContinue = game.finished, canContinue = canContinue, onContinue = onContinue)
+                    game.solved -> RightPanel(target, colors.accent, nextLabel, canContinue = canContinue, onContinue = onContinue)
                     wrong != null -> WrongPanel(wrong)
                     // Plain text on the page, not a white pill that looks pressable (plan 11 decision 4).
                     else -> Text(
@@ -315,18 +326,17 @@ private fun WrongPanel(pick: Letter) {
 }
 
 @Composable
-private fun RightPanel(target: Letter, accent: Color, showContinue: Boolean, canContinue: Boolean, onContinue: () -> Unit) {
+private fun RightPanel(target: Letter, accent: Color, nextLabel: String, canContinue: Boolean, onContinue: () -> Unit) {
     Column(
         Modifier.fillMaxWidth().background(QuizSpec.RightBackground, RoundedCornerShape(26.dp)).padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Great job!", style = HuroofiText.buttonPrimary, color = QuizSpec.RightText)
             ArabicText(highlightedWord(target.wordFirst, target.wordRest, accent), size = QuizSpec.INLINE_SP.sp, color = HuroofiTokens.Navy)
             Text("starts with", style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
             ArabicText(target.letter, size = QuizSpec.INLINE_SP.sp, color = HuroofiTokens.Navy)
         }
-        if (showContinue) PrimaryButton("Continue", onClick = onContinue, kind = ButtonKind.Success, enabled = canContinue)
+        PrimaryButton(nextLabel, onClick = onContinue, kind = ButtonKind.Success, enabled = canContinue, icon = ButtonIcons.Next)
     }
 }
 
@@ -335,7 +345,7 @@ private fun RightPanel(target: Letter, accent: Color, showContinue: Boolean, can
 private fun QuizReaderPreview() {
     val l = LearnPreviewData.letters
     HuroofiTheme {
-        QuizScreen(QuizGame(l[1], l, wrongPick = l[0], wrongTaps = 1), LearnPreviewData.stage, false, {}, {}, {}, {})
+        QuizScreen(QuizGame(l[1], l, wrongPick = l[0], wrongTaps = 1), LearnPreviewData.stage, "Great job! Next", false, {}, {}, {}, {})
     }
 }
 
@@ -344,6 +354,6 @@ private fun QuizReaderPreview() {
 private fun QuizPreschoolDonePreview() {
     val l = LearnPreviewData.letters
     HuroofiTheme {
-        QuizScreen(QuizGame(l[1], l.take(3), roundsDone = 3, solved = true), LearnPreviewData.stage, true, {}, {}, {}, {})
+        QuizScreen(QuizGame(l[1], l.take(3), roundsDone = 3, solved = true), LearnPreviewData.stage, "Next letter", true, {}, {}, {}, {})
     }
 }
