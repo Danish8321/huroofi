@@ -12,9 +12,9 @@ class PaintModelTest {
     private fun line(length: Float) = Painting().start(PaintPoint(0f, 0f)).moveTo(PaintPoint(length, 0f))
 
     @Test
-    fun starNeedsFourHundredDp() {
-        assertFalse(line(399f).starEarned)
-        assertTrue(line(400f).starEarned)
+    fun doneAfterFourHundredDp() {
+        assertFalse(line(399f).done)
+        assertTrue(line(400f).done)
     }
 
     @Test
@@ -22,15 +22,15 @@ class PaintModelTest {
         var still = Painting().start(PaintPoint(50f, 50f))
         repeat(1_000) { still = still.moveTo(PaintPoint(50f, 50f)) }
         assertEquals(0f, still.totalDp)
-        assertFalse(still.starEarned)
-        assertTrue(line(400f).starEarned)
+        assertFalse(still.done)
+        assertTrue(line(400f).done)
     }
 
     @Test
     fun paintOffTheLetterEarnsNothing() {
         val off = Painting().start(PaintPoint(0f, 0f)).moveTo(PaintPoint(500f, 0f), onLetter = false)
         assertEquals(0f, off.totalDp)
-        assertFalse(off.starEarned)
+        assertFalse(off.done)
         assertEquals(2, off.strokes.single().points.size)
     }
 
@@ -38,7 +38,7 @@ class PaintModelTest {
     fun distanceAddsUpAcrossStrokes() {
         val p = line(300f).start(PaintPoint(0f, 100f)).moveTo(PaintPoint(60f, 180f))
         assertEquals(400f, p.totalDp, 0.001f)
-        assertTrue(p.starEarned)
+        assertTrue(p.done)
         assertEquals(2, p.strokes.size)
     }
 
@@ -52,7 +52,7 @@ class PaintModelTest {
     fun wipeClearsEverythingButTheCrayon() {
         val wiped = line(500f).select(Crayon.GREEN).wipe()
         assertEquals(Painting(crayon = Crayon.GREEN), wiped)
-        assertFalse(wiped.starEarned)
+        assertFalse(wiped.done)
     }
 
     @Test

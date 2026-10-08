@@ -43,7 +43,7 @@ class PaintAudioTest {
     fun starPraisesAndNeverTheSamePraiseTwiceInARow() = runTest {
         val (sound, audio) = setup()
         repeat(30) {
-            audio.star()
+            audio.celebrate()
             runCurrent()
             sound.finish()
             runCurrent()

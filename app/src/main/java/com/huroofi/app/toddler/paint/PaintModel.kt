@@ -21,7 +21,7 @@ data class PaintPoint(val x: Float, val y: Float)
 data class PaintStroke(val crayon: Crayon, val points: List<PaintPoint>)
 
 /**
- * What is on the canvas. The star is earned by distance painted, not by pointer events (plan 05
+ * What is on the canvas. The letter is done by distance painted, not by pointer events (plan 05
  * decision 11), and only paint on the letter counts, since paint off it doesn't show (plan 12
  * decision 4).
  */
@@ -30,13 +30,13 @@ data class Painting(
     val strokes: List<PaintStroke> = emptyList(),
     val totalDp: Float = 0f,
 ) {
-    val starEarned: Boolean get() = totalDp >= STAR_DP
+    val done: Boolean get() = totalDp >= GOAL_DP
 
     fun select(crayon: Crayon): Painting = copy(crayon = crayon)
 
     fun start(p: PaintPoint): Painting = copy(strokes = strokes + PaintStroke(crayon, listOf(p)))
 
-    /** Extends the last stroke to [p]; the move counts towards the star only when [onLetter]. */
+    /** Extends the last stroke to [p]; the move counts towards the goal only when [onLetter]. */
     fun moveTo(p: PaintPoint, onLetter: Boolean = true): Painting {
         val last = strokes.lastOrNull() ?: return start(p)
         val from = last.points.last()
@@ -44,11 +44,11 @@ data class Painting(
         return copy(strokes = strokes.dropLast(1) + moved, totalDp = if (onLetter) totalDp + hypot(p.x - from.x, p.y - from.y) else totalDp)
     }
 
-    /** Clears the canvas, the distance and the star. The chosen crayon stays. */
+    /** Clears the canvas and the distance, also for "Paint it again". The chosen crayon stays. */
     fun wipe(): Painting = Painting(crayon = crayon)
 
     companion object {
-        const val STAR_DP = 400f
+        const val GOAL_DP = 400f
     }
 }
 

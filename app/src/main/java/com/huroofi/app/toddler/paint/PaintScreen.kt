@@ -1,8 +1,15 @@
 package com.huroofi.app.toddler.paint
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,6 +52,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
@@ -56,15 +64,20 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huroofi.app.LocalAppContainer
+import com.huroofi.app.R
+import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.TraceStroke
+import com.huroofi.app.toddler.CountdownSpec
 import com.huroofi.app.toddler.PromptPlayer
+import com.huroofi.app.toddler.RingNextButton
 import com.huroofi.app.toddler.ToddlerActivity
 import com.huroofi.app.toddler.ToddlerHeader
 import com.huroofi.app.toddler.ToddlerPhrases
 import com.huroofi.app.toddler.ToddlerScaffold
-import com.huroofi.app.ui.components.ChevronIcon
+import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.DemoHand
 import com.huroofi.app.ui.components.DemoRun
+import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
@@ -80,7 +93,10 @@ import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 import com.huroofi.app.ui.theme.fitGlyph
 import com.huroofi.app.ui.theme.toCanvas
+import kotlin.math.PI
+import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlin.random.Random
 
 /** Sizes and colours of Finger paint (`ToddlerPaint.html`, phone layout). */
@@ -100,9 +116,15 @@ object PaintSpec {
     val OnLetterSlop = 8.dp
     const val STROKE_ALPHA = 0.9f
     val Star = 86.dp
-    val NextButton = 96.dp
-    /** Room under the Next button for its drop edge. */
-    val NextShadow = 8.dp
+    /** Under the canvas: the crayons, or once done "Paint it again" and the ring (`.paint-done-row`). */
+    val ControlsHeight = 156.dp
+    val DoneGap = 24.dp
+    val Again = 72.dp
+    val AgainIcon = 30.dp
+    val AgainColor = Color(0xFFB0185A)
+    val RingTrack = Color(0xFFF2B5CC)
+    val Leo = 104.dp
+    val LeoInset = 12.dp
     val CrayonSize = 64.dp
     val CrayonRing = 6.dp
     val CrayonShadow = 5.dp
@@ -118,13 +140,13 @@ object PaintSpec {
      * (plan 05 decision 2 keeps all four).
      */
     const val CHOICES = 0
-    val touchSizes = listOf(BubbleHeight, NextButton, CrayonSize, Wipe)
+    val touchSizes = listOf(BubbleHeight, CrayonSize, Wipe, Again, CountdownSpec.Ring)
 
     /** Every colour except the crayons, which are an allow-list (plan 05 decision 2). */
-    val colors = listOf(Pink, PinkShadow, WipeBorderColor, CrayonShadowColor)
+    val colors = listOf(Pink, PinkShadow, WipeBorderColor, CrayonShadowColor, AgainColor, RingTrack)
 
     /**
-     * The earned star is a reward, not a cue. A crayon's colour is the content itself, like a
+     * The star and cheering Leo are a reward, not a cue. A crayon's colour is the content itself, like a
      * picture, so only the picked ring is checked.
      */
     val textPairs: List<ContrastPair> = listOf(
@@ -133,11 +155,17 @@ object PaintSpec {
         ContrastPair(LetterOutlineSpec.EdgeColor, HuroofiTokens.Card, large = true, "dashed edge of the letter to paint"),
         ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "next chevron"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "wipe icon"),
+        ContrastPair(AgainColor, HuroofiTokens.Card, large = true, "paint it again icon"),
+        ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "done canvas frame"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "picked crayon ring"),
     ) + ToddlerHomeButtonSpec.textPairs + parentLockPairs
 }
 
-/** Finger paint: a random letter to paint over, a star after 400 dp (plan 05 slice 5). */
+/**
+ * Finger paint: a random letter to paint over (plan 05 slice 5). After 400 dp on the letter it
+ * celebrates (green frame, star, cheering Leo), then a ring counts down to a new letter; "Paint it
+ * again" keeps the letter (plan 15 decision 5).
+ */
 @Composable
 fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     val container = LocalAppContainer.current
@@ -146,7 +174,7 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     val audio = remember { PaintAudio(PromptPlayer(container.sound, scope), Random.Default) }
     var page by remember { mutableStateOf(session.start()) }
     val colors = LocalHuroofiColors.current
-    val star = page.painting.starEarned
+    val done = page.painting.done
     // Demo hand: once per page over the outline, never repeated, stopped by the first touch.
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
@@ -162,10 +190,10 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
 
     LaunchedEffect(page.letter) { audio.ask(page.letter) }
     val buzz = LocalBuzz.current
-    LaunchedEffect(star) {
-        if (star) {
+    LaunchedEffect(done) {
+        if (done) {
             buzz.confirm()
-            audio.star()
+            audio.celebrate()
         }
     }
     DisposableEffect(Unit) { onDispose { audio.stop() } }
@@ -187,8 +215,8 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                 SoundIcon(color = PaintSpec.Pink, size = PaintSpec.BubbleIcon)
             }
         }
-        // Canvas, crayons and the Next slot stay together, centred in the space left, so no gap opens
-        // between canvas and crayons and Next never covers the canvas (plan 11 decision 5).
+        // Canvas and controls stay together, centred in the space left, so no gap opens between
+        // them and the done row never covers the canvas (plan 11 decision 5).
         Column(
             Modifier.fillMaxWidth().weight(1f),
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
@@ -200,7 +228,7 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                     Modifier
                         .matchParentSize()
                         .padding(top = PaintSpec.CanvasShadow)
-                        .background(PaintSpec.PinkShadow, shape),
+                        .background(if (done) colors.successShadow else PaintSpec.PinkShadow, shape),
                 )
                 Box(
                     Modifier
@@ -208,7 +236,7 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                         .padding(bottom = PaintSpec.CanvasShadow)
                         .clip(shape)
                         .background(colors.card)
-                        .border(PaintSpec.CanvasBorder, PaintSpec.Pink, shape)
+                        .border(PaintSpec.CanvasBorder, if (done) colors.success else PaintSpec.Pink, shape)
                         .onSizeChanged { canvasSize = it },
                 ) {
                     PaintLayer(
@@ -216,63 +244,115 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                         glyph = glyph,
                         onStart = {
                             demoRun = null
-                            page = page.copy(painting = page.painting.start(it))
+                            if (!page.painting.done) page = page.copy(painting = page.painting.start(it))
                         },
-                        onMove = {
+                        onMove = move@{
+                            if (page.painting.done) return@move
                             val at = with(density) { Offset(it.x.dp.toPx(), it.y.dp.toPx()) }
                             val counts = onLetter?.contains(at, with(density) { PaintSpec.OnLetterSlop.toPx() }) ?: true
                             page = page.copy(painting = page.painting.moveTo(it, counts))
                         },
                         modifier = Modifier
                             .matchParentSize()
-                            .semantics { contentDescription = "Paint over the letter ${page.letter.nameLatin} with your finger" },
+                            .semantics {
+                                contentDescription = if (done) {
+                                    "You painted ${page.letter.nameLatin}!"
+                                } else {
+                                    "Paint over the letter ${page.letter.nameLatin} with your finger"
+                                }
+                            },
                     )
                     LetterOutline(page.letter.letter, Modifier.matchParentSize(), fill = false)
                     DemoHand(demoPaths, demoRun, onFinished = { demoRun = null })
-                    if (star) {
+                    if (done) {
                         PopIn(page.letter, Modifier.align(Alignment.TopEnd).padding(14.dp)) {
                             StarIcon(fill = colors.sun, size = PaintSpec.Star, outlineWidth = 1.1f)
                         }
+                        CheeringLeo(Modifier.align(Alignment.BottomEnd).padding(PaintSpec.LeoInset))
                     }
                 }
             }
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                for (crayon in Crayon.entries) {
-                    CrayonButton(crayon, selected = crayon == page.painting.crayon) {
-                        page = page.copy(painting = page.painting.select(crayon))
-                    }
-                }
-                Box(
-                    Modifier
-                        .size(PaintSpec.Wipe)
-                        .clip(CircleShape)
-                        .background(colors.card)
-                        .border(PaintSpec.WipeBorder, PaintSpec.WipeBorderColor, CircleShape)
-                        .clickable(role = Role.Button) { page = page.copy(painting = page.painting.wipe()) }
-                        .semantics { contentDescription = "Wipe clean" },
-                    contentAlignment = Alignment.Center,
-                ) { WipeIcon(colors.navy) }
-            }
-            Box(Modifier.height(PaintSpec.NextButton + PaintSpec.NextShadow), contentAlignment = Alignment.Center) {
-                if (star) {
-                    PopIn(page.letter) {
-                        RoundIconButton(
-                            contentDescription = "Next",
-                            onClick = { page = session.next(page) },
-                            toddler = true,
-                            size = PaintSpec.NextButton,
-                            containerColor = colors.success,
-                            shadowColor = colors.successShadow,
-                        ) { ChevronIcon(colors.card, pointsRight = true, size = 46.dp) }
-                    }
+            Box(Modifier.fillMaxWidth().height(PaintSpec.ControlsHeight), contentAlignment = Alignment.Center) {
+                if (done) {
+                    DoneRow(
+                        letter = page.letter,
+                        onAgain = { page = page.copy(painting = page.painting.wipe()) },
+                        onNext = { if (page.painting.done) page = session.next(page) },
+                    )
+                } else {
+                    Crayons(
+                        crayon = page.painting.crayon,
+                        onPick = { page = page.copy(painting = page.painting.select(it)) },
+                        onWipe = { page = page.copy(painting = page.painting.wipe()) },
+                    )
                 }
             }
         }
     }
+}
+
+/** The four crayons and the wipe button. */
+@Composable
+private fun Crayons(crayon: Crayon, onPick: (Crayon) -> Unit, onWipe: () -> Unit) {
+    val colors = LocalHuroofiColors.current
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        for (c in Crayon.entries) CrayonButton(c, selected = c == crayon) { onPick(c) }
+        Box(
+            Modifier
+                .size(PaintSpec.Wipe)
+                .clip(CircleShape)
+                .background(colors.card)
+                .border(PaintSpec.WipeBorder, PaintSpec.WipeBorderColor, CircleShape)
+                .clickable(role = Role.Button, onClick = onWipe)
+                .semantics { contentDescription = "Wipe clean" },
+            contentAlignment = Alignment.Center,
+        ) { WipeIcon(colors.navy) }
+    }
+}
+
+/** Once done: "Paint it again" beside the ring that counts down to a new letter. */
+@Composable
+private fun DoneRow(letter: Letter, onAgain: () -> Unit, onNext: () -> Unit) {
+    val colors = LocalHuroofiColors.current
+    Row(horizontalArrangement = Arrangement.spacedBy(PaintSpec.DoneGap), verticalAlignment = Alignment.CenterVertically) {
+        RoundIconButton(
+            contentDescription = "Paint it again",
+            onClick = onAgain,
+            toddler = true,
+            size = PaintSpec.Again,
+            containerColor = colors.card,
+            shadowColor = PaintSpec.RingTrack,
+        ) { LineIcon(ButtonIcons.Again, PaintSpec.AgainColor, size = PaintSpec.AgainIcon, strokeWidth = 2.6f) }
+        RingNextButton(letter, onNext, track = PaintSpec.RingTrack, label = "Next letter. It starts by itself in a moment")
+    }
+}
+
+/** Leo hops up into the corner, then sways and bobs while the ring counts down. Decorative. */
+@Composable
+private fun CheeringLeo(modifier: Modifier) {
+    val hop = remember { Animatable(0f) }
+    val sway = rememberInfiniteTransition(label = "cheer")
+    val t by sway.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1_200, easing = LinearEasing), initialStartOffset = StartOffset(1_000)),
+        label = "cheer",
+    )
+    LaunchedEffect(Unit) { hop.animateTo(1f, tween(600, delayMillis = 400, easing = FastOutSlowInEasing)) }
+    Image(
+        painterResource(R.drawable.pic_lion),
+        contentDescription = null,
+        modifier = modifier.size(PaintSpec.Leo).graphicsLayer {
+            val wave = sin(t * 2f * PI.toFloat())
+            translationY = (1f - hop.value) * 60.dp.toPx() - wave.coerceAtLeast(0f) * 8.dp.toPx()
+            rotationZ = -4f * cos(t * 2f * PI.toFloat())
+            alpha = hop.value
+        },
+    )
 }
 
 /**
