@@ -12,15 +12,15 @@ class FindGameTest {
     private val letters = TestContent.repo.letters
     private val game = FindGame(letters, Random(42))
 
-    private fun solve(set: FindSet) = game.tap(set, set.round.target).first
+    private fun solve(set: FindRound) = game.tap(set, set.target).first
 
-    private fun wrong(set: FindSet) = set.round.options.first { it != set.round.target }
+    private fun wrong(set: FindRound) = set.options.first { it != set.target }
 
     @Test
     fun everyRoundHasTwoDifferentOptionsIncludingTheTarget() {
         var set = game.start()
         repeat(500) {
-            val r = set.round
+            val r = set
             assertEquals(2, r.options.size)
             assertTrue(r.target in r.options)
             assertNotEquals(r.options[0], r.options[1])
@@ -33,7 +33,7 @@ class FindGameTest {
         var set = game.start()
         val seen = mutableSetOf<String>()
         repeat(500) {
-            set.round.options.forEach { assertTrue(it.meaningEn, it.toddlerWord); seen += it.meaningEn }
+            set.options.forEach { assertTrue(it.meaningEn, it.toddlerWord); seen += it.meaningEn }
             set = game.next(solve(set))
         }
         assertEquals(letters.count { it.toddlerWord }, seen.size)
@@ -43,37 +43,41 @@ class FindGameTest {
     fun targetNeverRepeatsTheLastOne() {
         var set = game.start()
         repeat(500) {
-            val previous = set.round.target
+            val previous = set.target
             set = game.next(solve(set))
-            assertNotEquals(previous, set.round.target)
+            assertNotEquals(previous, set.target)
         }
     }
 
     @Test
-    fun wrongTapNudgesAndKeepsStars() {
-        val solvedOnce = game.next(solve(game.start()))
-        val (after, result) = game.tap(solvedOnce, wrong(solvedOnce))
+    fun wrongTapNudgesAndLeavesTheRoundOpen() {
+        val start = game.start()
+        val (after, result) = game.tap(start, wrong(start))
         assertEquals(TapResult.NUDGE, result)
-        assertEquals(1, after.stars)
-        assertEquals(1, after.round.wrongTaps)
-        assertFalse(after.round.solved)
+        assertEquals(1, after.wrongTaps)
+        assertEquals(wrong(start), after.lastWrong)
+        assertFalse(after.solved)
     }
 
     @Test
     fun tapsAfterSolvingAreIgnored() {
         val solved = solve(game.start())
         assertEquals(TapResult.IGNORED, game.tap(solved, wrong(solved)).second)
-        assertEquals(TapResult.IGNORED, game.tap(solved, solved.round.target).second)
+        assertEquals(TapResult.IGNORED, game.tap(solved, solved.target).second)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun nextNeedsTheRoundSolved() {
+        game.next(game.start())
     }
 
     @Test
-    fun threeSolvesCompleteTheSetAndNextStartsAFreshOne() {
-        var set = solve(game.start())
-        assertEquals(1, set.stars)
-        set = solve(game.next(set))
-        set = solve(game.next(set))
-        assertEquals(3, set.stars)
-        assertTrue(set.complete)
-        assertEquals(0, game.next(set).stars)
+    fun nextIsAFreshUnsolvedRound() {
+        val start = game.start()
+        val nudged = game.tap(start, wrong(start)).first
+        val next = game.next(solve(nudged))
+        assertFalse(next.solved)
+        assertEquals(0, next.wrongTaps)
+        assertEquals(null, next.lastWrong)
     }
 }

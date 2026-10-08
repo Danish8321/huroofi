@@ -167,6 +167,11 @@ object ButtonIcons {
     val Next = listOf("M9 5l7 7-7 7")
     val Done = listOf("M5 12l5 5 9-10")
     val Again = listOf("M4 12a8 8 0 1 0 3-6.2", "M4 4v5h5")
+    val Hand = listOf(
+        "M9 11V5.5a1.5 1.5 0 0 1 3 0V11",
+        "M12 10.5V4.5a1.5 1.5 0 0 1 3 0v6",
+        "M15 10.5V6.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-.5a6 6 0 0 1-4.8-2.4L3.4 15a1.6 1.6 0 0 1 2.4-2.1L9 15.5V9.5",
+    )
     val Lock = listOf("M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z", "M8 11V8a4 4 0 0 1 8 0v3")
 }
 
