@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.unit.Dp
+import com.huroofi.app.ui.components.StepTab
 
 /** The prototypes' solid bottom edge (`box-shadow: 0 Ndp 0 colour`): the shape again, [depth] lower, behind. */
 fun Modifier.dropEdge(color: Color, depth: Dp, shape: Shape): Modifier = drawBehind {
@@ -14,11 +15,11 @@ fun Modifier.dropEdge(color: Color, depth: Dp, shape: Shape): Modifier = drawBeh
     translate(top = depth.toPx()) { drawOutline(outline, color) }
 }
 
-/** The three steps of the Letter path (glossary). [tab] labels the step tabs. */
-enum class PathStep(val tab: String) {
-    MEET("Meet"),
-    TRACE("Trace"),
-    PLAY("Play"),
+/** The three steps of the Letter path (glossary). [tab] is its mark in the step bar, icons from the prototype. */
+enum class PathStep(val tab: StepTab) {
+    MEET(StepTab("Meet", listOf("M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z", "M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"))),
+    TRACE(StepTab("Trace", listOf("M4 20l4-1 11-11-3-3L5 16z", "M14 6l3 3"))),
+    PLAY(StepTab("Play", listOf("M8 5.5v13l10.5-6.5z"), filled = true)),
 }
 
 /** Prototype SVG paths (24-unit box) for the learn screens' outline icons. */

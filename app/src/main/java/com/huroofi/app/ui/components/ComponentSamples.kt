@@ -62,7 +62,7 @@ fun ComponentSamples(modifier: Modifier = Modifier, onRequestParentZone: () -> U
         ParentLock(onRequestParentZone = onRequestParentZone, contentDescription = "Parents")
 
         Text("StepTabs", style = HuroofiText.sectionHeading)
-        StepTabs(listOf("Lesson", "Trace", "Quiz"), currentIndex = 1)
+        StepTabs(listOf(StepTab("Meet", listOf("M5 12h14")), StepTab("Trace", listOf("M5 12h14")), StepTab("Play", listOf("M5 12h14"))), currentIndex = 1)
 
         Text("ArabicText", style = HuroofiText.sectionHeading)
         ArabicText("حروفي")

@@ -1,130 +1,121 @@
 package com.huroofi.app.ui.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTokens
-import com.huroofi.app.ui.theme.LocalHuroofiColors
 
-/** Done-step circle fill, from the prototype's done pill. */
-private val DoneFill = Color(0xFFD6F2C8)
+/** One step of the path: its label and its prototype icon (24-unit box); [filled] icons are solid shapes. */
+data class StepTab(val label: String, val icon: List<String>, val filled: Boolean = false)
 
-/** The track between circles, as the Lesson card's edge. */
-private val Track = Color(0xFFCFE2F7)
+/** Sizes and colours of the step bar (`Lesson.html` / `Trace.html` `.steps`, plan 15 decision 6). */
+object StepTabsSpec {
+    val Height = 40.dp
+    val NowIcon = 28.dp
+    val Icon = 20.dp
+    val Line = 4.dp
+    val Track = Color(0xFFD5E2F0)
+    const val LABEL_SP = 16f
+}
 
-private val Circle = 30.dp
-
-/** For the contrast sweep: Lesson and Trace add these. The track sits on Sky; labels are 16 sp, so normal text. */
+/** For the contrast sweep: Lesson and Trace add these. The 16 sp ExtraBold label is normal text. */
 val stepTabsPairs = listOf(
-    ContrastPair(HuroofiTokens.Card, HuroofiTokens.Primary, large = false, "current step number"),
-    ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Sky, large = true, "current step circle"),
-    ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = false, "current and done step label"),
-    ContrastPair(HuroofiTokens.Success, DoneFill, large = true, "done step tick"),
-    ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "to-do step number"),
-    ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "to-do step label"),
+    ContrastPair(HuroofiTokens.Card, HuroofiTokens.Primary, large = false, "current step label"),
+    ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = true, "current step icon"),
+    ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "done step tick"),
+    ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = true, "to-do step icon"),
 )
 
-/** Tick path from `Trace.html`, 24-unit box. */
-private const val TICK = "M5 12l5 5 9-10"
+private val Tick = listOf("M5 12.5l4.5 4.5L19 7.5")
 
 /**
- * Lesson / Trace / Quiz step indicator: circles on a track with the label under each. The current
- * step is a filled circle with its number, a finished step a green circle with a tick, a later step
- * an outlined circle with its number, so position never rests on colour alone. It is a progress
- * mark, not a control, so nothing looks pressable (plan 11 decision 2; was pills in a white bar).
+ * Meet / Trace / Play progress: a green tick for a step done, a blue pill with icon and name for the
+ * step now, a white circle with its icon for a step to come, joined by a line that turns green behind
+ * you. Shape and label, not colour alone, tell the steps apart. A progress mark, not a control.
  */
 @Composable
-fun StepTabs(
-    steps: List<String>,
-    currentIndex: Int,
-    modifier: Modifier = Modifier,
-) {
+fun StepTabs(steps: List<StepTab>, currentIndex: Int, modifier: Modifier = Modifier) {
     require(currentIndex in steps.indices) { "currentIndex out of range" }
-    val colors = LocalHuroofiColors.current
-    Row(modifier.fillMaxWidth()) {
-        steps.forEachIndexed { i, label ->
-            val current = i == currentIndex
-            val done = i < currentIndex
-            val state = when {
-                current -> "current"
-                done -> "done"
-                else -> "to do"
+    val now = steps[currentIndex]
+    Row(
+        modifier.clearAndSetSemantics { contentDescription = "Step ${currentIndex + 1} of ${steps.size}, ${now.label}" },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        steps.forEachIndexed { i, step ->
+            when {
+                i < currentIndex -> Box(
+                    Modifier.size(StepTabsSpec.Height).background(HuroofiTokens.Success, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) { LineIcon(Tick, HuroofiTokens.Card, size = StepTabsSpec.Icon, strokeWidth = 3f) }
+                i == currentIndex -> Row(
+                    Modifier
+                        .height(StepTabsSpec.Height)
+                        .background(HuroofiTokens.Primary, CircleShape)
+                        .padding(start = 6.dp, end = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Box(Modifier.size(StepTabsSpec.NowIcon).background(HuroofiTokens.Card, CircleShape), contentAlignment = Alignment.Center) {
+                        StepIcon(step, HuroofiTokens.Primary, 18.dp)
+                    }
+                    Text(
+                        step.label,
+                        style = HuroofiText.caption.copy(fontSize = StepTabsSpec.LABEL_SP.sp, fontWeight = FontWeight.ExtraBold),
+                        color = HuroofiTokens.Card,
+                        maxLines = 1,
+                    )
+                }
+                else -> Box(
+                    Modifier.size(StepTabsSpec.Height).background(HuroofiTokens.Card, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) { StepIcon(step, HuroofiTokens.Muted, StepTabsSpec.Icon) }
             }
-            Column(
-                Modifier
-                    .weight(1f)
-                    .semantics(mergeDescendants = true) {
-                        selected = current
-                        contentDescription = "Step ${i + 1} of ${steps.size}, $label, $state"
-                    },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
+            if (i < steps.lastIndex) {
                 Box(
                     Modifier
-                        .fillMaxWidth()
-                        .height(Circle)
-                        .drawBehind {
-                            val y = size.height / 2
-                            val width = 4.dp.toPx()
-                            if (i > 0) drawLine(if (i <= currentIndex) colors.success else Track, Offset(0f, y), Offset(size.width / 2, y), width)
-                            if (i < steps.lastIndex) drawLine(if (i < currentIndex) colors.success else Track, Offset(size.width / 2, y), Offset(size.width, y), width)
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Box(
-                        Modifier
-                            .size(Circle)
-                            .background(
-                                when {
-                                    current -> colors.primary
-                                    done -> DoneFill
-                                    else -> colors.card
-                                },
-                                CircleShape,
-                            )
-                            .then(if (!current && !done) Modifier.border(2.dp, colors.muted, CircleShape) else Modifier),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (done) {
-                            LineIcon(listOf(TICK), colors.success, size = 18.dp, strokeWidth = 3f)
-                        } else {
-                            Text(
-                                "${i + 1}",
-                                style = HuroofiText.caption.copy(fontWeight = FontWeight.ExtraBold),
-                                color = if (current) Color.White else colors.muted,
-                            )
-                        }
-                    }
-                }
-                Text(
-                    text = label,
-                    style = HuroofiText.caption.copy(fontWeight = if (current) FontWeight.ExtraBold else FontWeight.Bold),
-                    color = if (current || done) colors.navy else colors.muted,
-                    maxLines = 1,
+                        .weight(1f)
+                        .sizeIn(minWidth = 8.dp)
+                        .height(StepTabsSpec.Line)
+                        .background(if (i < currentIndex) HuroofiTokens.Success else StepTabsSpec.Track, CircleShape),
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun StepIcon(step: StepTab, color: Color, size: Dp) {
+    if (!step.filled) {
+        LineIcon(step.icon, color, size = size, strokeWidth = 2.2f)
+        return
+    }
+    val parsed = remember(step.icon) { step.icon.map { PathParser().parsePathString(it).toPath() } }
+    Canvas(Modifier.size(size)) {
+        val u = this.size.width / 24f
+        scale(u, u, pivot = Offset.Zero) { for (p in parsed) drawPath(p, color) }
     }
 }
