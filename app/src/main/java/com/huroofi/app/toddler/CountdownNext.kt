@@ -114,7 +114,14 @@ fun FillNextButton(key: Any, onNext: () -> Unit, modifier: Modifier = Modifier, 
 
 /** The tablet's round Next inside a ring that fills clockwise from the top. */
 @Composable
-fun RingNextButton(key: Any, onNext: () -> Unit, modifier: Modifier = Modifier, size: Dp = CountdownSpec.Ring, label: String = CountdownSpec.LABEL) {
+fun RingNextButton(
+    key: Any,
+    onNext: () -> Unit,
+    modifier: Modifier = Modifier,
+    size: Dp = CountdownSpec.Ring,
+    track: Color = CountdownSpec.RingTrack,
+    label: String = CountdownSpec.LABEL,
+) {
     val spec = CountdownSpec
     val colors = LocalHuroofiColors.current
     val progress = countdown(key, onNext)
@@ -132,7 +139,7 @@ fun RingNextButton(key: Any, onNext: () -> Unit, modifier: Modifier = Modifier, 
             val w = spec.RingStroke.toPx() * s
             val arc = Size(this.size.width - w, this.size.height - w)
             val at = Offset(w / 2f, w / 2f)
-            drawArc(spec.RingTrack, 0f, 360f, useCenter = false, topLeft = at, size = arc, style = Stroke(w))
+            drawArc(track, 0f, 360f, useCenter = false, topLeft = at, size = arc, style = Stroke(w))
             drawArc(success, -90f, 360f * progress.value, useCenter = false, topLeft = at, size = arc, style = Stroke(w, cap = StrokeCap.Round))
         }
         val inset = spec.RingInset * s

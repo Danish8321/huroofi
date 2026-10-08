@@ -15,8 +15,8 @@ class PaintAudio(private val prompt: PromptPlayer, private val random: Random) {
         prompt.play(Clips.colour(letter))
     }
 
-    /** When the star appears. Never the same praise twice in a row. */
-    fun star() {
+    /** When the letter is done. Never the same praise twice in a row. */
+    fun celebrate() {
         val n = pickExcept((1..Clips.PRAISE_COUNT).toList(), lastPraise, random)
         lastPraise = n
         prompt.play(Clips.praise(n))
