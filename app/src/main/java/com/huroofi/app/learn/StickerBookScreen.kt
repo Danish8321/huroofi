@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.huroofi.app.LocalAppContainer
 import com.huroofi.app.audio.Clips
-import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.ui.components.CappedWidth
@@ -41,25 +40,33 @@ import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.StageColors
 
 /**
- * Sizes and colours of the Sticker book (plan 07 decision 5). An earned sticker answers a tap by
- * saying its stage's letters, with a wiggle (plan 11 decision 2); an empty slot does nothing.
+ * Sizes and colours of the Sticker book (`Stickers.html`, plan 15 decision 6). An earned sticker answers
+ * a tap by saying its stage's letters, with a wiggle (plan 11 decision 2); an empty slot does nothing.
  */
 object StickerBookSpec {
-    val CardCorner = 26.dp
+    val CardCorner = 28.dp
     val CardEdge = Color(0xFFCFE2F7)
+    /** An empty slot is the card at 60 %, flat. */
+    val EmptyCard = Color(0x99FFFFFF)
+    val Gap = 14.dp
     val touchSizes = listOf(NavSpec.Item)
     val textSizes = listOf(StickerSpec.QUESTION_SP)
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, CardEdge) + NavSpec.colors
-    val textPairs = listOf(ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "title")) +
-        StickerSpec.textPairs + NavSpec.textPairs
+    val textPairs = listOf(
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sky, large = true, "title"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "subtitle"),
+    ) + StickerSpec.textPairs + NavSpec.textPairs
 
     fun stagePairs(stage: StageColors) = StickerSpec.stagePairs(stage)
 }
 
-/** One slot per stage, in stage order, two per row. */
+/** "2 of 7 stickers · finish a stage to earn one". */
+fun stickerCount(earned: Int, total: Int): String = "$earned of $total stickers · finish a stage to earn one"
+
+/** One slot per stage, in stage order, two per row; an odd last slot sits in the middle. */
 @Composable
 fun StickerBookScreen(
-    stages: List<Pair<Stage, List<Letter>>>,
+    stages: List<Stage>,
     earned: Set<Int>,
     onSticker: (Stage) -> Unit,
     navTabs: List<NavTab>,
@@ -69,21 +76,27 @@ fun StickerBookScreen(
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             Column(
                 Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 22.dp),
-                verticalArrangement = Arrangement.spacedBy(18.dp),
+                verticalArrangement = Arrangement.spacedBy(StickerBookSpec.Gap),
             ) {
-                Text("Sticker book", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
+                Column {
+                    Text("Sticker book", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
+                    Text(stickerCount(earned.size, stages.size), style = HuroofiText.body, color = HuroofiTokens.Muted)
+                }
                 for (row in stages.chunked(2)) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        for ((stage, letters) in row) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(StickerBookSpec.Gap, Alignment.CenterHorizontally),
+                    ) {
+                        for (stage in row) {
                             val shape = RoundedCornerShape(StickerBookSpec.CardCorner)
                             val has = stage.stage in earned
                             val wiggle = rememberWiggle()
                             Box(
-                                Modifier
-                                    .weight(1f)
-                                    .dropEdge(StickerBookSpec.CardEdge, 6.dp, shape)
+                                // A lone last slot keeps half the width, centred.
+                                (if (row.size == 1) Modifier.fillMaxWidth(0.5f).padding(horizontal = StickerBookSpec.Gap / 4) else Modifier.weight(1f))
+                                    .then(if (has) Modifier.dropEdge(StickerBookSpec.CardEdge, 5.dp, shape) else Modifier)
                                     .clip(shape)
-                                    .background(HuroofiTokens.Card)
+                                    .background(if (has) HuroofiTokens.Card else StickerBookSpec.EmptyCard)
                                     .then(
                                         if (has) {
                                             Modifier.clickable(role = Role.Button, onClickLabel = "Hear the letters") {
@@ -92,14 +105,12 @@ fun StickerBookScreen(
                                             }
                                         } else Modifier,
                                     )
-                                    .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 8.dp),
+                                    .padding(horizontal = 8.dp, vertical = 16.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                StickerSlot(stage, letters, earned = has, modifier = Modifier.wiggle(wiggle))
+                                StickerSlot(stage, earned = has, modifier = Modifier.wiggle(wiggle))
                             }
                         }
-                        // An odd last row keeps its slot at half width.
-                        if (row.size == 1) Box(Modifier.weight(1f))
                     }
                 }
             }
@@ -117,7 +128,7 @@ fun StickerBookRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit) {
     val prompt = remember { PromptPlayer(container.sound, scope) }
     val stickers = earned ?: return Loading()
     StickerBookScreen(
-        stages = content.stages.sortedBy { it.stage }.map { it to content.lettersInStage(it.stage) },
+        stages = content.stages.sortedBy { it.stage },
         earned = stickers,
         onSticker = { stage -> prompt.play(content.lettersInStage(stage.stage).sortedBy { it.index }.map(Clips::letter)) },
         navTabs = navTabs,
@@ -130,7 +141,7 @@ fun StickerBookRoute(navTabs: List<NavTab>, onTab: (NavTab) -> Unit) {
 private fun StickerBookPreview() {
     HuroofiTheme {
         StickerBookScreen(
-            stages = LearnPreviewData.stages.map { it to LearnPreviewData.letters },
+            stages = LearnPreviewData.stages,
             earned = setOf(1, 2),
             onSticker = {},
             navTabs = NavTab.entries,

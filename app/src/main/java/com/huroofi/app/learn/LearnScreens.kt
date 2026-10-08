@@ -55,9 +55,11 @@ fun HomeRoute(
     val content = container.content
     val completed by container.progress.completedLetters.collectAsStateWithLifecycle<Set<Int>?>(null)
     val traceOnly by container.progress.traceOnly.collectAsStateWithLifecycle(false)
+    val earned by container.progress.stickers.collectAsStateWithLifecycle<Set<Int>?>(null)
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
     val done = completed ?: return Loading()
+    val stickers = earned ?: return Loading()
     val stageOf = remember { content.letters.associate { it.index to it.stage } }
     val open = unlockedStage(done, stageOf)
     // One review pick per number of learned letters, kept across rotation.
@@ -66,16 +68,16 @@ fun HomeRoute(
     val states = parentProgress(content.letters, content.stages, done, open).states
     HomeScreen(
         today = today,
-        todayStage = content.stage(today.stage),
+        stage = content.stage(today.stage),
+        chips = content.lettersInStage(today.stage).sortedBy { it.index }.map { StageChip(it, states.getValue(it.index)) },
         review = today.index in done,
-        strip = content.lettersInStage(open).sortedBy { it.index }.map { StageChip(it, states.getValue(it.index)) },
-        stripStage = content.stage(open),
+        traceOnly = traceOnly,
+        stickerEarned = today.stage in stickers,
         onGo = {
             prompt.stop()
             if (traceOnly) onPractice(today.index) else onGo(today.index)
         },
-        onHearLetter = { prompt.play(Clips.letter(today)) },
-        onHearWord = { prompt.play(Clips.word(today)) },
+        onHear = { prompt.play(listOf(Clips.letter(today), Clips.word(today))) },
         navTabs = navTabs,
         onTab = onTab,
     )

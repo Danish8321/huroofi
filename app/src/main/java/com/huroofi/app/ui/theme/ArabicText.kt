@@ -113,6 +113,15 @@ fun ArabicText(
     )
 }
 
+/** [before], the Arabic [letter] in Naskh a little larger, then [after]: English labels that name a letter. */
+fun withArabic(before: String, letter: String, after: String = ""): AnnotatedString = buildAnnotatedString {
+    append(before)
+    pushStyle(SpanStyle(fontFamily = NotoNaskhArabic, fontSize = 30.sp))
+    append(letter)
+    pop()
+    append(after)
+}
+
 /** The picture word with its first letter in [highlight] (HANDOFF section 4: word_first + word_rest). */
 fun highlightedWord(first: String, rest: String, highlight: Color): AnnotatedString =
     buildAnnotatedString {
