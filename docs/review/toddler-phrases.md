@@ -25,6 +25,12 @@ Spoken after the letter when Trace opens, and again when the lion's bubble is ta
 
 - ابدأ من الرقم ١ الأخضر، ثم اتبع النقاط!  ("Start at the green 1, then follow the dots!")
 
+## Fill hint (plan 15)
+
+Spoken in Trace once every stroke is followed but part of the letter is still unpainted, and again after 5 quiet seconds or a tap on the lion's bubble (`audio/prompts/fill_hint.mp3`). The unpainted spots pulse yellow.
+
+- الآن لوّن النقاط الصفراء!  ("Now colour in the yellow spots!")
+
 ## Per-letter prompts
 
 | # | Letter | Where is…? | Colour… |

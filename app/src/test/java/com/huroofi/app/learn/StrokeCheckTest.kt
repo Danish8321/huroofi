@@ -77,11 +77,11 @@ class StrokeCheckTest {
     }
 
     @Test
-    fun seventyPercentFinishesAStroke() {
+    fun everyDotIsNeededToFinishAStroke() {
         val c = check()
-        body.take(6).forEach(c::addInk)
+        body.dropLast(1).forEach(c::addInk)
         assertEquals(0, c.nextStroke())
-        c.addInk(body[6])
+        c.addInk(body.last())
         assertEquals(1, c.nextStroke())
     }
 

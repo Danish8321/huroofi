@@ -102,6 +102,26 @@ class GlyphMask(glyph: FittedGlyph, size: IntSize, density: Density) {
         (listOf(Offset.Zero) + List(8) { i -> Offset(cos(i * PI / 4).toFloat(), sin(i * PI / 4).toFloat()) * slopPx })
             .any { inked(point + it) }
 
+    /**
+     * Points every [stepPx] that lie on the letter at least [insetPx] in from its edge, so soft edge
+     * pixels and hair-thin tips never block a child (plan 15 decision 1).
+     */
+    fun grid(stepPx: Float, insetPx: Float): List<Offset> {
+        val around = listOf(Offset(insetPx, 0f), Offset(-insetPx, 0f), Offset(0f, insetPx), Offset(0f, -insetPx))
+        val points = mutableListOf<Offset>()
+        var y = stepPx / 2f
+        while (y < height) {
+            var x = stepPx / 2f
+            while (x < width) {
+                val p = Offset(x, y)
+                if (inked(p) && around.all { inked(p + it) }) points += p
+                x += stepPx
+            }
+            y += stepPx
+        }
+        return points
+    }
+
     private fun inked(p: Offset): Boolean {
         val x = p.x.toInt()
         val y = p.y.toInt()

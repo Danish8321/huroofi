@@ -25,6 +25,7 @@ class ClipsTest {
         assertEquals("audio/prompts/what_shall_we_play.mp3", Clips.whatShallWePlay.path)
         assertEquals("audio/prompts/which_starts_with.mp3", Clips.whichStartsWith.path)
         assertEquals("audio/prompts/trace_hint.mp3", Clips.traceHint.path)
+        assertEquals("audio/prompts/fill_hint.mp3", Clips.fillHint.path)
         assertEquals("audio/sfx/boing.mp3", Clips.boing.path)
         assertEquals("audio/sfx/cheer.mp3", Clips.cheer.path)
         assertEquals("audio/sfx/praise_1.mp3", Clips.praise(1).path)
@@ -37,7 +38,7 @@ class ClipsTest {
         val all = Clips.all(letters)
         assertEquals(all.size, all.map { it.path }.toSet().size)
         assertTrue(all.all { it.path.startsWith("audio/") && it.path.endsWith(".mp3") })
-        // 28 letter + 28 word + 28 where_is + 28 colour + play + rest + which + trace hint + 3 praise + boing + cheer
-        assertEquals(28 * 4 + 4 + 3 + 2, all.size)
+        // 28 letter + 28 word + 28 where_is + 28 colour + play + rest + which + trace hint + fill hint + 3 praise + boing + cheer
+        assertEquals(28 * 4 + 5 + 3 + 2, all.size)
     }
 }

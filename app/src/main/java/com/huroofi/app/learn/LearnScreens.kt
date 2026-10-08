@@ -23,8 +23,6 @@ import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.theme.HuroofiTokens
 import kotlin.random.Random
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /** Applies [learnBack] for [route]; place it inside that route's destination. */
 @Composable
@@ -112,9 +110,12 @@ fun LessonRoute(index: Int, onBack: () -> Unit, onNext: (() -> Unit)?) {
     )
 }
 
-/** Trace: `cheer`, a short pause, then [onDone] (decision 3). */
+/**
+ * Trace: `cheer` and praise once the letter is traced; [onNext] only when the child taps Play
+ * (plan 15 decision 1).
+ */
 @Composable
-fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit, practice: Boolean = false) {
+fun TraceRoute(index: Int, onBack: () -> Unit, onNext: () -> Unit, practice: Boolean = false) {
     val container = LocalAppContainer.current
     val letter = remember(index) { container.content.letter(index) }
     val scope = rememberCoroutineScope()
@@ -130,30 +131,31 @@ fun TraceRoute(index: Int, onBack: () -> Unit, onDone: () -> Unit, practice: Boo
         letter = letter.letter,
         strokes = strokes,
         introDone = introDone,
-        onHearHint = { prompt.play(Clips.traceHint) },
+        onHearHint = { phase ->
+            prompt.play(
+                when (phase) {
+                    TracePhase.Trace -> Clips.traceHint
+                    TracePhase.Fill -> Clips.fillHint
+                    TracePhase.Done -> Clips.praise(Random.nextInt(1, Clips.PRAISE_COUNT + 1))
+                },
+            )
+        },
         practice = practice,
         onBack = {
             prompt.stop()
             onBack()
         },
-        onDone = {
-            scope.launch {
-                val cheer = prompt.run {
-                    play(Clips.cheer)
-                    delay(CHEER_PAUSE_MS)
-                }
-                cheer.join()
-                if (!cheer.isCancelled) onDone()
-            }
+        onTraced = { prompt.play(listOf(Clips.cheer, Clips.praise(Random.nextInt(1, Clips.PRAISE_COUNT + 1)))) },
+        onNext = {
+            prompt.stop()
+            onNext()
         },
     )
 }
 
-private const val CHEER_PAUSE_MS = 400L
-
 /**
- * Trace practice for letter [index]: no step track, Back goes Home, and after the cheer the next
- * practice letter opens. Nothing is saved (plan 13 decision 4).
+ * Trace practice for letter [index]: no step track, Back goes Home, and "Next letter" opens the next
+ * practice letter. Nothing is saved (plan 13 decision 4).
  */
 @Composable
 fun PracticeRoute(index: Int, onBack: () -> Unit, onNext: (Int) -> Unit) {
@@ -164,7 +166,7 @@ fun PracticeRoute(index: Int, onBack: () -> Unit, onNext: (Int) -> Unit) {
     TraceRoute(
         index,
         onBack = onBack,
-        onDone = { onNext(nextPracticeLetter(container.content.letters, done, unlockAll, index)) },
+        onNext = { onNext(nextPracticeLetter(container.content.letters, done, unlockAll, index)) },
         practice = true,
     )
 }
