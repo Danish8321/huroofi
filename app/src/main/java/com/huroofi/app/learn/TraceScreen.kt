@@ -83,6 +83,7 @@ import com.huroofi.app.ui.components.StarBurst
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.GlyphMask
+import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
@@ -99,8 +100,13 @@ private const val IDLE_TICK_MS = 100L
 
 /** Sizes and colours of Trace (`Trace.html`, plan 07 decision 3). */
 object TraceSpec {
-    val Helper = 64.dp
-    val CanvasCorner = 34.dp
+    /** The hint bubble: a sun sound disc and the hint; pale green once the letter is traced. */
+    val Bubble = 64.dp
+    val BubbleCorner = 28.dp
+    val BubbleSound = 48.dp
+    val BubbleDone = Color(0xFFDDF3E4)
+    val CanvasCorner = 36.dp
+    val CanvasRing = 5.dp
     val EdgeColor = Color(0xFFCFE2F7)
     val Tolerance = 30.dp
     val DotSpacing = 18.dp
@@ -143,7 +149,8 @@ object TraceSpec {
     val GapEdge = HuroofiTokens.Navy
     const val GAP_GROW = 0.5f
 
-    val DoneEdge = HuroofiTokens.Success
+    val DoneRing = HuroofiTokens.Success
+    val DoneEdge = HuroofiTokens.SuccessShadow
     val DoneBadge = HuroofiTokens.Success
     val DoneBadgeText = Color.White
     val BadgeLion = 44.dp
@@ -162,14 +169,15 @@ object TraceSpec {
     /** The four toddler paints plus pink (prototype). Coral passes only via the crayon allow-list (plan 05 decision 2). */
     val crayons: List<Pair<Color, String>> = Crayon.entries.map { it.color to it.label } + (Pink to "Pink paint")
 
-    val touchSizes = listOf(Helper, CrayonSize, Again, LessonSpec.Back)
-    val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, EdgeColor, AgainBorder, Band, FirstCoin, OtherCoin, StarFill) +
+    val touchSizes = listOf(Bubble, CrayonSize, Again, LessonSpec.Back, HuroofiDimens.PrimaryButtonHeight)
+    val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, EdgeColor, AgainBorder, Band, FirstCoin, OtherCoin, StarFill, BubbleDone) +
         crayons.map { it.first }
 
     /** The guide is the shape to trace, so it counts as a cue. Crayon colours are content, like Paint's. */
     val textPairs: List<ContrastPair> = listOf(
-        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "helper bubble"),
-        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Card, large = true, "helper bubble speaker"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = false, "hint bubble"),
+        ContrastPair(HuroofiTokens.Navy, BubbleDone, large = false, "hint bubble, done"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sun, large = true, "hint speaker"),
         ContrastPair(Outline, HuroofiTokens.Card, large = true, "letter outline"),
         ContrastPair(Dot, Band, large = true, "trace dot"),
         ContrastPair(DoneDot, Band, large = true, "covered trace dot"),
@@ -442,48 +450,50 @@ fun TraceScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             if (practice) PathHeader(null, "Back to home", onBack) else PathHeader(PathStep.TRACE, "Back to lesson", onBack)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            // The hint is spoken too (plan 14 decision 2). A tap says it again and, until the letter is
+            // traced, shows how (the prototype's one bubble replaces the lion helper).
+            val bubbleShape = RoundedCornerShape(TraceSpec.BubbleCorner)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = TraceSpec.Bubble)
+                    .clip(bubbleShape)
+                    .background(if (finished) TraceSpec.BubbleDone else HuroofiTokens.Card)
+                    .clickable(role = Role.Button, onClickLabel = if (finished) "Hear it again" else "Hear it and see how") {
+                        onHearHint(phase)
+                        if (!finished) send(DemoEvent.HelperTap)
+                    }
+                    .padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Box(
                     Modifier
-                        .size(TraceSpec.Helper)
-                        .semantics { contentDescription = "Show me how" }
-                        .clickable(role = Role.Button) { send(DemoEvent.HelperTap) },
-                ) {
-                    Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.fillMaxSize())
-                }
-                // The hint is spoken too (plan 14 decision 2); a tap on the bubble says it again.
-                Row(
-                    Modifier
-                        .weight(1f)
-                        .heightIn(min = TraceSpec.Helper)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(HuroofiTokens.Card)
-                        .clickable(role = Role.Button, onClickLabel = "Hear the hint") { onHearHint(phase) }
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        when (phase) {
-                            TracePhase.Trace -> "Start at the green 1, then follow the dots!"
-                            TracePhase.Fill -> "Now colour in the yellow spots!"
-                            TracePhase.Done -> if (practice) "Well done! Tap Next for another letter" else "Well done! Tap Play for the picture game"
-                        },
-                        Modifier.weight(1f),
-                        style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
-                        color = HuroofiTokens.Navy,
-                    )
-                    SoundIcon(HuroofiTokens.Primary, size = 26.dp)
-                }
+                        .size(TraceSpec.BubbleSound)
+                        .dropEdge(HuroofiTokens.SunShadow, 4.dp, CircleShape)
+                        .background(HuroofiTokens.Sun, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) { SoundIcon(HuroofiTokens.Navy, size = 26.dp) }
+                Text(
+                    when (phase) {
+                        TracePhase.Trace -> "Start at the green 1, then follow the dots!"
+                        TracePhase.Fill -> "Now colour in the yellow spots!"
+                        TracePhase.Done -> if (practice) "Well done! Tap Next for another letter" else "Well done! Tap Play for the picture game"
+                    },
+                    Modifier.weight(1f),
+                    style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
+                    color = HuroofiTokens.Navy,
+                )
             }
             val cardShape = RoundedCornerShape(TraceSpec.CanvasCorner)
             Box(
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .dropEdge(if (finished) TraceSpec.DoneEdge else TraceSpec.EdgeColor, 8.dp, cardShape)
+                    .dropEdge(if (finished) TraceSpec.DoneEdge else TraceSpec.EdgeColor, 6.dp, cardShape)
                     .clip(cardShape)
                     .background(HuroofiTokens.Card)
+                    .border(TraceSpec.CanvasRing, if (finished) TraceSpec.DoneRing else HuroofiTokens.Card, cardShape)
                     .onSizeChanged { canvasSize = it }
                     .semantics { contentDescription = if (finished) "You traced the letter $letter" else "Tracing area for the letter $letter" }
                     .pointerInput(Unit) {

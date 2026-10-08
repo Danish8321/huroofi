@@ -133,4 +133,16 @@ class QuizRoundTest {
         assertEquals("See your sticker", quizNextLabel(last, PathNext.Reward(7), allLearned = true))
         assertEquals("Back home", quizNextLabel(last, PathNext.Home, allLearned = false))
     }
+
+    @Test
+    fun dotsTurnGreenWhenARoundIsAnswered() {
+        val options = round()
+        val dots = { g: QuizGame -> (0 until g.rounds).map { quizDot(g, it) } }
+        val start = QuizGame(baa, options, rounds = 3)
+        assertEquals(listOf(QuizDot.NOW, QuizDot.TODO, QuizDot.TODO), dots(start))
+        // Answering round 1 counts it at once; no dot is "now" until the next round opens.
+        assertEquals(listOf(QuizDot.DONE, QuizDot.TODO, QuizDot.TODO), dots(start.copy(roundsDone = 1, solved = true)))
+        assertEquals(listOf(QuizDot.DONE, QuizDot.NOW, QuizDot.TODO), dots(start.copy(roundsDone = 1)))
+        assertEquals(listOf(QuizDot.DONE, QuizDot.DONE, QuizDot.DONE), dots(start.copy(roundsDone = 3, solved = true)))
+    }
 }

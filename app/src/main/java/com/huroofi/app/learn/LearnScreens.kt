@@ -103,6 +103,8 @@ fun LessonRoute(index: Int, onBack: () -> Unit, onNext: (() -> Unit)?) {
             onBack()
         },
         onHear = { prompt.play(clips) },
+        onHearLetter = { prompt.play(Clips.letter(letter)) },
+        onHearWord = { prompt.play(Clips.word(letter)) },
         onNext = onNext?.let { next ->
             {
                 prompt.stop()

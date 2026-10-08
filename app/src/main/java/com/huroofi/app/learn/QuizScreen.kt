@@ -10,15 +10,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -28,10 +31,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
@@ -43,6 +49,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.huroofi.app.R
 import com.huroofi.app.data.content.Letter
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.ButtonIcons
@@ -52,11 +59,13 @@ import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
+import com.huroofi.app.ui.components.StarIcon
 import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
+import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
@@ -66,29 +75,36 @@ import com.huroofi.app.ui.theme.highlightedWord
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/** Sizes and colours of Play (`Quiz.html`, plan 07 decision 4). */
+/** Sizes and colours of Play (`Quiz.html`, plan 15 decision 6). */
 object QuizSpec {
     val Close = 64.dp
-    val Sound = 64.dp
-    val Chip = 64.dp
-    val Dot = 18.dp
-    val DotRing = 2.dp
-    val CardCorner = 28.dp
-    val TileCorner = 30.dp
-    val TileBorder = 5.dp
-    val Picture = 128.dp
-    val Badge = 40.dp
-    val Panel = 150.dp
+    val Leo = 70.dp
+    val Sound = 56.dp
+    val Chip = 52.dp
+    val ChipRing = 3.dp
+    val Dot = 14.dp
+    val DotNow = 36.dp
+    val BubbleCorner = 28.dp
+    val TileCorner = 32.dp
+    val TileBorder = 6.dp
+    val Picture = 120.dp
+    val PictureFour = 110.dp
+    val Star = 34.dp
+    val Foot = 64.dp
     val EdgeColor = Color(0xFFCFE2F7)
-    val RightShadow = Color(0xFF9FD58A)
-    val RightBackground = Color(0xFFD6F2C8)
-    /** Soft orange, never red (the prototype's red-orange fails the no-red rule). */
+    val DotTodo = Color(0xFFC9D6E6)
+    val ChipFill = Color(0xFFFFF4D6)
+    val ChipText = Color(0xFFA35400)
+    /** Soft orange, never red (no-red rule). */
     val WrongBackground = Color(0xFFFFE4D6)
-    val WrongText = Color(0xFFA35400)
-    const val DIMMED = 0.4f
-    const val CHIP_SP = 46f
-    const val INLINE_SP = 24f
-    val textSizes = listOf(CHIP_SP, INLINE_SP)
+    val WrongText = Color(0xFF8A3B12)
+    const val DIMMED = 0.45f
+    const val FADED = 0.5f
+    const val CHIP_SP = 34f
+    const val WORD_SP = 44f
+    const val WORD_FOUR_SP = 30f
+    const val INLINE_SP = 20f
+    val textSizes = listOf(CHIP_SP, WORD_SP, WORD_FOUR_SP, INLINE_SP)
 
     /** The smallest option tile; option tiles share the space left, so this is their floor. */
     val TileMin = 96.dp
@@ -96,32 +112,41 @@ object QuizSpec {
     /** Tall enough for three [TileMin] tiles; a shorter window scrolls (tablet landscape). */
     val MinHeight = 740.dp
 
-    val touchSizes = listOf(Close, Sound, TileMin)
+    /** The question bubble is at least as tall as Leo, so the whole bubble is one big tap target. */
+    val touchSizes = listOf(Close, Leo, TileMin, HuroofiDimens.PrimaryButtonHeight)
     val colors = listOf(
         HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, HuroofiTokens.Muted, HuroofiTokens.Sun, HuroofiTokens.SunShadow,
-        HuroofiTokens.Success, EdgeColor, RightShadow, RightBackground, WrongBackground, WrongText,
+        HuroofiTokens.Primary, HuroofiTokens.Success, HuroofiTokens.SuccessShadow, EdgeColor, DotTodo, ChipFill, ChipText, WrongBackground, WrongText,
     )
 
-    /** A dimmed wrong tile is inactive, so it is not checked. 22 sp ExtraBold is large; 18 sp is normal. */
+    /** A dimmed or faded tile is inactive, so it is not checked. 20 sp ExtraBold is large; 16–18 sp is normal. */
     val textPairs: List<ContrastPair> = listOf(
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "close icon"),
-        ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "progress dot, done"),
-        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = true, "progress dot ring, to do"),
+        ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "round dot, done"),
+        ContrastPair(HuroofiTokens.Primary, HuroofiTokens.Sky, large = true, "round dot, now"),
         ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Sun, large = true, "sound icon"),
-        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "Which one starts with"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "Which starts with"),
+        ContrastPair(ChipText, ChipFill, large = true, "target letter"),
         ContrastPair(HuroofiTokens.Success, HuroofiTokens.Sky, large = true, "right tile border"),
-        ContrastPair(HuroofiTokens.Card, HuroofiTokens.Success, large = true, "right tile tick"),
-        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Sky, large = false, "idle hint"),
+        ContrastPair(HuroofiTokens.Muted, HuroofiTokens.Card, large = false, "idle hint"),
         ContrastPair(WrongText, WrongBackground, large = true, "Almost! Try again"),
-        ContrastPair(HuroofiTokens.Navy, WrongBackground, large = false, "wrong explanation"),
-        ContrastPair(HuroofiTokens.Navy, RightBackground, large = true, "right word"),
-        ContrastPair(HuroofiTokens.Navy, RightBackground, large = false, "starts with"),
+        ContrastPair(WrongText, WrongBackground, large = false, "wrong explanation"),
+        ContrastPair(HuroofiTokens.Navy, HuroofiTokens.Card, large = true, "right word"),
     ) + ButtonKind.Success.contrastPairs()
 
     fun stagePairs(stage: StageColors) = listOf(
-        ContrastPair(HuroofiTokens.Navy, stage.pastel, large = true, "target letter chip"),
-        ContrastPair(stage.accent, RightBackground, large = true, "right word first letter"),
+        ContrastPair(stage.accent, HuroofiTokens.Card, large = true, "right word first letter"),
     )
+}
+
+/** One round's dot: done (green), now (a blue pill), or still to come. */
+enum class QuizDot { DONE, NOW, TODO }
+
+/** Round [i]'s dot: a round turns green the moment it is answered. */
+fun quizDot(game: QuizGame, i: Int): QuizDot = when {
+    i < game.roundsDone -> QuizDot.DONE
+    i == game.roundsDone && !game.solved -> QuizDot.NOW
+    else -> QuizDot.TODO
 }
 
 private val CloseIcon = listOf("M6 6l12 12M18 6L6 18")
@@ -141,8 +166,9 @@ fun quizNextLabel(game: QuizGame, next: PathNext?, allLearned: Boolean): String 
 }
 
 /**
- * "Which one starts with …?". A wrong tap dims that picture and wiggles the right one; a right tap
- * turns it green and shows [nextLabel]'s button, which nothing presses but the child.
+ * "Which starts with …?". A wrong tap dims that picture and wiggles the right one; a right tap
+ * turns it green with its word and a star, and shows [nextLabel]'s button, which nothing presses
+ * but the child.
  */
 @Composable
 fun QuizScreen(
@@ -159,10 +185,10 @@ fun QuizScreen(
     val target = game.target
     CappedWidth(HuroofiTokens.Sky, minHeight = QuizSpec.MinHeight) {
         Column(
-            Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+            Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 26.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 RoundIconButton(
                     contentDescription = "Leave game",
                     onClick = onClose,
@@ -172,73 +198,104 @@ fun QuizScreen(
                     shadowColor = QuizSpec.EdgeColor,
                     shadowDepth = 4.dp,
                 ) { LineIcon(CloseIcon, HuroofiTokens.Navy, size = 26.dp, strokeWidth = 2.8f) }
-                Row(
-                    Modifier.semantics { contentDescription = "${game.roundsDone} of ${game.rounds} done" },
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    repeat(game.rounds) { i ->
-                        Box(
-                            Modifier
-                                .size(QuizSpec.Dot)
-                                .background(if (i < game.roundsDone) HuroofiTokens.Success else HuroofiTokens.Card, CircleShape)
-                                .then(if (i < game.roundsDone) Modifier else Modifier.border(QuizSpec.DotRing, HuroofiTokens.Muted, CircleShape)),
-                        )
-                    }
-                }
+                RoundDots(game, Modifier.weight(1f))
+                // Balances the close button so the dots sit in the middle.
+                Spacer(Modifier.width(QuizSpec.Close))
             }
-            val card = RoundedCornerShape(QuizSpec.CardCorner)
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .dropEdge(QuizSpec.EdgeColor, 6.dp, card)
-                    .background(HuroofiTokens.Card, card)
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                RoundIconButton(
-                    contentDescription = "Hear the question",
-                    onClick = onHear,
-                    toddler = true,
-                    size = QuizSpec.Sound,
-                    containerColor = HuroofiTokens.Sun,
-                    shadowColor = HuroofiTokens.SunShadow,
-                ) { SoundIcon(HuroofiTokens.Navy, size = 30.dp) }
-                // Heading breaks balance the lines ("Which one / starts with"), never a lone word (plan 11 decision 4).
-                Text("Which one starts with", Modifier.weight(1f), style = HuroofiText.buttonPrimary.copy(lineBreak = LineBreak.Heading), color = HuroofiTokens.Navy)
-                Box(Modifier.size(QuizSpec.Chip).background(colors.pastel, RoundedCornerShape(20.dp)), contentAlignment = Alignment.Center) {
-                    CenteredLetter(target.letter, size = QuizSpec.CHIP_SP.sp, color = HuroofiTokens.Navy)
-                }
-            }
-            OptionGrid(game, Modifier.weight(1f), onPick)
-            Box(Modifier.fillMaxWidth().height(QuizSpec.Panel), contentAlignment = Alignment.BottomCenter) {
+            Question(target, onHear)
+            OptionGrid(game, colors, Modifier.weight(1f), onPick)
+            Box(Modifier.fillMaxWidth().heightIn(min = QuizSpec.Foot), contentAlignment = Alignment.Center) {
                 val wrong = game.wrongPick
                 when {
-                    game.solved -> RightPanel(target, colors.accent, nextLabel, canContinue = canContinue, onContinue = onContinue)
+                    game.solved -> PrimaryButton(nextLabel, onClick = onContinue, kind = ButtonKind.Success, enabled = canContinue, icon = ButtonIcons.Next)
                     wrong != null -> WrongPanel(wrong)
-                    // Plain text on the page, not a white pill that looks pressable (plan 11 decision 4).
-                    else -> Text(
-                        "Listen, then tap a picture",
-                        Modifier.fillMaxWidth().padding(bottom = 20.dp),
-                        style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
-                        color = HuroofiTokens.Muted,
-                        textAlign = TextAlign.Center,
-                    )
+                    else -> IdleHint()
                 }
             }
         }
     }
 }
 
-/** 2 × 2 for four pictures, one column for three; tiles share the space left. */
 @Composable
-private fun OptionGrid(game: QuizGame, modifier: Modifier, onPick: (Letter) -> Unit) {
-    val rows = if (game.options.size == 4) game.options.chunked(2) else game.options.map { listOf(it) }
+private fun RoundDots(game: QuizGame, modifier: Modifier) {
+    val now = (game.roundsDone + if (game.solved) 0 else 1).coerceAtMost(game.rounds)
+    Row(
+        modifier.clearAndSetSemantics { contentDescription = "Question $now of ${game.rounds}" },
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(game.rounds) { i ->
+            val dot = quizDot(game, i)
+            Box(
+                Modifier
+                    .height(QuizSpec.Dot)
+                    .width(if (dot == QuizDot.NOW) QuizSpec.DotNow else QuizSpec.Dot)
+                    .background(
+                        when (dot) {
+                            QuizDot.DONE -> HuroofiTokens.Success
+                            QuizDot.NOW -> HuroofiTokens.Primary
+                            QuizDot.TODO -> QuizSpec.DotTodo
+                        },
+                        CircleShape,
+                    ),
+            )
+        }
+    }
+}
+
+/** Leo and the question bubble; the whole bubble says the question again. */
+@Composable
+private fun Question(target: Letter, onHear: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.size(QuizSpec.Leo))
+        val shape = RoundedCornerShape(QuizSpec.BubbleCorner)
+        Row(
+            Modifier
+                .weight(1f)
+                .heightIn(min = QuizSpec.Leo)
+                .dropEdge(QuizSpec.EdgeColor, 4.dp, shape)
+                .clip(shape)
+                .background(HuroofiTokens.Card)
+                .clickable(role = Role.Button, onClick = onHear)
+                .clearAndSetSemantics { contentDescription = "Which starts with ${target.nameLatin}? Hear the question" }
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(
+                Modifier.size(QuizSpec.Sound).dropEdge(HuroofiTokens.SunShadow, 5.dp, CircleShape).background(HuroofiTokens.Sun, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) { SoundIcon(HuroofiTokens.Navy, size = 28.dp) }
+            // Heading breaks balance the lines ("Which starts / with"), never a lone word (plan 11 decision 4).
+            Text(
+                "Which starts with",
+                Modifier.weight(1f),
+                style = HuroofiText.buttonPrimary.copy(fontSize = 20.sp, lineHeight = 23.sp, lineBreak = LineBreak.Heading),
+                color = HuroofiTokens.Navy,
+            )
+            Box(
+                Modifier
+                    .size(QuizSpec.Chip)
+                    .background(QuizSpec.ChipFill, RoundedCornerShape(16.dp))
+                    .border(QuizSpec.ChipRing, HuroofiTokens.Sun, RoundedCornerShape(16.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                CenteredLetter(target.letter, size = QuizSpec.CHIP_SP.sp, color = QuizSpec.ChipText)
+            }
+        }
+    }
+}
+
+/** 2 × 2 for four pictures (Early reader), one column for three; tiles share the space left. */
+@Composable
+private fun OptionGrid(game: QuizGame, colors: StageColors, modifier: Modifier, onPick: (Letter) -> Unit) {
+    val four = game.options.size == 4
+    val rows = if (four) game.options.chunked(2) else game.options.map { listOf(it) }
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         for (row in rows) {
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 for (option in row) {
-                    OptionTile(option, game, Modifier.weight(1f).fillMaxHeight()) { onPick(option) }
+                    OptionTile(option, game, colors, four, Modifier.weight(1f).fillMaxHeight()) { onPick(option) }
                 }
             }
         }
@@ -246,10 +303,9 @@ private fun OptionGrid(game: QuizGame, modifier: Modifier, onPick: (Letter) -> U
 }
 
 @Composable
-private fun OptionTile(option: Letter, game: QuizGame, modifier: Modifier, onClick: () -> Unit) {
+private fun OptionTile(option: Letter, game: QuizGame, colors: StageColors, four: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val isTarget = game.isRight(option)
     val solvedHere = game.solved && isTarget
-    val dimmed = game.wrongPick == option
     val tilt = remember { Animatable(0f) }
     val scale = remember { Animatable(1f) }
     // After a wrong tap the right picture wiggles; never red, never an X (decision 4).
@@ -269,48 +325,89 @@ private fun OptionTile(option: Letter, game: QuizGame, modifier: Modifier, onCli
             1.1f at 600
         })
     }
+    val alpha = when {
+        game.solved && !isTarget -> QuizSpec.FADED
+        game.wrongPick == option -> QuizSpec.DIMMED
+        else -> 1f
+    }
     val shape = RoundedCornerShape(QuizSpec.TileCorner)
     Box(
         modifier
             .sizeIn(minHeight = QuizSpec.TileMin)
             .rotate(tilt.value)
             .scale(scale.value)
-            .alpha(if (dimmed) QuizSpec.DIMMED else 1f)
+            .alpha(alpha)
             .semantics { contentDescription = option.meaningEn.replaceFirstChar { it.uppercase() } }
             // The colour change is the feedback; a square ripple would spill past the rounded tile.
             .clickable(interactionSource = null, indication = null, role = Role.Button, onClick = onClick),
     ) {
+        // The edge sits inside the tile's bounds: a faded tile draws in its own layer, which clips.
         Box(
             Modifier
                 .matchParentSize()
-                .dropEdge(if (solvedHere) QuizSpec.RightShadow else QuizSpec.EdgeColor, 6.dp, shape)
+                .padding(bottom = 6.dp)
+                .dropEdge(if (solvedHere) HuroofiTokens.SuccessShadow else QuizSpec.EdgeColor, 6.dp, shape)
                 .background(HuroofiTokens.Card, shape)
                 .border(QuizSpec.TileBorder, if (solvedHere) HuroofiTokens.Success else HuroofiTokens.Card, shape)
                 .padding(12.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Image(letterPicture(option), contentDescription = null, modifier = Modifier.sizeIn(maxWidth = QuizSpec.Picture, maxHeight = QuizSpec.Picture).fillMaxSize())
+            val picture = if (four) QuizSpec.PictureFour else QuizSpec.Picture
+            val image = @Composable { m: Modifier ->
+                Image(letterPicture(option), contentDescription = null, modifier = m.sizeIn(maxWidth = picture, maxHeight = picture).fillMaxSize())
+            }
+            val word = @Composable {
+                ArabicText(
+                    highlightedWord(option.wordFirst, option.wordRest, colors.accent),
+                    size = (if (four) QuizSpec.WORD_FOUR_SP else QuizSpec.WORD_SP).sp,
+                    color = HuroofiTokens.Navy,
+                )
+            }
+            when {
+                !solvedHere -> image(Modifier)
+                // Early reader: the word sits under the picture, which moves up to make room.
+                four -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    image(Modifier.weight(1f, fill = false))
+                    word()
+                }
+                else -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)) {
+                    image(Modifier)
+                    word()
+                }
+            }
         }
         if (solvedHere) {
-            Box(
-                Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = 10.dp, y = (-10).dp)
-                    .size(QuizSpec.Badge)
-                    .background(HuroofiTokens.Success, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) { LineIcon(LearnIcons.Check, HuroofiTokens.Card, size = 24.dp, strokeWidth = 3.2f) }
+            StarIcon(HuroofiTokens.Sun, Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-12).dp), size = QuizSpec.Star)
         }
+    }
+}
+
+/** "Listen, then tap a picture" with a hand, on a flat white strip (the prototype's `.q-hint`). */
+@Composable
+private fun IdleHint() {
+    Row(
+        Modifier.fillMaxWidth().height(QuizSpec.Foot).background(HuroofiTokens.Card, RoundedCornerShape(22.dp)),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LineIcon(ButtonIcons.Hand, HuroofiTokens.Muted, size = 24.dp, strokeWidth = 2f)
+        Text("Listen, then tap a picture", style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Muted)
     }
 }
 
 @Composable
 private fun WrongPanel(pick: Letter) {
     Column(
-        Modifier.fillMaxWidth().background(QuizSpec.WrongBackground, RoundedCornerShape(24.dp)).padding(horizontal = 16.dp, vertical = 14.dp),
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = QuizSpec.Foot)
+            .background(QuizSpec.WrongBackground, RoundedCornerShape(22.dp))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Text("Almost! Try again", style = HuroofiText.buttonPrimary, color = QuizSpec.WrongText)
-        // "Lemon (ليمون) starts with ل" as in Quiz.html: the Arabic word, not the English one, has the letter.
+        Text("Almost! Try again", style = HuroofiText.buttonPrimary.copy(fontSize = 20.sp), color = QuizSpec.WrongText)
+        // "Fox (ثعلب) starts with ث" as in Quiz.html: the Arabic word, not the English one, has the letter.
         val arabic = SpanStyle(fontFamily = NotoNaskhArabic, fontWeight = FontWeight.Bold, fontSize = QuizSpec.INLINE_SP.sp)
         Text(
             buildAnnotatedString {
@@ -319,24 +416,10 @@ private fun WrongPanel(pick: Letter) {
                 append(") starts with ")
                 withStyle(arabic) { append(pick.wordFirst) }
             },
-            style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
-            color = HuroofiTokens.Navy,
+            style = HuroofiText.body.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+            color = QuizSpec.WrongText,
+            textAlign = TextAlign.Center,
         )
-    }
-}
-
-@Composable
-private fun RightPanel(target: Letter, accent: Color, nextLabel: String, canContinue: Boolean, onContinue: () -> Unit) {
-    Column(
-        Modifier.fillMaxWidth().background(QuizSpec.RightBackground, RoundedCornerShape(26.dp)).padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ArabicText(highlightedWord(target.wordFirst, target.wordRest, accent), size = QuizSpec.INLINE_SP.sp, color = HuroofiTokens.Navy)
-            Text("starts with", style = HuroofiText.body.copy(fontWeight = FontWeight.Bold), color = HuroofiTokens.Navy)
-            ArabicText(target.letter, size = QuizSpec.INLINE_SP.sp, color = HuroofiTokens.Navy)
-        }
-        PrimaryButton(nextLabel, onClick = onContinue, kind = ButtonKind.Success, enabled = canContinue, icon = ButtonIcons.Next)
     }
 }
 
