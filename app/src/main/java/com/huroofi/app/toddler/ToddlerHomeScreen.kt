@@ -1,11 +1,5 @@
 package com.huroofi.app.toddler
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,54 +9,50 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huroofi.app.R
+import com.huroofi.app.learn.dropEdge
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.ParentLock
 import com.huroofi.app.ui.components.ScaleDownToFit
 import com.huroofi.app.ui.components.SoundIcon
+import com.huroofi.app.ui.components.StarIcon
 import com.huroofi.app.ui.theme.ArabicText
-import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
+import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.IgnoreFontScale
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 
@@ -80,68 +70,86 @@ fun ToddlerHomeScreen(
     modifier: Modifier = Modifier,
 ) {
     val spec = ToddlerHomeSpec
-    ToddlerScaffold(modifier) {
-        Box(Modifier.fillMaxWidth().height(spec.HeaderHeight)) {
-            Row(Modifier.align(Alignment.BottomStart), verticalAlignment = Alignment.Bottom) {
-                Image(
-                    painterResource(R.drawable.pic_lion),
-                    contentDescription = null,
-                    modifier = Modifier.size(spec.MascotSize),
-                )
-                PromptBubble(onReplayPrompt, Modifier.padding(start = 8.dp).weight(1f))
-            }
+    ToddlerScaffold(
+        modifier,
+        top = 24.dp,
+        overlay = {
             ParentLock(
                 onRequestParentZone = onRequestParentZone,
                 contentDescription = PARENT_LOCK_DESCRIPTION,
-                modifier = Modifier.align(Alignment.TopEnd),
+                modifier = Modifier.align(Alignment.TopEnd).padding(top = 18.dp, end = 18.dp),
             )
+        },
+    ) {
+        // The bubble stops short of the corner lock.
+        Row(
+            Modifier.padding(end = 52.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.size(spec.MascotSize))
+            PromptBubble(onReplayPrompt, Modifier.weight(1f))
         }
         for (activity in ToddlerActivity.entries) {
             ActivityTile(
                 activity,
                 onClick = { onOpenActivity(activity) },
-                modifier = Modifier.weight(1f).heightIn(max = spec.TileHeight),
+                modifier = Modifier.weight(1f).heightIn(max = spec.TileHeight + spec.TileShadow),
             )
         }
     }
 }
 
-/** Sky background, prototype padding, and a centred column ([CappedWidth]). */
+/**
+ * [background] (the sky unless given), prototype padding, and a centred column ([CappedWidth]).
+ * [overlay] sits over the column inside the safe area, for corner controls.
+ */
 @Composable
-fun ToddlerScaffold(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    CappedWidth(LocalHuroofiColors.current.sky, modifier) {
+fun ToddlerScaffold(
+    modifier: Modifier = Modifier,
+    background: Color = LocalHuroofiColors.current.sky,
+    top: Dp = 18.dp,
+    overlay: @Composable BoxScope.() -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    CappedWidth(background, modifier) {
         Column(
             Modifier
                 .fillMaxHeight()
                 .safeDrawingPadding()
-                .padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 30.dp),
+                .padding(start = 20.dp, end = 20.dp, top = top, bottom = 26.dp),
             verticalArrangement = Arrangement.spacedBy(ToddlerHomeSpec.Gap),
             content = content,
         )
+        Box(Modifier.matchParentSize().safeDrawingPadding(), content = overlay)
     }
 }
 
+/** Leo's question. A tap anywhere on it asks again; the sun button says so. */
 @Composable
 private fun PromptBubble(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val colors = LocalHuroofiColors.current
-    val talk by rememberInfiniteTransition(label = "talk").animateFloat(
-        initialValue = 0.85f,
-        targetValue = 1.1f,
-        animationSpec = infiniteRepeatable(tween(400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "talkScale",
-    )
+    val spec = ToddlerHomeSpec
+    val shape = RoundedCornerShape(28.dp)
     Row(
         modifier = modifier
-            .height(ToddlerHomeSpec.BubbleHeight)
-            .background(colors.card, RoundedCornerShape(30.dp, 30.dp, 30.dp, 6.dp))
-            .semantics { contentDescription = "Leo says: What shall we play? Tap to hear it again" }
+            .heightIn(min = spec.BubbleHeight)
+            .dropEdge(spec.BubbleEdgeColor, spec.BubbleEdge, shape)
+            .background(HuroofiTokens.Card, shape)
+            .clip(shape)
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            .clearAndSetSemantics { contentDescription = "Leo says: What shall we play? Tap to hear it again" }
+            .padding(start = 10.dp, end = 18.dp, top = 10.dp, bottom = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ArabicText("ماذا نلعب؟", size = 34.sp, color = colors.navy)
-        SoundIcon(color = colors.primary, size = 28.dp, modifier = Modifier.scale(talk))
+        Box(
+            Modifier
+                .size(spec.SunButton)
+                .dropEdge(HuroofiTokens.SunShadow, spec.SunEdge, CircleShape)
+                .background(HuroofiTokens.Sun, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) { SoundIcon(HuroofiTokens.Navy, size = 28.dp) }
+        ArabicText("ماذا نلعب؟", size = spec.BUBBLE_SP.sp, color = HuroofiTokens.Navy, modifier = Modifier.weight(1f))
     }
 }
 
@@ -155,8 +163,8 @@ private fun ActivityTile(activity: ToddlerActivity, onClick: () -> Unit, modifie
     Box(
         modifier
             .fillMaxWidth()
-            .semantics { contentDescription = activity.contentDescription }
-            .clickable(interactionSource = source, indication = null, role = Role.Button, onClick = onClick),
+            .clickable(interactionSource = source, indication = null, role = Role.Button, onClick = onClick)
+            .clearAndSetSemantics { contentDescription = activity.contentDescription },
     ) {
         Box(
             Modifier
@@ -164,110 +172,104 @@ private fun ActivityTile(activity: ToddlerActivity, onClick: () -> Unit, modifie
                 .padding(top = spec.TileShadow)
                 .background(tile.shadow, shape),
         )
-        Row(
+        Box(
             Modifier
                 .matchParentSize()
                 .padding(bottom = spec.TileShadow)
                 .offset { IntOffset(0, if (pressed) spec.TileShadow.roundToPx() else 0) }
                 .background(tile.background, shape)
-                .border(spec.TileBorder, tile.border, shape)
-                .padding(end = 12.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+                .border(spec.TileBorder, tile.border, shape),
         ) {
-            // Art and label keep their designed size, shrinking only in a short window (tablet landscape).
-            ScaleDownToFit(Modifier.weight(1f)) {
-                when (activity) {
-                    ToddlerActivity.CARDS -> CardsArt()
-                    ToddlerActivity.FIND -> FindArt()
-                    ToddlerActivity.PAINT -> PaintArt()
+            Row(
+                Modifier.matchParentSize().padding(start = 16.dp, end = 22.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Art and label keep their designed size, shrinking only in a short window (tablet landscape).
+                ScaleDownToFit(Modifier.weight(1f)) {
+                    when (activity) {
+                        ToddlerActivity.CARDS -> CardsArt()
+                        ToddlerActivity.FIND -> FindArt()
+                        ToddlerActivity.PAINT -> PaintArt()
+                    }
+                }
+                ScaleDownToFit(Modifier.widthIn(min = spec.LabelMinWidth)) {
+                    ArabicText(activity.arabicLabel, size = spec.LABEL_SP.sp, color = tile.text)
                 }
             }
-            ScaleDownToFit(Modifier.width(spec.LabelColumnWidth)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    ArabicText(activity.arabicLabel, size = 40.sp, color = tile.text)
-                    Text(
-                        activity.englishLabel,
-                        style = HuroofiText.caption.copy(fontWeight = FontWeight.Bold),
-                        color = tile.text,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
+            GoCircle(tile.border, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 14.dp))
         }
     }
+}
+
+/** The white play button in the tile's corner: decoration, the whole tile is the button. */
+@Composable
+private fun GoCircle(color: Color, modifier: Modifier) {
+    Box(modifier.size(ToddlerHomeSpec.GoCircle).background(color, CircleShape), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.size(22.dp)) {
+            val u = size.width / 24f
+            scale(u, u, pivot = Offset.Zero) { drawPath(PlayTriangle, Color.White) }
+        }
+    }
+}
+
+private val PlayTriangle = Path().apply {
+    moveTo(8f, 5.5f)
+    lineTo(8f, 18.5f)
+    lineTo(18.5f, 12f)
+    close()
 }
 
 @Composable
 private fun CardsArt() {
     Row {
-        MiniCard(R.drawable.pic_lion, Modifier.offset(x = 14.dp).rotate(-8f))
-        MiniCard(R.drawable.pic_duck, Modifier.offset(x = (-14).dp).rotate(7f))
+        MiniCard(R.drawable.pic_lion, Modifier.offset(x = 10.dp).rotate(-8f))
+        MiniCard(R.drawable.pic_duck, Modifier.padding(start = 8.dp).rotate(6f))
     }
 }
 
 @Composable
 private fun MiniCard(picture: Int, modifier: Modifier) {
-    val shape = RoundedCornerShape(22.dp)
+    val shape = RoundedCornerShape(18.dp)
     Box(
         modifier
-            .size(width = 112.dp, height = 140.dp)
-            .background(LocalHuroofiColors.current.card, shape)
+            .size(width = 84.dp, height = 112.dp)
+            .background(HuroofiTokens.Card, shape)
             .border(4.dp, ToddlerHomeSpec.MiniCardBorder, shape),
         contentAlignment = Alignment.Center,
-    ) { Image(painterResource(picture), contentDescription = null, modifier = Modifier.size(92.dp)) }
+    ) { Image(painterResource(picture), contentDescription = null, modifier = Modifier.size(66.dp)) }
+}
+
+/** A found duck with its star beside an apple: what Find it plays. */
+@Composable
+private fun FindArt() {
+    // Top padding makes room for the star poking above the card, so ScaleDownToFit counts it.
+    Row(Modifier.padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box {
+            MiniPicture(R.drawable.pic_duck, Modifier.border(4.dp, HuroofiTokens.Success, RoundedCornerShape(18.dp)))
+            StarIcon(HuroofiTokens.Sun, Modifier.align(Alignment.TopEnd).offset(x = 10.dp, y = (-14).dp), size = 28.dp, outline = HuroofiTokens.SunShadow)
+        }
+        MiniPicture(R.drawable.pic_apple)
+    }
 }
 
 @Composable
-private fun FindArt() {
-    // The padding covers the magnifier hanging 24 dp below the apple, so ScaleDownToFit counts it.
-    Row(Modifier.padding(vertical = 24.dp), verticalAlignment = Alignment.CenterVertically) {
-        Image(painterResource(R.drawable.pic_apple), contentDescription = null, modifier = Modifier.size(132.dp))
-        Canvas(Modifier.offset(x = (-46).dp, y = 30.dp).size(120.dp)) {
-            val u = size.width / 120f
-            val handleStart = Offset(76 * u, 76 * u)
-            val handleEnd = Offset(108 * u, 108 * u)
-            drawLine(ToddlerHomeSpec.ArtOutline, handleStart, handleEnd, 16 * u, StrokeCap.Round)
-            drawLine(ToddlerHomeSpec.MagnifierHandle, handleStart, handleEnd, 8 * u, StrokeCap.Round)
-            val centre = Offset(50 * u, 50 * u)
-            drawCircle(Color.White.copy(alpha = 0.45f), 38 * u, centre)
-            drawCircle(ToddlerHomeSpec.ArtOutline, 38 * u, centre, style = Stroke(10 * u))
-            drawCircle(LocalSun, 38 * u, centre, style = Stroke(5 * u))
-        }
-    }
+private fun MiniPicture(picture: Int, modifier: Modifier = Modifier) {
+    Box(
+        Modifier.size(84.dp).background(HuroofiTokens.Card, RoundedCornerShape(18.dp)).then(modifier),
+        contentAlignment = Alignment.Center,
+    ) { Image(painterResource(picture), contentDescription = null, modifier = Modifier.size(62.dp)) }
 }
 
 @Composable
 private fun PaintArt() {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        IgnoreFontScale { ArabicText("ب", size = 110.sp, color = ToddlerHomeSpec.PaintLetter, modifier = Modifier.offset(y = (-10).dp)) }
-        Canvas(Modifier.size(104.dp)) {
-            val u = size.width / 120f
-            val outline = Stroke(4 * u, join = StrokeJoin.Round)
-            rotate(35f, pivot = Offset(61 * u, 60 * u)) {
-                val body = Offset(52 * u, 4 * u)
-                val bodySize = Size(18 * u, 62 * u)
-                drawRoundRect(LocalSun, body, bodySize, CornerRadius(9 * u))
-                drawRoundRect(ToddlerHomeSpec.ArtOutline, body, bodySize, CornerRadius(9 * u), style = outline)
-                val collar = Offset(49 * u, 62 * u)
-                val collarSize = Size(24 * u, 14 * u)
-                drawRect(ToddlerHomeSpec.CrayonCollar, collar, collarSize)
-                drawRect(ToddlerHomeSpec.ArtOutline, collar, collarSize, style = outline)
-                val tip = Path().apply {
-                    moveTo(49 * u, 76 * u)
-                    lineTo(73 * u, 76 * u)
-                    lineTo(69 * u, 100 * u)
-                    quadraticTo(61 * u, 112 * u, 53 * u, 100 * u)
-                    close()
-                }
-                drawPath(tip, ToddlerHomeSpec.PaintLetter)
-                drawPath(tip, ToddlerHomeSpec.ArtOutline, style = outline)
-            }
-        }
+    Box(
+        Modifier.size(width = 150.dp, height = 104.dp).background(HuroofiTokens.Card, RoundedCornerShape(20.dp)),
+        contentAlignment = Alignment.Center,
+    ) {
+        IgnoreFontScale { ArabicText("ب", size = 70.sp, color = ToddlerHomeSpec.PaintLetter) }
     }
 }
-
-private val LocalSun = Color(0xFFFFC93C)
 
 @Preview(widthDp = 390, heightDp = 844)
 @Composable
