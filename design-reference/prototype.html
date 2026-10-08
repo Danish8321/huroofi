@@ -1,0 +1,1826 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Huroofi Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400..800&family=Noto+Naskh+Arabic:wght@400..700&display=swap" rel="stylesheet">
+<style>
+@font-face { font-family: 'HNaskh'; src: url('../assets/fonts/NotoNaskhArabic-Variable.ttf') format('truetype'); font-weight: 100 900; font-display: block }
+@font-face { font-family: 'HBaloo'; src: url('../assets/fonts/BalooBhaijaan2-Variable.ttf') format('truetype'); font-weight: 100 900; font-display: block }
+/* Layout: review shell (screen list · device · notes) around a 390 × 844 phone that renders the app at real size. */
+:root {
+  /* review shell */
+  --bg: #EEF2F7; --panel: #FFFFFF; --ink: #13294B; --ink-2: #4A5D7A; --line: #D5E2F0; --accent: #1F6FE0; --accent-ink: #FFFFFF; --chip: #E8F0FB; --bezel: #13294B;
+  /* app tokens (HANDOFF §5); the app itself has one light look */
+  --navy: #13294B; --muted: #4A5D7A; --sky: #E8F4FF; --card: #FFFFFF; --primary: #1F6FE0; --primary-d: #1555B0;
+  --sun: #FFC93C; --sun-d: #E0A400; --success: #158048; --success-d: #0F5F35; --guide: #C8DCF4; --parent-bg: #F4F7FB;
+  --almost: #FFE4D6; --almost-ink: #8A3B12; --rest: #24345E;
+  --app-en: 'Baloo Bhaijaan 2', 'HBaloo', system-ui, sans-serif;
+  --app-ar: 'HNaskh', 'Noto Naskh Arabic', serif;
+  --shell: 'Baloo Bhaijaan 2', 'HBaloo', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0E1626; --panel: #16223A; --ink: #E6EEF9; --ink-2: #A9B9D2; --line: #2A3A58; --accent: #6AA6FF; --accent-ink: #0E1626; --chip: #1F2E4C; --bezel: #04070D; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #0E1626; --panel: #16223A; --ink: #E6EEF9; --ink-2: #A9B9D2; --line: #2A3A58; --accent: #6AA6FF; --accent-ink: #0E1626; --chip: #1F2E4C; --bezel: #04070D; color-scheme: dark }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--shell) }
+button { font-family: inherit; color: inherit }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
+.ar { font-family: var(--app-ar); font-weight: 700 }
+
+/* ---------- shell ---------- */
+#shell { display: grid; grid-template-columns: 250px minmax(0, 1fr) 320px; gap: 20px; padding-block: 16px; padding-inline: 16px; min-height: 100vh; align-items: start }
+.side { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px; position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; min-width: 0 }
+.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 4px }
+.brand b { font-size: 22px; font-weight: 800 }
+.brand .ar { font-size: 22px; color: var(--accent) }
+.brand-sub { margin: 0 0 14px; font-size: 14px; color: var(--ink-2); line-height: 1.35 }
+.view-tabs { display: flex; gap: 6px; margin-bottom: 14px }
+.view-tabs button { flex: 1; height: 38px; white-space: nowrap; font-size: 13px !important; border-radius: 10px; border: 1px solid var(--line); background: transparent; font-size: 14px; font-weight: 700; cursor: pointer }
+.view-tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent) }
+.nav-group h3 { margin: 14px 0 6px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2) }
+.nav-link { display: block; width: 100%; text-align: left; padding: 7px 10px; border: none; border-radius: 9px; background: transparent; font-size: 15px; font-weight: 600; cursor: pointer }
+.nav-link:hover { background: var(--chip) }
+.nav-link.on { background: var(--chip); color: var(--accent); font-weight: 800 }
+.ctl { display: grid; gap: 12px }
+.ctl label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: var(--ink-2) }
+.ctl select { height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-size: 15px; padding: 0 8px }
+.ctl .check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink) }
+.ctl .check input { width: 18px; height: 18px; accent-color: var(--accent) }
+.ctl-btns { display: flex; gap: 8px }
+.ctl-btns button { flex: 1; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--chip); font-size: 14px; font-weight: 800; cursor: pointer }
+#progress-line { margin: 0; font-size: 13px; color: var(--ink-2) }
+.stage-col { min-width: 0; display: grid; gap: 10px; justify-items: center }
+.stage-screens { width: 100%; display: grid; gap: 10px; justify-items: center }
+#stage { width: 100%; display: grid; justify-items: center }
+.feedback { display: flex; align-items: center; gap: 8px; min-height: 44px; width: min(100%, 560px); padding: 6px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); font-size: 14px; flex-wrap: wrap }
+#caption { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex: 1; min-width: 0 }
+#caption svg { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0 }
+#caption .cap-label { font-weight: 800; color: var(--ink-2) }
+#caption .clip { background: var(--chip); border-radius: 8px; padding: 0 8px; font-weight: 700 }
+#caption .clip .ar { font-size: 17px }
+#caption .then { color: var(--ink-2); font-size: 12px }
+#caption.flash { animation: flash 0.6s ease-out }
+@keyframes flash { from { background: var(--chip) } to { background: transparent } }
+#buzz { font-size: 13px; font-weight: 800; color: var(--ink-2); opacity: 0 }
+#buzz.show { animation: buzz 1.4s ease-out }
+@keyframes buzz { 0% { opacity: 1; transform: translateX(-2px) } 10% { transform: translateX(2px) } 20% { transform: translateX(-2px) } 30% { transform: translateX(0) } 80% { opacity: 1 } 100% { opacity: 0 } }
+#device-holder { position: relative }
+#device { position: absolute; left: 0; top: 0; transform-origin: 0 0; padding: 12px; border-radius: 52px; background: var(--bezel); box-shadow: 0 20px 50px rgba(19, 41, 75, 0.25) }
+#device.tablet { border-radius: 40px }
+#device .screen { width: 390px; height: 844px; border-radius: 40px }
+#device.tablet .screen { width: 1180px; height: 820px; border-radius: 28px }
+#device-note { margin: 0; font-size: 13px; color: var(--ink-2) }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; position: sticky; top: 16px; min-width: 0 }
+.notes h2 { margin: 0 0 6px; font-size: 22px; font-weight: 800; text-wrap: balance }
+.notes p { margin: 0 0 10px; font-size: 14px; color: var(--ink-2); line-height: 1.4 }
+.notes p b { color: var(--ink) }
+.notes code { font-size: 13px; background: var(--chip); padding: 1px 6px; border-radius: 6px; color: var(--ink) }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 8px }
+.notes li { font-size: 15px; line-height: 1.4 }
+.notes .ar { font-size: 17px }
+.ds { width: 100%; max-width: 900px; display: grid; gap: 18px }
+.ds section { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; min-width: 0 }
+.ds h2 { margin: 0 0 12px; font-size: 20px; font-weight: 800 }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px }
+.swatch { display: grid; gap: 2px; font-size: 13px }
+.swatch span { height: 46px; border-radius: 12px; border: 1px solid var(--line) }
+.swatch code { color: var(--ink-2) }
+.swatch small { color: var(--ink-2) }
+.stage-fams { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px }
+.fam { display: grid; grid-template-columns: 44px 1fr; align-items: center; gap: 2px 10px; padding: 10px; border: 4px solid; border-radius: 18px; color: #13294B }
+.fam img { width: 44px; height: 44px; grid-row: span 2 }
+.fam .ar { font-size: 20px }
+.type-scale p { margin: 0 0 8px; color: var(--ink) }
+.type-scale small { color: var(--ink-2) }
+.ds-demo { display: grid; gap: 14px; padding: 18px; border-radius: 16px; background: var(--sky); max-width: 380px; position: static; width: auto !important; height: auto !important }
+.ds-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap }
+.ds-rules { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 15px; line-height: 1.4 }
+
+@media (max-width: 1180px) {
+  #shell { grid-template-columns: 230px minmax(0, 1fr) }
+  .notes { grid-column: 1 / -1; position: static }
+}
+@media (max-width: 760px) {
+  #shell { grid-template-columns: minmax(0, 1fr) }
+  .side { position: static; max-height: none }
+  .screen-list-wrap { display: flex; flex-wrap: wrap; gap: 4px 12px }
+}
+
+/* ---------- static snapshot mode ---------- */
+body.static { background: #FFFFFF; padding: 0 }
+body.static .screen { width: 390px; height: 844px }
+body.static .screen.static-tablet { width: 1180px; height: 820px }
+
+/* =========================================================
+   App screens. Units are dp at 1:1.
+   ========================================================= */
+.screen { position: relative; overflow: hidden; background: var(--sky); color: var(--navy); font-family: var(--app-en); -webkit-tap-highlight-color: transparent; user-select: none }
+.screen button { cursor: pointer; border: none; background: none; padding: 0; color: inherit; font-family: inherit }
+.screen img { max-width: none }
+.screen svg { display: block }
+
+/* shared controls */
+.sun-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--sun) !important; box-shadow: 0 5px 0 var(--sun-d); display: inline-flex; align-items: center; justify-content: center; color: var(--navy); flex-shrink: 0 }
+.sun-btn svg { width: 28px; height: 28px }
+.sun-btn.big { width: 64px; height: 64px }
+.round-btn { width: 52px; height: 52px; border-radius: 50%; background: var(--card) !important; box-shadow: 0 4px 0 #CFE2F7; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0 }
+.round-btn svg { width: 26px; height: 26px }
+.square-btn { width: 64px; height: 64px; border-radius: 22px; background: var(--card) !important; border: 3px solid #A9CBF2 !important; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--navy) }
+.square-btn svg { width: 30px; height: 30px }
+.primary-btn { height: 64px; border-radius: 22px; background: var(--primary) !important; box-shadow: 0 6px 0 var(--primary-d); color: #FFFFFF !important; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 22px; font-weight: 800; padding: 0 20px !important; width: 100% }
+.primary-btn svg { width: 26px; height: 26px; flex-shrink: 0 }
+.primary-btn .btn-ar { font-size: 30px; line-height: 1 }
+.primary-btn.small { height: 56px; font-size: 20px; border-radius: 20px }
+.primary-btn.success { background: var(--success) !important; box-shadow: 0 6px 0 var(--success-d) }
+.primary-btn.sun { background: var(--sun) !important; box-shadow: 0 6px 0 var(--sun-d); color: var(--navy) !important }
+.primary-btn.locked { background: #D5E0EC !important; box-shadow: 0 6px 0 #BCCADB; color: #4A5D7A !important; cursor: default }
+.primary-btn.locked svg { width: 22px; height: 22px }
+.primary-btn.ready { animation: ready 1.6s ease-in-out infinite }
+@keyframes ready { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.03) } }
+.parent-lock { width: 48px; height: 48px; border-radius: 50%; background: rgba(19, 41, 75, 0.08) !important; color: #4A5D7A; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0 }
+.parent-lock svg { width: 22px; height: 22px }
+.parent-lock.corner { position: absolute; right: 18px; top: 18px; z-index: 2 }
+.bubble { display: flex; align-items: center; gap: 12px; padding: 10px 18px 10px 10px !important; border-radius: 28px; background: var(--card) !important; box-shadow: 0 4px 0 #CFE2F7; min-height: 76px }
+.bubble-ar { font-size: 34px; line-height: 1.4 }
+.leo-row { display: flex; align-items: center; gap: 12px }
+.leo { width: 96px; height: 96px; object-fit: contain; flex-shrink: 0 }
+.leo-row.small .leo { width: 70px; height: 70px }
+.avatar { width: 52px; height: 52px; border-radius: 50%; background: #FFFFFF; border: 3px solid var(--sun); overflow: hidden; flex-shrink: 0; display: block }
+.avatar img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.15) }
+.avatar.small { width: 48px; height: 48px }
+
+/* motion */
+.wiggle { animation: wiggle 0.6s ease-in-out }
+@keyframes wiggle { 0%, 100% { transform: rotate(0) } 20% { transform: rotate(-6deg) scale(1.04) } 40% { transform: rotate(6deg) scale(1.04) } 60% { transform: rotate(-4deg) } 80% { transform: rotate(3deg) } }
+.nudge { animation: nudge 0.4s ease-in-out }
+@keyframes nudge { 0%, 100% { transform: translateX(0) } 25% { transform: translateX(-8px) } 75% { transform: translateX(8px) } }
+.burst { position: absolute; inset: 0; pointer-events: none; z-index: 3 }
+.burst-star { position: absolute; left: 50%; top: var(--top); animation: burst 0.9s cubic-bezier(.2, .9, .3, 1.2) both, twinkle 1.6s ease-in-out infinite }
+@keyframes burst { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0 } 25% { opacity: 1 } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--rot)); opacity: 1 } }
+@keyframes twinkle { 0%, 100% { filter: brightness(1) } 50% { filter: brightness(1.25) } }
+.screen.calm *, .screen.calm *::before { animation-duration: 0s !important; animation-iteration-count: 1 !important }
+@media (prefers-reduced-motion: reduce) { .screen *, .screen *::before { animation-duration: 0s !important; animation-iteration-count: 1 !important } }
+
+/* ---------- toddler ---------- */
+.t-wrap { height: 100%; display: flex; flex-direction: column; gap: 16px; padding: 18px 20px 26px; position: relative }
+.t-top { display: flex; align-items: center; gap: 12px }
+.t-top .parent-lock { margin-left: auto }
+.t-home { width: 64px; height: 64px; border-radius: 22px; background: #FFFFFF !important; box-shadow: 0 5px 0 #CFE2F7; display: inline-flex; align-items: center; justify-content: center; color: var(--primary) }
+.t-home svg { width: 32px; height: 32px }
+.screen-thome .t-wrap { padding-top: 24px }
+.screen-thome .leo-row { padding-right: 52px }
+.tile { flex: 1; position: relative; display: flex; align-items: center; gap: 10px; padding: 0 22px 0 16px !important; border-radius: 36px; border: 5px solid !important; min-height: 0 }
+.tile-cards { background: #FFEDC4 !important; border-color: #F59E0B !important; box-shadow: 0 8px 0 #C77F00 }
+.tile-find { background: #DAEAFF !important; border-color: #2F80ED !important; box-shadow: 0 8px 0 #0B4FB0 }
+.tile-paint { background: #FFDDEA !important; border-color: #EC4F8C !important; box-shadow: 0 8px 0 #B83A6B }
+.tile-art { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 100% }
+.tile-ar { font-size: 44px; line-height: 1.4; min-width: 100px; text-align: center }
+.tile-cards .tile-ar { color: #A35400 } .tile-find .tile-ar { color: #0B4FB0 } .tile-paint .tile-ar { color: #B0185A }
+.tile-go { position: absolute; right: 16px; bottom: 14px; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFFFFF }
+.tile-go svg { width: 22px; height: 22px }
+.tile-cards .tile-go { background: #F59E0B } .tile-find .tile-go { background: #2F80ED } .tile-paint .tile-go { background: #EC4F8C }
+.mini-card { width: 84px; height: 112px; border-radius: 18px; background: #FFFFFF; border: 4px solid #F59E0B; display: flex; align-items: center; justify-content: center }
+.mini-card img { width: 66px; height: 66px; object-fit: contain }
+.tilt-l { transform: rotate(-8deg) translateX(10px) } .tilt-r { transform: rotate(6deg) }
+.mini-pic { position: relative; width: 84px; height: 84px; border-radius: 18px; background: #FFFFFF; display: flex; align-items: center; justify-content: center }
+.mini-pic img { width: 62px; height: 62px; object-fit: contain }
+.mini-pic.ok { border: 4px solid var(--success) }
+.mini-pic svg { position: absolute; right: -10px; top: -14px }
+.mini-paint { width: 150px; height: 104px; border-radius: 20px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 70px; color: #FF7A59; line-height: 1 }
+/* look & listen */
+.big-card { flex: 1; position: relative; border-radius: 40px; border: 8px solid; background: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transform: rotate(-1deg); touch-action: pan-y }
+.card-letter { position: absolute !important; right: 18px; top: 18px; width: 76px; height: 76px; border-radius: 22px; font-size: 44px; line-height: 1; display: flex; align-items: center; justify-content: center }
+.card-pic img { width: 230px; height: 230px; object-fit: contain }
+.card-word { font-size: 64px; line-height: 1.3 }
+.card-sound { position: absolute !important; left: 22px; bottom: 22px; width: 64px !important; height: 64px !important }
+.card-nav { display: flex; align-items: center; justify-content: space-between }
+.arrow { width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center }
+.arrow svg { width: 40px; height: 40px }
+.arrow.prev { background: #FFFFFF !important; box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12) }
+.arrow.next { background: var(--primary) !important; box-shadow: 0 6px 0 var(--primary-d); color: #FFFFFF }
+.peek { display: flex; gap: 6px }
+.peek img { width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.8); object-fit: contain; padding: 4px }
+/* find */
+.find-bubble { flex: 1; justify-content: space-between }
+.find-cards { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 20px; min-height: 0 }
+.find-card { position: relative; border-radius: 40px; background: #FFFFFF !important; box-shadow: 0 8px 0 #CFE2F7; display: flex; align-items: center; justify-content: center; border: 8px solid transparent !important; min-height: 0 }
+.find-card img { width: 190px; height: 190px; object-fit: contain }
+.find-card.right { border-color: var(--success) !important; box-shadow: 0 8px 0 var(--success-d) }
+.find-card.faded { opacity: 0.5 }
+.find-foot { height: 96px; display: flex; align-items: center; justify-content: center }
+.t-hint { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; font-weight: 700; color: var(--muted) }
+.t-hint svg { width: 26px; height: 26px }
+.fill-next { position: relative; width: 100%; height: 96px; border-radius: 30px; overflow: hidden; background: var(--success) !important; box-shadow: 0 7px 0 var(--success-d); color: #FFFFFF }
+.fill-next .fill { position: absolute; left: 0; top: 0; bottom: 0; background: #22A05C; animation: fillbar 4s 1s linear both }
+@keyframes fillbar { from { width: 0 } to { width: 100% } }
+.fill-icon { position: relative; display: flex; justify-content: center }
+.fill-icon svg { width: 48px; height: 48px }
+.ring-next { position: relative; width: 120px; height: 120px; border-radius: 50%; flex-shrink: 0 }
+.ring-next > svg { position: absolute; inset: 0; width: 120px; height: 120px }
+.ring-track { fill: none; stroke: rgba(19, 41, 75, 0.12); stroke-width: 8 }
+.ring-fill { fill: none; stroke: var(--success); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 100 100; transform: rotate(-90deg); transform-origin: 60px 60px; animation: countdown 4s 1s linear both }
+@keyframes countdown { from { stroke-dashoffset: 100 } to { stroke-dashoffset: 0 } }
+.ring-btn { position: absolute; inset: 14px; border-radius: 50%; background: var(--success); box-shadow: 0 5px 0 var(--success-d); display: flex; align-items: center; justify-content: center; color: #FFFFFF }
+.ring-btn svg { width: 48px; height: 48px }
+.tablet-find { flex-direction: row; gap: 28px; padding: 28px }
+.tf-side { width: 300px; display: flex; flex-direction: column; gap: 24px }
+.tf-side .bubble { flex-direction: column; padding: 22px !important; border-radius: 36px; flex: 0 }
+.tf-side .bubble-ar { font-size: 52px }
+.tf-foot { margin-top: auto; display: flex; align-items: flex-end; gap: 16px }
+.tf-foot .leo { width: 150px; height: 150px }
+.tf-cards { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 28px }
+.tf-cards .find-card img { width: 300px; height: 300px }
+/* paint */
+.paint-wrap { background: #FFDDEA }
+.paint-wrap .t-home { color: #B0185A; box-shadow: 0 5px 0 #F2B5CC }
+.paint-card { flex: 1; position: relative; border-radius: 44px; background: #FFFFFF; border: 8px solid #EC4F8C; box-shadow: 0 8px 0 #B83A6B; overflow: hidden; min-height: 0 }
+.paint-wrap.done .paint-card { border-color: var(--success); box-shadow: 0 8px 0 var(--success-d) }
+.paint-svg { width: 100%; height: 100%; touch-action: none }
+.cheer-leo { position: absolute; right: 12px; bottom: 12px; width: 104px; height: 104px; object-fit: contain; animation: hop 0.6s 0.4s ease-out both, cheer 1.2s 1s ease-in-out infinite; z-index: 4 }
+@keyframes hop { 0% { transform: translateY(60px); opacity: 0 } 100% { transform: translateY(0); opacity: 1 } }
+@keyframes cheer { 0%, 100% { transform: translateY(0) rotate(-4deg) } 50% { transform: translateY(-8px) rotate(4deg) } }
+.crayons { display: flex; align-items: flex-end; justify-content: space-between }
+.crayon { width: 72px; height: 72px; border-radius: 50%; border: 6px solid #FFFFFF !important }
+.crayon.on { border-color: var(--navy) !important; transform: translateY(-12px) }
+.wipe { align-self: center; width: 76px; height: 64px; border-radius: 999px; background: #FFFFFF !important; box-shadow: 0 5px 0 #F2B5CC; color: #B0185A; display: flex; align-items: center; justify-content: center }
+.wipe svg { width: 28px; height: 28px }
+.paint-done-row { height: 156px; display: flex; align-items: center; justify-content: center; gap: 24px }
+.paint-again { width: 72px !important; height: 72px !important; color: #B0185A }
+.paint-again svg { width: 30px; height: 30px }
+.paint-done-row .ring-track { stroke: #F2B5CC }
+.demo-hand { pointer-events: none }
+
+/* ---------- learn ---------- */
+.learn-wrap { height: 100%; display: flex; flex-direction: column; gap: 16px; padding: 18px 20px 0; position: relative }
+.learn-wrap.scroll { overflow-y: auto; padding-bottom: 0 }
+.bottom-nav { margin: auto -20px 0; background: #FFFFFF; border-radius: 28px 28px 0 0; box-shadow: 0 -4px 16px rgba(19, 41, 75, 0.08); display: flex; justify-content: space-around; padding: 10px 8px 16px; position: sticky; bottom: 0; z-index: 5 }
+.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 64px; min-height: 52px; color: var(--muted); font-size: 16px; font-weight: 700 }
+.nav-item svg { width: 28px; height: 28px }
+.nav-item.on { color: var(--primary); font-weight: 800 }
+.home-head { display: flex; align-items: center; gap: 12px; padding-top: 4px }
+.home-hello { display: flex; flex-direction: column }
+.home-hello b { font-size: 24px; font-weight: 800; line-height: 1.1 }
+.home-hello span { font-size: 16px; font-weight: 600; color: var(--muted) }
+.path-card { flex: 1; position: relative; border-radius: 36px; border: 5px solid; overflow: hidden; min-height: 0 }
+.path-card > svg { position: absolute; inset: 0; width: 100%; height: 100% }
+.node { position: absolute; width: 68px; height: 68px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; line-height: 1 }
+.node.learned { background: var(--success); color: #FFFFFF; box-shadow: 0 5px 0 var(--success-d) }
+.node.togo { background: #FFFFFF; border: 3px solid }
+.node.today { width: 112px !important; height: 112px !important; background: var(--primary) !important; color: #FFFFFF; box-shadow: 0 7px 0 var(--primary-d); font-size: 58px; animation: pulse 2.4s ease-in-out infinite }
+@keyframes pulse { 0%, 100% { box-shadow: 0 7px 0 var(--primary-d), 0 0 0 0 rgba(31, 111, 224, 0.35) } 50% { box-shadow: 0 7px 0 var(--primary-d), 0 0 0 16px rgba(31, 111, 224, 0) } }
+.today-chip { position: absolute; padding: 2px 12px; border-radius: 999px; background: #FFFFFF; font-size: 16px; font-weight: 800; color: var(--primary-d) }
+.node-pic { position: absolute !important; width: 88px; height: 88px }
+.node-pic img { width: 88px; height: 88px; object-fit: contain }
+.prize { position: absolute; right: 18px; top: 18px }
+.go-btn { flex-shrink: 0 }
+.sticker { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: #FFFFFF; border: 6px solid; flex-shrink: 0 }
+.sticker img { width: 76%; height: 76%; object-fit: contain }
+.sticker.empty { border-style: dashed; border-width: 4px; font-size: 34px; font-weight: 800; box-shadow: none }
+.page-head { display: flex; flex-direction: column; padding-top: 4px }
+.page-head h1 { margin: 0; font-size: 30px; font-weight: 800; line-height: 1.1 }
+.page-head span { font-size: 16px; font-weight: 600; color: var(--muted) }
+/* map */
+.map-list { position: relative; display: flex; flex-direction: column; gap: 14px; padding-bottom: 20px }
+.map-line { position: absolute; left: 41px; top: 40px; bottom: 60px; border-left: 6px dotted #A9CBF2 }
+.map-card { position: relative; width: 100%; text-align: left; border-radius: 30px; background: #F4F7FB !important; border: 4px solid #FFFFFF !important; box-shadow: 0 6px 0 #CFE2F7; padding: 12px 14px !important; display: flex; flex-direction: column; gap: 10px }
+.map-card.current { border: 4px solid !important }
+.map-card.finished { background: #FFFFFF !important; border-color: var(--success) !important; box-shadow: 0 6px 0 var(--success-d) }
+.map-card.open { background: #FFFFFF !important }
+.map-row { display: flex; align-items: center; gap: 12px }
+.map-pic { width: 56px; height: 56px; border-radius: 18px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
+.map-pic img { width: 46px; height: 46px; object-fit: contain }
+.map-card.locked .map-pic { opacity: 0.6 }
+.map-name { flex: 1; display: flex; flex-direction: column; min-width: 0 }
+.map-num { font-size: 16px; font-weight: 700; color: var(--muted) }
+.map-name b { font-size: 20px; font-weight: 800; line-height: 1.1 }
+.map-chars { align-self: flex-start; font-size: 20px; line-height: 1.5; color: var(--muted) }
+.map-count { padding: 2px 12px; border-radius: 999px; background: #FFFFFF; font-size: 16px; font-weight: 800 }
+.map-badge { width: 40px; height: 40px; border-radius: 50%; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: var(--muted); flex-shrink: 0 }
+.map-badge svg { width: 20px; height: 20px }
+.map-badge.done { background: var(--success); color: #FFFFFF }
+.map-badge.play { width: 52px; height: 52px; background: var(--primary); color: #FFFFFF; box-shadow: 0 4px 0 var(--primary-d) }
+.map-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px }
+.map-chip { height: 72px; border-radius: 18px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 40px; line-height: 1; color: var(--muted) }
+.map-chip.learned { background: var(--success); color: #FFFFFF }
+.map-chip.learning { border: 4px solid var(--primary); color: var(--navy) }
+/* stickers */
+.sticker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding-bottom: 20px }
+.sticker-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px !important; border-radius: 28px; background: #FFFFFF !important; box-shadow: 0 5px 0 #CFE2F7; font-size: 18px }
+.sticker-slot b { font-weight: 800 }
+.sticker-slot.empty { background: rgba(255, 255, 255, 0.6) !important; box-shadow: none; color: var(--muted); font-weight: 700 }
+.sticker-slot:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 7px) }
+/* flow header */
+.flow-head { display: flex; align-items: center; gap: 12px }
+.practice-title { font-size: 22px; font-weight: 800 }
+.steps { flex: 1; display: flex; align-items: center }
+.step { height: 40px; min-width: 40px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0 }
+.step svg { width: 20px; height: 20px }
+.step.done { background: var(--success); color: #FFFFFF }
+.step.now { background: var(--primary); color: #FFFFFF; padding: 0 14px 0 6px }
+.step.now svg { width: 28px; height: 28px; padding: 5px; border-radius: 50%; background: #FFFFFF; color: var(--primary) }
+.step.now b { font-size: 16px; font-weight: 800 }
+.step.todo { background: #FFFFFF; color: var(--muted) }
+.step-line { flex: 1; height: 4px; background: #D5E2F0; border-radius: 2px }
+.step-line.done { background: var(--success) }
+/* lesson */
+.letter-card { position: relative; flex: 1; border-radius: 36px; border: 6px solid; display: flex; align-items: center; justify-content: center; min-height: 0 }
+.letter-name { position: absolute; left: 20px; top: 16px; font-size: 18px; display: flex; gap: 6px; align-items: baseline }
+.letter-name b { font-weight: 800 }
+.letter-name .ar { font-size: 22px; color: var(--muted) }
+.lesson-sound { position: absolute !important; right: 16px; top: 16px; width: 64px !important; height: 64px !important }
+.big-letter { font-size: 170px; line-height: 1.2; color: var(--navy) }
+.reader .big-letter { font-size: 140px }
+.word-card { display: flex; align-items: center; gap: 14px; padding: 10px 18px 10px 10px !important; border-radius: 28px; background: #FFFFFF !important; box-shadow: 0 5px 0 #CFE2F7; text-align: right }
+.word-pic { width: 104px; height: 104px; border-radius: 22px; background: var(--sky); display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
+.word-pic img { width: 84px; height: 84px; object-fit: contain }
+.word-text { flex: 1; display: flex; flex-direction: column; align-items: flex-end }
+.lesson-word { font-size: 48px; line-height: 1.3 }
+.meaning { font-size: 18px; font-weight: 700; color: var(--muted) }
+.shapes-card { border-radius: 26px; background: #FFFFFF; padding: 12px; display: flex; flex-direction: column; gap: 10px }
+.shapes-head { display: flex; justify-content: space-between; align-items: center; font-size: 18px }
+.shapes-head .ar { font-size: 22px }
+.reader-chip { padding: 2px 12px; border-radius: 999px; background: #E8E0FF; color: #4C2DB0; font-size: 16px; font-weight: 800 }
+.shapes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px }
+.shape { height: 84px; border-radius: 18px; background: #F4F7FB; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 36px; line-height: 1.2 }
+.shape.alone { background: #FFEDC4 }
+.shape small { font-family: var(--app-en); font-size: 16px; font-weight: 700; color: var(--muted) }
+.lesson-next { margin-bottom: 26px; flex-shrink: 0 }
+/* trace */
+.hint-bubble { display: flex; align-items: center; gap: 12px; padding: 8px 16px 8px 8px !important; border-radius: 28px; background: #FFFFFF !important; text-align: left; font-size: 18px; font-weight: 700; line-height: 1.25; min-height: 64px }
+.hint-bubble.ok { background: #DDF3E4 !important }
+.hint-ico { width: 48px; height: 48px; padding: 11px; border-radius: 50%; background: var(--sun); box-shadow: 0 4px 0 var(--sun-d); flex-shrink: 0 }
+.trace-card { flex: 1; position: relative; border-radius: 36px; background: #FFFFFF; box-shadow: 0 6px 0 #CFE2F7; overflow: hidden; min-height: 0; border: 5px solid #FFFFFF }
+.trace-card.done { border-color: var(--success); box-shadow: 0 6px 0 var(--success-d) }
+.trace-svg { width: 100%; height: 100%; touch-action: none }
+.tdot { fill: #FFFFFF; stroke: #13294B; stroke-width: 2 }
+.tdot.on { fill: var(--success); stroke: #FFFFFF }
+.tdot.later, .tarrow.later, .coin.later { opacity: 0.35 }
+.coin.next circle { animation: coin 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center }
+@keyframes coin { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.18) } }
+.done-badge { position: absolute; left: 0; right: 0; bottom: 18px; margin: 0 auto; width: max-content; display: flex; align-items: center; gap: 8px; padding: 6px 18px 6px 6px; border-radius: 999px; background: var(--success); color: #FFFFFF; font-size: 20px; font-weight: 800; z-index: 4; animation: hop 0.5s 0.3s ease-out both }
+.done-badge img { width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF }
+.done-badge .ar { font-size: 26px; line-height: 1 }
+.paints { display: flex; justify-content: space-between }
+.paint { width: 56px; height: 56px; border-radius: 50%; border: 5px solid #FFFFFF !important; box-shadow: 0 3px 0 #CFE2F7 }
+.paint.on { border-color: var(--navy) !important }
+.trace-foot { display: flex; gap: 12px; padding-bottom: 26px }
+.trace-foot .primary-btn { flex: 1 }
+/* quiz */
+.quiz-head { display: flex; align-items: center; justify-content: space-between }
+.qdots { display: flex; gap: 8px; align-items: center }
+.qdot { width: 14px; height: 14px; border-radius: 999px; background: #C9D6E6 }
+.qdot.now { width: 36px; background: var(--primary) }
+.qdot.done { background: var(--success) }
+.head-gap { width: 52px }
+.q-bubble { flex: 1; gap: 10px !important; padding-right: 10px !important }
+.q-ask { flex: 1; text-align: left; font-size: 20px; font-weight: 800; line-height: 1.15 }
+.q-letter { width: 52px; height: 52px; border-radius: 16px; background: #FFF4D6; border: 3px solid var(--sun); display: flex; align-items: center; justify-content: center; font-size: 34px; line-height: 1; color: #A35400 }
+.q-cards { flex: 1; display: grid; grid-auto-rows: 1fr; gap: 16px; min-height: 0 }
+.four .q-cards { grid-template-columns: 1fr 1fr }
+.q-card { position: relative; border-radius: 32px; background: #FFFFFF !important; box-shadow: 0 6px 0 #CFE2F7; display: flex; align-items: center; justify-content: center; gap: 12px; border: 6px solid transparent !important; min-height: 0 }
+.q-card img { width: 120px; height: 120px; object-fit: contain }
+.four .q-card img { width: 110px; height: 110px }
+.q-card.right { border-color: var(--success) !important; box-shadow: 0 6px 0 var(--success-d) }
+.q-card.dim { opacity: 0.45 }
+.q-card.faded { opacity: 0.5 }
+.q-word { font-size: 44px; line-height: 1.3 }
+.four .q-word { position: absolute; bottom: 4px; font-size: 30px }
+.four .q-card.right img { transform: translateY(-14px) }
+.q-star { position: absolute; right: -6px; top: -12px; animation: pop 0.5s cubic-bezier(.2, .9, .3, 1.4) both }
+@keyframes pop { from { transform: scale(0) rotate(-30deg) } to { transform: scale(1) rotate(0) } }
+.q-foot { min-height: 64px; display: flex; align-items: center; justify-content: center; padding-bottom: 26px; flex-shrink: 0 }
+.q-hint { margin: 0; height: 64px; width: 100%; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 700; color: var(--muted) }
+.q-hint svg { width: 24px; height: 24px }
+.almost { width: 100%; min-height: 64px; border-radius: 22px; background: var(--almost); color: var(--almost-ink); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 12px; text-align: center }
+.almost b { font-size: 20px; font-weight: 800 }
+.almost span { font-size: 16px; font-weight: 700 }
+.almost .ar { font-size: 20px }
+/* reward */
+.reward { align-items: center; overflow: hidden; padding-top: 26px }
+.reward-title { margin: 0; font-size: 34px; font-weight: 800; text-align: center; text-wrap: balance }
+.medal { position: relative; width: 250px; height: 250px; display: flex !important; align-items: center; justify-content: center; flex-shrink: 0 }
+.rays { position: absolute; inset: 0; border-radius: 50%; background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--ray) 35%, transparent) 0 12deg, transparent 12deg 30deg); animation: spin 18s linear infinite }
+@keyframes spin { to { transform: rotate(360deg) } }
+.medal .sticker { position: relative; animation: pop 0.7s cubic-bezier(.2, .9, .3, 1.4) both }
+.new-chip { position: absolute; bottom: 18px; padding: 4px 14px; border-radius: 999px; background: var(--navy); color: #FFFFFF; font-size: 16px; font-weight: 800; letter-spacing: 0.04em }
+.reward-letters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100% }
+.reward-letter { height: 96px; border-radius: 22px; background: #FFFFFF; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 32px; line-height: 1.2 }
+.reward-letter img { width: 40px; height: 40px; object-fit: contain }
+.reward-sub { margin: 0; font-size: 16px; font-weight: 700; color: var(--muted) }
+.unlock-card { width: 100%; display: flex; align-items: center; gap: 14px; padding: 12px 16px 12px 12px; border-radius: 28px; border: 4px solid }
+.unlock-pic { width: 72px; height: 72px; border-radius: 20px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
+.unlock-pic img { width: 56px; height: 56px; object-fit: contain }
+.unlock-text { flex: 1; display: flex; flex-direction: column }
+.unlock-text small { font-size: 14px; font-weight: 800; letter-spacing: 0.06em }
+.unlock-text b { font-size: 22px; font-weight: 800 }
+.unlock-ar { font-size: 24px; color: var(--muted) }
+.reward-foot { margin-top: auto; width: 100%; display: flex; gap: 12px; padding-bottom: 26px }
+.reward-foot .primary-btn { flex: 1 }
+.reward-foot .square-btn { border-color: #F0CF6A !important; color: #A35400 }
+.confetti { position: absolute; top: -20px; width: 12px; height: 22px; border-radius: 4px; animation: fall 3.4s linear infinite }
+@keyframes fall { 0% { transform: translateY(0) rotate(0) } 100% { transform: translateY(900px) rotate(540deg) } }
+/* gate */
+.gate-wrap { height: 100%; background: #13294B; color: #FFFFFF; display: flex; flex-direction: column; padding: 18px 24px 30px }
+.back-to-play { display: flex; align-items: center; gap: 16px; height: 84px; padding: 0 14px !important; border-radius: 28px; background: #FFFFFF !important; color: var(--navy) !important; box-shadow: 0 6px 0 #0A1A33; font-size: 22px }
+.back-to-play b { flex: 1; text-align: left; font-weight: 800 }
+.btp-ico { width: 56px; height: 56px; border-radius: 50%; background: var(--sky); color: var(--primary); display: flex; align-items: center; justify-content: center }
+.btp-ico svg { width: 30px; height: 30px }
+.back-to-play img { width: 56px; height: 56px }
+.gate-body { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding-top: 50px }
+.gate-chip { padding: 4px 14px; border-radius: 999px; background: #1F3C68; color: #A9CBF2; font-size: 15px; font-weight: 800; letter-spacing: 0.06em }
+.gate-body h1 { margin: 6px 0 0; font-size: 28px; font-weight: 800 }
+.gate-body p { margin: 0; font-size: 17px; font-weight: 600; color: #C9DBF2; max-width: 290px }
+.hold { position: relative; width: 220px; height: 220px; margin-top: 40px; touch-action: none }
+.hold > svg { position: absolute; inset: 0; width: 220px; height: 220px }
+.hold-track { fill: #1F3C68; stroke: #2B4F86; stroke-width: 14 }
+.hold-ring { fill: none; stroke: var(--sun); stroke-width: 14; stroke-linecap: round; stroke-dasharray: 100 100; stroke-dashoffset: 100; transform: rotate(-90deg); transform-origin: 110px 110px }
+.hold-pad { position: absolute; inset: 36px; border-radius: 50%; background: var(--sun); box-shadow: 0 7px 0 var(--sun-d); color: var(--navy); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px }
+.hold-pad svg { width: 44px; height: 44px }
+.hold-pad b { font-size: 18px; font-weight: 800 }
+.gate-actions { width: 100%; display: flex; flex-direction: column; gap: 14px; margin-top: 40px }
+.ghost-btn { height: 56px; border-radius: 20px; border: 2px solid #3A5A8C !important; color: #C9DBF2 !important; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px }
+.ghost-btn svg { width: 22px; height: 22px }
+.gate-foot { margin: 0; text-align: center; font-size: 16px; font-weight: 600; color: #8FA9CC; min-height: 22px }
+/* zone */
+.zone-wrap { height: 100%; overflow-y: auto; background: var(--parent-bg); padding: 18px 18px 30px; display: flex; flex-direction: column; gap: 14px }
+.zone-head { display: flex; align-items: center; gap: 10px }
+.zone-head h1 { margin: 0; flex: 1; font-size: 26px; font-weight: 800 }
+.zone-head .round-btn { display: none }
+.btn-small { height: 48px; padding: 0 14px !important; border-radius: 14px; background: var(--primary) !important; color: #FFFFFF !important; display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 800; flex-shrink: 0 }
+.btn-small svg { width: 20px; height: 20px }
+.btn-small.ghost { background: #FFFFFF !important; color: var(--primary-d) !important; border: 1px solid #A9CBF2 !important }
+.btn-small.warn { background: #A3361A !important }
+.z-card { background: #FFFFFF; border-radius: 22px; border: 1px solid #D5E2F0; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px }
+.z-card h2 { margin: 0; font-size: 20px; font-weight: 800 }
+.z-card.list { padding-top: 6px; padding-bottom: 6px; gap: 0 }
+.z-card.list h2 { padding-top: 8px }
+.z-sub { font-size: 16px; font-weight: 600; color: var(--muted); margin-top: -8px }
+.z-text { flex: 1; display: flex; flex-direction: column; min-width: 0 }
+.z-text b { font-size: 18px; font-weight: 800; line-height: 1.2 }
+.z-text b em { font-style: normal; font-weight: 600; color: var(--muted) }
+.z-text > span { font-size: 16px; font-weight: 600; color: var(--muted); line-height: 1.25 }
+.z-text .ar { font-size: 20px; color: var(--navy) }
+.z-text small { font-size: 16px; color: var(--muted); line-height: 1.25; margin-top: 2px }
+.z-text small.soon { color: #8A5A00 }
+.child-row { display: flex; align-items: center; gap: 12px }
+.z-bar { height: 12px; border-radius: 999px; background: #E3ECF7; overflow: hidden; display: flex }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 16px; font-weight: 700; color: var(--muted) }
+.legend span { display: flex; align-items: center; gap: 6px }
+.lg { width: 14px; height: 14px; border-radius: 4px; display: inline-block }
+.lg.learned { background: var(--success) } .lg.learning { background: #FFFFFF; border: 3px solid var(--primary) } .lg.togo { background: #E3ECF7 }
+.z-note { margin: 0; font-size: 16px; color: var(--muted) }
+.z-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px }
+.z-letter { height: 42px; border-radius: 12px; background: #EEF3F9; display: flex; align-items: center; justify-content: center; font-size: 24px; line-height: 1 }
+.z-letter.learned { background: var(--success); color: #FFFFFF }
+.z-letter.learning { background: #FFFFFF; border: 3px solid var(--primary) }
+.mode { display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 10px 14px !important; border-radius: 18px; border: 2px solid #E3ECF7 !important; text-align: left }
+.mode.on { border-color: var(--primary) !important; background: #EEF5FF !important }
+.radio { width: 26px; height: 26px; border-radius: 50%; border: 3px solid #9AAAC0; display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
+.radio span { width: 12px; height: 12px; border-radius: 50% }
+.mode.on .radio { border-color: var(--primary) } .mode.on .radio span { background: var(--primary) }
+.z-row { display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 8px 0; border-bottom: 1px solid #EEF3F9 }
+.z-row:last-child { border-bottom: none }
+.switch { width: 60px; height: 36px; border-radius: 999px; background: #9AAAC0 !important; position: relative; flex-shrink: 0 }
+.switch span { position: absolute; top: 4px; left: 4px; width: 28px; height: 28px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(19, 41, 75, 0.3); transition: left 0.15s }
+.switch.on { background: var(--success) !important } .switch.on span { left: 28px }
+.switch:disabled { opacity: 0.45; cursor: default }
+.stepper { display: flex; align-items: center; gap: 6px; flex-shrink: 0 }
+.stepper b { min-width: 64px; text-align: center; font-size: 18px; font-weight: 800 }
+.step-btn { width: 48px; height: 48px; border-radius: 14px; border: 1px solid #A9CBF2 !important; background: #FFFFFF !important; color: var(--primary-d); display: flex; align-items: center; justify-content: center }
+.step-btn svg { width: 22px; height: 22px }
+.step-btn:disabled { opacity: 0.4 }
+.confirm { display: flex; flex-direction: column; gap: 6px; padding: 12px 0 }
+.confirm b { font-size: 18px } .confirm span { font-size: 16px; color: var(--muted) }
+.confirm-btns { display: flex; gap: 10px; justify-content: flex-end }
+.trust { margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 700; color: var(--muted) }
+.trust svg { width: 20px; height: 20px; color: var(--success) }
+/* rest */
+.rest-wrap { height: 100%; background: linear-gradient(#24345E, #3A4F86); color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; position: relative; text-align: center; padding: 24px }
+.rest-wrap .parent-lock { background: rgba(255, 255, 255, 0.14) !important; color: #C9DBF2 }
+.moon { position: absolute; left: 34px; top: 70px; width: 64px; height: 64px; color: #FFE07A }
+.moon svg { width: 64px; height: 64px; fill: #FFE07A }
+.rest-stars { position: absolute; right: 70px; top: 130px; display: flex; gap: 22px; opacity: 0.9 }
+.rest-leo { width: 200px; height: 200px; object-fit: contain; filter: saturate(0.85) }
+.rest-ar { font-size: 48px; line-height: 1.5 }
+.rest-wrap p { margin: 0; font-size: 20px; font-weight: 700; color: #C9DBF2 }
+.closed-wrap { height: 100%; background: #0A1A33; color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 30px; text-align: center; font-size: 20px; font-weight: 700 }
+.closed-wrap p { margin: 0 } .closed-wrap .muted { font-size: 16px; color: #8FA9CC }
+
+</style>
+</head>
+<body>
+<div id="shell">
+  <aside class="side" aria-label="Screens">
+    <div class="brand"><b>Huroofi</b><span class="ar" dir="rtl">حروفي</span></div>
+    <p class="brand-sub">Interactive prototype for review. Tap through it like the app; nothing here is final until approved.</p>
+    <div class="view-tabs" role="group" aria-label="View">
+      <button type="button" data-view="screens" aria-pressed="true">Screens</button>
+      <button type="button" data-view="ds" aria-pressed="false">Design system</button>
+    </div>
+    <nav id="screen-list" class="screen-list-wrap"></nav>
+  </aside>
+  <main class="stage-col">
+    <div id="stage-screens" class="stage-screens">
+      <div class="feedback" aria-live="polite"><div id="caption"><span class="cap-label">Sound</span><span class="then">Spoken clips show here (audio comes from the app’s recordings).</span></div><span id="buzz">Buzz</span></div>
+      <div id="stage"><div id="device-holder"><div id="device"><div id="screen" class="screen"></div></div></div></div>
+      <p id="device-note" hidden>Only Toddler Find has a tablet layout. Other screens use the phone layout, centred.</p>
+    </div>
+    <div id="ds" hidden></div>
+  </main>
+  <aside class="notes">
+    <div id="notes"></div>
+    <h2 style="margin-top:18px;font-size:18px">Try it as</h2>
+    <div class="ctl">
+      <label>Mode<select id="ctl-mode"><option value="toddler">Toddler · 18m–3y</option><option value="preschool">Preschool · 3–5y</option><option value="reader">Early reader · 5y+</option></select></label>
+      <label>Progress<select id="ctl-progress"></select></label>
+      <p id="progress-line"></p>
+      <label>Device<select id="ctl-device"><option value="phone">Phone</option><option value="tablet">Tablet</option></select></label>
+      <label class="check"><input type="checkbox" id="ctl-time"> Daily play time used up</label>
+      <label class="check"><input type="checkbox" id="ctl-calm"> Calm motion (Remove animations)</label>
+      <div class="ctl-btns"><button type="button" id="ctl-back">◀ System Back</button><button type="button" id="ctl-reset">Reset</button></div>
+    </div>
+  </aside>
+</div>
+<script>
+const DATA = {"letters":[{"index":1,"letter":"أ","name_ar":"ألف","name_latin":"alif","word_ar":"أسد","word_first":"أ","word_rest":"سد","meaning_en":"lion","picture":"lion","toddler_word":true,"stage":1,"card_image":"assets/cards/01_alif_lion.png","audio":{"letter":"audio/letters/01_alif.mp3","word":"audio/words/01_lion.mp3"}},{"index":2,"letter":"ب","name_ar":"باء","name_latin":"baa","word_ar":"بطة","word_first":"ب","word_rest":"طة","meaning_en":"duck","picture":"duck","toddler_word":true,"stage":1,"card_image":"assets/cards/02_baa_duck.png","audio":{"letter":"audio/letters/02_baa.mp3","word":"audio/words/02_duck.mp3"}},{"index":3,"letter":"ت","name_ar":"تاء","name_latin":"taa","word_ar":"تفاح","word_first":"ت","word_rest":"فاح","meaning_en":"apple","picture":"apple","toddler_word":true,"stage":1,"card_image":"assets/cards/03_taa_apple.png","audio":{"letter":"audio/letters/03_taa.mp3","word":"audio/words/03_apple.mp3"}},{"index":4,"letter":"ث","name_ar":"ثاء","name_latin":"thaa","word_ar":"ثعلب","word_first":"ث","word_rest":"علب","meaning_en":"fox","picture":"fox","toddler_word":true,"stage":1,"card_image":"assets/cards/04_thaa_fox.png","audio":{"letter":"audio/letters/04_thaa.mp3","word":"audio/words/04_fox.mp3"}},{"index":5,"letter":"ج","name_ar":"جيم","name_latin":"jiim","word_ar":"جزر","word_first":"ج","word_rest":"زر","meaning_en":"carrot","picture":"carrot","toddler_word":true,"stage":2,"card_image":"assets/cards/05_jiim_carrot.png","audio":{"letter":"audio/letters/05_jiim.mp3","word":"audio/words/05_carrot.mp3"}},{"index":6,"letter":"ح","name_ar":"حاء","name_latin":"ḥaa","word_ar":"حصان","word_first":"ح","word_rest":"صان","meaning_en":"horse","picture":"horse","toddler_word":true,"stage":2,"card_image":"assets/cards/06_haa_horse.png","audio":{"letter":"audio/letters/06_haa.mp3","word":"audio/words/06_horse.mp3"}},{"index":7,"letter":"خ","name_ar":"خاء","name_latin":"khaa","word_ar":"خروف","word_first":"خ","word_rest":"روف","meaning_en":"sheep","picture":"sheep","toddler_word":true,"stage":2,"card_image":"assets/cards/07_khaa_sheep.png","audio":{"letter":"audio/letters/07_khaa.mp3","word":"audio/words/07_sheep.mp3"}},{"index":8,"letter":"د","name_ar":"دال","name_latin":"daal","word_ar":"دجاجة","word_first":"د","word_rest":"جاجة","meaning_en":"hen","picture":"hen","toddler_word":true,"stage":2,"card_image":"assets/cards/08_daal_hen.png","audio":{"letter":"audio/letters/08_daal.mp3","word":"audio/words/08_hen.mp3"}},{"index":9,"letter":"ذ","name_ar":"ذال","name_latin":"dhaal","word_ar":"ذرة","word_first":"ذ","word_rest":"رة","meaning_en":"corn","picture":"corn","toddler_word":true,"stage":3,"card_image":"assets/cards/09_dhaal_corn.png","audio":{"letter":"audio/letters/09_dhaal.mp3","word":"audio/words/09_corn.mp3"}},{"index":10,"letter":"ر","name_ar":"راء","name_latin":"raa","word_ar":"ريشة","word_first":"ر","word_rest":"يشة","meaning_en":"feather","picture":"feather","toddler_word":false,"stage":3,"card_image":"assets/cards/10_raa_feather.png","audio":{"letter":"audio/letters/10_raa.mp3","word":"audio/words/10_feather.mp3"}},{"index":11,"letter":"ز","name_ar":"زاي","name_latin":"zaay","word_ar":"زهرة","word_first":"ز","word_rest":"هرة","meaning_en":"flower","picture":"flower","toddler_word":true,"stage":3,"card_image":"assets/cards/11_zaay_flower.png","audio":{"letter":"audio/letters/11_zaay.mp3","word":"audio/words/11_flower.mp3"}},{"index":12,"letter":"س","name_ar":"سين","name_latin":"siin","word_ar":"ساعة","word_first":"س","word_rest":"اعة","meaning_en":"clock","picture":"clock","toddler_word":false,"stage":3,"card_image":"assets/cards/12_siin_clock.png","audio":{"letter":"audio/letters/12_siin.mp3","word":"audio/words/12_clock.mp3"}},{"index":13,"letter":"ش","name_ar":"شين","name_latin":"shiin","word_ar":"شجرة","word_first":"ش","word_rest":"جرة","meaning_en":"tree","picture":"tree","toddler_word":true,"stage":4,"card_image":"assets/cards/13_shiin_tree.png","audio":{"letter":"audio/letters/13_shiin.mp3","word":"audio/words/13_tree.mp3"}},{"index":14,"letter":"ص","name_ar":"صاد","name_latin":"ṣaad","word_ar":"صاروخ","word_first":"ص","word_rest":"اروخ","meaning_en":"rocket","picture":"rocket","toddler_word":false,"stage":4,"card_image":"assets/cards/14_saad_rocket.png","audio":{"letter":"audio/letters/14_saad.mp3","word":"audio/words/14_rocket.mp3"}},{"index":15,"letter":"ض","name_ar":"ضاد","name_latin":"ḍaad","word_ar":"ضفدع","word_first":"ض","word_rest":"فدع","meaning_en":"frog","picture":"frog","toddler_word":true,"stage":4,"card_image":"assets/cards/15_daad_frog.png","audio":{"letter":"audio/letters/15_daad.mp3","word":"audio/words/15_frog.mp3"}},{"index":16,"letter":"ط","name_ar":"طاء","name_latin":"ṭaa","word_ar":"طائرة","word_first":"ط","word_rest":"ائرة","meaning_en":"airplane","picture":"plane","toddler_word":true,"stage":4,"card_image":"assets/cards/16_taa_plane.png","audio":{"letter":"audio/letters/16_taa.mp3","word":"audio/words/16_plane.mp3"}},{"index":17,"letter":"ظ","name_ar":"ظاء","name_latin":"ẓaa","word_ar":"ظرف","word_first":"ظ","word_rest":"رف","meaning_en":"envelope","picture":"envelope","toddler_word":false,"stage":5,"card_image":"assets/cards/17_zaa_envelope.png","audio":{"letter":"audio/letters/17_zaa.mp3","word":"audio/words/17_envelope.mp3"}},{"index":18,"letter":"ع","name_ar":"عين","name_latin":"ʿayn","word_ar":"عصفور","word_first":"ع","word_rest":"صفور","meaning_en":"sparrow","picture":"bird","toddler_word":true,"stage":5,"card_image":"assets/cards/18_ayn_bird.png","audio":{"letter":"audio/letters/18_ayn.mp3","word":"audio/words/18_bird.mp3"}},{"index":19,"letter":"غ","name_ar":"غين","name_latin":"ghayn","word_ar":"غسالة","word_first":"غ","word_rest":"سالة","meaning_en":"washing machine","picture":"washer","toddler_word":false,"stage":5,"card_image":"assets/cards/19_ghayn_washer.png","audio":{"letter":"audio/letters/19_ghayn.mp3","word":"audio/words/19_washer.mp3"}},{"index":20,"letter":"ف","name_ar":"فاء","name_latin":"faa","word_ar":"فراولة","word_first":"ف","word_rest":"راولة","meaning_en":"strawberry","picture":"strawberry","toddler_word":true,"stage":5,"card_image":"assets/cards/20_faa_strawberry.png","audio":{"letter":"audio/letters/20_faa.mp3","word":"audio/words/20_strawberry.mp3"}},{"index":21,"letter":"ق","name_ar":"قاف","name_latin":"qaaf","word_ar":"قلم","word_first":"ق","word_rest":"لم","meaning_en":"pencil","picture":"pencil","toddler_word":false,"stage":6,"card_image":"assets/cards/21_qaaf_pencil.png","audio":{"letter":"audio/letters/21_qaaf.mp3","word":"audio/words/21_pencil.mp3"}},{"index":22,"letter":"ك","name_ar":"كاف","name_latin":"kaaf","word_ar":"كرة","word_first":"ك","word_rest":"رة","meaning_en":"ball","picture":"ball","toddler_word":true,"stage":6,"card_image":"assets/cards/22_kaaf_ball.png","audio":{"letter":"audio/letters/22_kaaf.mp3","word":"audio/words/22_ball.mp3"}},{"index":23,"letter":"ل","name_ar":"لام","name_latin":"laam","word_ar":"ليمون","word_first":"ل","word_rest":"يمون","meaning_en":"lemon","picture":"lemon","toddler_word":true,"stage":6,"card_image":"assets/cards/23_laam_lemon.png","audio":{"letter":"audio/letters/23_laam.mp3","word":"audio/words/23_lemon.mp3"}},{"index":24,"letter":"م","name_ar":"ميم","name_latin":"miim","word_ar":"موز","word_first":"م","word_rest":"وز","meaning_en":"banana","picture":"banana","toddler_word":true,"stage":6,"card_image":"assets/cards/24_miim_banana.png","audio":{"letter":"audio/letters/24_miim.mp3","word":"audio/words/24_banana.mp3"}},{"index":25,"letter":"ن","name_ar":"نون","name_latin":"nuun","word_ar":"نجمة","word_first":"ن","word_rest":"جمة","meaning_en":"star","picture":"star","toddler_word":true,"stage":7,"card_image":"assets/cards/25_nuun_star.png","audio":{"letter":"audio/letters/25_nuun.mp3","word":"audio/words/25_star.mp3"}},{"index":26,"letter":"ه","name_ar":"هاء","name_latin":"haa","word_ar":"هرم","word_first":"ه","word_rest":"رم","meaning_en":"pyramid","picture":"pyramid","toddler_word":false,"stage":7,"card_image":"assets/cards/26_haa_pyramid.png","audio":{"letter":"audio/letters/26_haa.mp3","word":"audio/words/26_pyramid.mp3"}},{"index":27,"letter":"و","name_ar":"واو","name_latin":"waaw","word_ar":"وجه","word_first":"و","word_rest":"جه","meaning_en":"face","picture":"face","toddler_word":true,"stage":7,"card_image":"assets/cards/27_waaw_face.png","audio":{"letter":"audio/letters/27_waaw.mp3","word":"audio/words/27_face.mp3"}},{"index":28,"letter":"ي","name_ar":"ياء","name_latin":"yaa","word_ar":"يد","word_first":"ي","word_rest":"د","meaning_en":"hand","picture":"hand","toddler_word":true,"stage":7,"card_image":"assets/cards/28_yaa_hand.png","audio":{"letter":"audio/letters/28_yaa.mp3","word":"audio/words/28_hand.mp3"}}],"stages":[{"stage":1,"name":"Sunny Meadow","letters":["أ","ب","ت","ث"],"border":"#F59E0B","pastel":"#FFEDC4","accent_dark":"#A35400"},{"stage":2,"name":"Carrot Farm","letters":["ج","ح","خ","د"],"border":"#EC4F8C","pastel":"#FFDDEA","accent_dark":"#B0185A"},{"stage":3,"name":"Flower Hill","letters":["ذ","ر","ز","س"],"border":"#14A88E","pastel":"#D2F4EC","accent_dark":"#00695C"},{"stage":4,"name":"Rocket Base","letters":["ش","ص","ض","ط"],"border":"#7C5CE0","pastel":"#E8E0FF","accent_dark":"#4C2DB0"},{"stage":5,"name":"Birdy Forest","letters":["ظ","ع","غ","ف"],"border":"#2F80ED","pastel":"#DAEAFF","accent_dark":"#0B4FB0"},{"stage":6,"name":"Pencil Town","letters":["ق","ك","ل","م"],"border":"#4CAF3A","pastel":"#DFF5D5","accent_dark":"#1F6E1A"},{"stage":7,"name":"Star Castle","letters":["ن","ه","و","ي"],"border":"#F07D2A","pastel":"#FFE2D7","accent_dark":"#9C430A"}],"strokes":{"letters":[{"index":1,"strokes":[{"order":1,"dot":false,"points":[[0.551,0.338],[0.5,0.37],[0.47,0.421],[0.462,0.48],[0.475,0.539],[0.489,0.598],[0.502,0.658],[0.514,0.717],[0.525,0.777],[0.526,0.838],[0.533,0.899],[0.538,0.959]]},{"order":2,"dot":false,"points":[[0.603,0.041],[0.542,0.036],[0.482,0.038],[0.421,0.041],[0.361,0.045],[0.301,0.05],[0.241,0.06],[0.183,0.076],[0.2,0.096],[0.25,0.119],[0.31,0.124],[0.369,0.137],[0.429,0.146],[0.489,0.145],[0.55,0.143],[0.61,0.143],[0.671,0.141],[0.731,0.141],[0.791,0.134],[0.851,0.127],[0.884,0.12],[0.825,0.131],[0.765,0.139],[0.704,0.141],[0.644,0.143],[0.583,0.143],[0.523,0.145],[0.462,0.145],[0.403,0.152],[0.344,0.165],[0.283,0.17],[0.223,0.175],[0.163,0.18],[0.103,0.184]]}]},{"index":2,"strokes":[{"order":1,"dot":false,"points":[[0.915,0.069],[0.901,0.127],[0.902,0.185],[0.921,0.241],[0.939,0.297],[0.95,0.355],[0.94,0.413],[0.906,0.461],[0.855,0.49],[0.799,0.51],[0.742,0.528],[0.685,0.542],[0.626,0.552],[0.568,0.561],[0.509,0.566],[0.45,0.57],[0.39,0.572],[0.331,0.569],[0.272,0.561],[0.215,0.545],[0.161,0.522],[0.114,0.486],[0.077,0.44],[0.056,0.385],[0.048,0.326],[0.054,0.267],[0.061,0.208]]},{"order":2,"dot":true,"points":[[0.464,0.889]]}]},{"index":3,"strokes":[{"order":1,"dot":false,"points":[[0.921,0.157],[0.909,0.216],[0.899,0.276],[0.9,0.336],[0.914,0.395],[0.928,0.453],[0.943,0.512],[0.952,0.572],[0.948,0.632],[0.928,0.689],[0.891,0.737],[0.841,0.771],[0.787,0.797],[0.73,0.818],[0.672,0.836],[0.613,0.85],[0.554,0.861],[0.494,0.869],[0.434,0.874],[0.373,0.876],[0.313,0.869],[0.255,0.854],[0.199,0.831],[0.149,0.797],[0.109,0.752],[0.079,0.699],[0.06,0.642],[0.05,0.582],[0.048,0.522],[0.053,0.461],[0.058,0.401]]},{"order":2,"dot":true,"points":[[0.541,0.135]]},{"order":3,"dot":true,"points":[[0.338,0.165]]}]},{"index":4,"strokes":[{"order":1,"dot":false,"points":[[0.924,0.248],[0.91,0.306],[0.899,0.365],[0.904,0.423],[0.919,0.481],[0.934,0.538],[0.949,0.596],[0.95,0.655],[0.936,0.713],[0.9,0.76],[0.851,0.793],[0.796,0.817],[0.74,0.836],[0.683,0.853],[0.625,0.866],[0.566,0.876],[0.507,0.883],[0.447,0.887],[0.388,0.891],[0.329,0.887],[0.27,0.876],[0.214,0.857],[0.161,0.829],[0.116,0.79],[0.083,0.741],[0.061,0.686],[0.05,0.627],[0.05,0.568],[0.055,0.508],[0.061,0.449]]},{"order":2,"dot":true,"points":[[0.55,0.243]]},{"order":3,"dot":true,"points":[[0.339,0.269]]},{"order":4,"dot":true,"points":[[0.44,0.103]]}]},{"index":5,"strokes":[{"order":1,"dot":false,"points":[[0.064,0.144],[0.115,0.111],[0.173,0.095],[0.232,0.087],[0.292,0.092],[0.352,0.098],[0.411,0.111],[0.469,0.126],[0.527,0.143],[0.576,0.175],[0.636,0.18],[0.696,0.183],[0.757,0.184],[0.817,0.181],[0.872,0.159],[0.887,0.153],[0.832,0.178],[0.772,0.184],[0.712,0.184],[0.652,0.181],[0.592,0.178],[0.537,0.202],[0.498,0.248],[0.445,0.276],[0.39,0.301],[0.338,0.331],[0.287,0.363],[0.239,0.399],[0.196,0.441],[0.158,0.488],[0.13,0.541],[0.115,0.599],[0.111,0.659],[0.123,0.718],[0.151,0.771],[0.192,0.814],[0.242,0.848],[0.297,0.873],[0.354,0.892],[0.413,0.904],[0.473,0.911],[0.533,0.91],[0.593,0.904],[0.652,0.895],[0.712,0.886],[0.771,0.873],[0.83,0.86],[0.888,0.846],[0.946,0.83]]},{"order":2,"dot":true,"points":[[0.561,0.581]]}]},{"index":6,"strokes":[{"order":1,"dot":false,"points":[[0.064,0.144],[0.115,0.111],[0.173,0.095],[0.232,0.087],[0.292,0.092],[0.352,0.098],[0.411,0.111],[0.469,0.126],[0.527,0.143],[0.576,0.175],[0.636,0.18],[0.696,0.183],[0.757,0.184],[0.817,0.181],[0.872,0.159],[0.887,0.153],[0.832,0.178],[0.772,0.184],[0.712,0.184],[0.652,0.181],[0.592,0.178],[0.537,0.202],[0.498,0.248],[0.445,0.276],[0.39,0.301],[0.338,0.331],[0.287,0.363],[0.239,0.399],[0.196,0.441],[0.158,0.488],[0.13,0.541],[0.115,0.599],[0.111,0.659],[0.123,0.718],[0.151,0.771],[0.192,0.814],[0.242,0.848],[0.297,0.873],[0.354,0.892],[0.413,0.904],[0.473,0.911],[0.533,0.91],[0.593,0.904],[0.652,0.895],[0.712,0.886],[0.771,0.873],[0.83,0.86],[0.888,0.846],[0.946,0.83]]}]},{"index":7,"strokes":[{"order":1,"dot":false,"points":[[0.064,0.341],[0.118,0.315],[0.177,0.303],[0.237,0.297],[0.297,0.301],[0.356,0.306],[0.416,0.316],[0.474,0.328],[0.532,0.344],[0.586,0.367],[0.646,0.369],[0.706,0.372],[0.766,0.372],[0.826,0.369],[0.882,0.349],[0.882,0.349],[0.825,0.368],[0.766,0.372],[0.705,0.372],[0.645,0.369],[0.585,0.367],[0.532,0.391],[0.485,0.429],[0.428,0.448],[0.372,0.469],[0.317,0.494],[0.264,0.522],[0.214,0.554],[0.169,0.595],[0.133,0.642],[0.113,0.698],[0.114,0.758],[0.14,0.812],[0.185,0.851],[0.237,0.881],[0.294,0.902],[0.352,0.916],[0.411,0.926],[0.471,0.931],[0.531,0.931],[0.591,0.926],[0.65,0.919],[0.71,0.913],[0.769,0.903],[0.829,0.893],[0.888,0.882],[0.946,0.869]]},{"order":2,"dot":true,"points":[[0.479,0.083]]}]},{"index":8,"strokes":[{"order":1,"dot":false,"points":[[0.697,0.072],[0.678,0.129],[0.668,0.189],[0.676,0.245],[0.707,0.297],[0.738,0.349],[0.772,0.398],[0.804,0.45],[0.835,0.501],[0.865,0.554],[0.893,0.607],[0.904,0.666],[0.892,0.724],[0.857,0.772],[0.808,0.808],[0.753,0.827],[0.694,0.84],[0.634,0.848],[0.574,0.853],[0.514,0.857],[0.454,0.861],[0.394,0.865],[0.334,0.861],[0.274,0.856],[0.215,0.843],[0.157,0.825]]}]},{"index":9,"strokes":[{"order":1,"dot":false,"points":[[0.697,0.371],[0.673,0.425],[0.669,0.481],[0.708,0.526],[0.748,0.569],[0.789,0.611],[0.829,0.655],[0.867,0.7],[0.899,0.749],[0.895,0.805],[0.855,0.847],[0.801,0.872],[0.744,0.884],[0.686,0.892],[0.627,0.897],[0.568,0.901],[0.509,0.904],[0.45,0.906],[0.391,0.909],[0.332,0.906],[0.273,0.902],[0.215,0.893],[0.157,0.881]]},{"order":2,"dot":true,"points":[[0.532,0.116]]}]},{"index":10,"strokes":[{"order":1,"dot":false,"points":[[0.765,0.042],[0.738,0.095],[0.719,0.153],[0.727,0.21],[0.76,0.26],[0.795,0.309],[0.831,0.358],[0.866,0.407],[0.898,0.458],[0.919,0.514],[0.918,0.574],[0.901,0.632],[0.869,0.683],[0.83,0.729],[0.785,0.769],[0.735,0.803],[0.682,0.831],[0.626,0.853],[0.568,0.872],[0.509,0.884],[0.45,0.893],[0.389,0.893],[0.33,0.885],[0.27,0.876],[0.21,0.867],[0.151,0.854],[0.093,0.84]]}]},{"index":11,"strokes":[{"order":1,"dot":false,"points":[[0.77,0.289],[0.737,0.34],[0.716,0.397],[0.748,0.445],[0.79,0.489],[0.833,0.532],[0.875,0.576],[0.905,0.627],[0.918,0.686],[0.893,0.741],[0.85,0.785],[0.802,0.821],[0.749,0.85],[0.692,0.873],[0.634,0.891],[0.575,0.905],[0.515,0.915],[0.455,0.922],[0.394,0.922],[0.333,0.917],[0.273,0.91],[0.213,0.903],[0.153,0.894],[0.093,0.883]]},{"order":2,"dot":true,"points":[[0.63,0.096]]}]},{"index":12,"strokes":[{"order":1,"dot":false,"points":[[0.94,0.06],[0.93,0.119],[0.925,0.178],[0.937,0.237],[0.949,0.296],[0.962,0.354],[0.965,0.414],[0.946,0.47],[0.901,0.507],[0.843,0.497],[0.788,0.475],[0.742,0.44],[0.715,0.387],[0.707,0.33],[0.718,0.271],[0.729,0.23],[0.714,0.288],[0.705,0.347],[0.699,0.407],[0.694,0.455],[0.643,0.487],[0.586,0.503],[0.529,0.498],[0.483,0.46],[0.442,0.418],[0.435,0.359],[0.443,0.299],[0.453,0.249],[0.441,0.308],[0.434,0.367],[0.443,0.426],[0.461,0.482],[0.473,0.538],[0.478,0.598],[0.48,0.657],[0.469,0.716],[0.441,0.768],[0.403,0.815],[0.357,0.853],[0.304,0.88],[0.246,0.896],[0.187,0.9],[0.129,0.883],[0.082,0.848],[0.053,0.796],[0.037,0.738],[0.03,0.679],[0.032,0.619],[0.036,0.559],[0.043,0.5]]}]},{"index":13,"strokes":[{"order":1,"dot":false,"points":[[0.938,0.289],[0.927,0.348],[0.934,0.408],[0.95,0.466],[0.964,0.525],[0.952,0.582],[0.91,0.624],[0.85,0.618],[0.792,0.602],[0.743,0.572],[0.715,0.519],[0.713,0.461],[0.728,0.416],[0.71,0.474],[0.701,0.533],[0.696,0.584],[0.641,0.61],[0.582,0.622],[0.525,0.615],[0.475,0.581],[0.438,0.538],[0.441,0.478],[0.452,0.431],[0.438,0.49],[0.439,0.55],[0.461,0.605],[0.473,0.662],[0.48,0.722],[0.467,0.781],[0.434,0.831],[0.388,0.87],[0.335,0.898],[0.277,0.915],[0.217,0.924],[0.157,0.919],[0.101,0.898],[0.059,0.855],[0.037,0.799],[0.03,0.739],[0.035,0.679],[0.043,0.619]]},{"order":2,"dot":true,"points":[[0.781,0.16]]},{"order":3,"dot":true,"points":[[0.633,0.178]]},{"order":4,"dot":true,"points":[[0.704,0.068]]}]},{"index":14,"strokes":[{"order":1,"dot":false,"points":[[0.525,0.431],[0.544,0.374],[0.573,0.321],[0.604,0.27],[0.638,0.22],[0.675,0.172],[0.72,0.132],[0.773,0.105],[0.831,0.108],[0.88,0.143],[0.918,0.19],[0.949,0.241],[0.969,0.297],[0.96,0.357],[0.93,0.408],[0.886,0.449],[0.836,0.483],[0.78,0.506],[0.721,0.519],[0.662,0.526],[0.601,0.523],[0.542,0.512],[0.487,0.492],[0.52,0.444],[0.497,0.404],[0.441,0.384],[0.407,0.347],[0.418,0.288],[0.422,0.272],[0.41,0.331],[0.404,0.391],[0.414,0.45],[0.434,0.506],[0.439,0.566],[0.446,0.626],[0.444,0.686],[0.428,0.744],[0.395,0.794],[0.355,0.839],[0.305,0.872],[0.249,0.894],[0.189,0.904],[0.131,0.891],[0.081,0.858],[0.051,0.806],[0.035,0.748],[0.028,0.688],[0.03,0.628],[0.034,0.568],[0.04,0.508]]}]},{"index":15,"strokes":[{"order":1,"dot":false,"points":[[0.525,0.572],[0.552,0.52],[0.589,0.472],[0.628,0.427],[0.671,0.385],[0.72,0.351],[0.776,0.331],[0.835,0.335],[0.887,0.364],[0.929,0.407],[0.963,0.456],[0.961,0.513],[0.926,0.561],[0.876,0.594],[0.822,0.619],[0.764,0.635],[0.705,0.643],[0.645,0.646],[0.585,0.642],[0.526,0.632],[0.488,0.613],[0.526,0.567],[0.475,0.54],[0.42,0.517],[0.418,0.468],[0.418,0.47],[0.406,0.528],[0.414,0.587],[0.434,0.642],[0.443,0.702],[0.444,0.761],[0.422,0.816],[0.381,0.86],[0.331,0.893],[0.275,0.915],[0.217,0.926],[0.157,0.925],[0.1,0.907],[0.057,0.866],[0.035,0.811],[0.028,0.751],[0.032,0.692],[0.04,0.632]]},{"order":2,"dot":true,"points":[[0.669,0.087]]}]},{"index":16,"strokes":[{"order":1,"dot":false,"points":[[0.341,0.776],[0.365,0.723],[0.411,0.687],[0.454,0.647],[0.497,0.606],[0.544,0.57],[0.595,0.54],[0.651,0.521],[0.709,0.508],[0.766,0.52],[0.82,0.545],[0.868,0.58],[0.909,0.622],[0.945,0.669],[0.953,0.726],[0.928,0.779],[0.882,0.816],[0.831,0.846],[0.777,0.87],[0.721,0.889],[0.663,0.902],[0.604,0.911],[0.545,0.915],[0.486,0.917],[0.427,0.917],[0.368,0.913],[0.317,0.887],[0.271,0.888],[0.213,0.883],[0.157,0.865],[0.102,0.842],[0.048,0.817]]},{"order":2,"dot":false,"points":[[0.31,0.041],[0.295,0.099],[0.282,0.158],[0.283,0.218],[0.288,0.277],[0.296,0.337],[0.303,0.396],[0.311,0.456],[0.32,0.515],[0.328,0.574],[0.336,0.634],[0.348,0.692],[0.347,0.749]]}]},{"index":17,"strokes":[{"order":1,"dot":false,"points":[[0.341,0.776],[0.365,0.723],[0.411,0.687],[0.454,0.647],[0.497,0.606],[0.544,0.57],[0.595,0.54],[0.651,0.521],[0.709,0.508],[0.766,0.52],[0.82,0.545],[0.868,0.58],[0.909,0.622],[0.945,0.669],[0.953,0.726],[0.928,0.779],[0.882,0.816],[0.831,0.846],[0.777,0.87],[0.721,0.889],[0.663,0.902],[0.604,0.911],[0.545,0.915],[0.486,0.917],[0.427,0.917],[0.368,0.913],[0.317,0.887],[0.271,0.888],[0.213,0.883],[0.157,0.865],[0.102,0.842],[0.048,0.817]]},{"order":2,"dot":false,"points":[[0.31,0.041],[0.295,0.099],[0.282,0.158],[0.283,0.218],[0.288,0.277],[0.296,0.337],[0.303,0.396],[0.311,0.456],[0.32,0.515],[0.328,0.574],[0.336,0.634],[0.348,0.692],[0.347,0.749]]},{"order":3,"dot":true,"points":[[0.667,0.185]]}]},{"index":18,"strokes":[{"order":1,"dot":false,"points":[[0.534,0.127],[0.478,0.106],[0.42,0.092],[0.361,0.082],[0.302,0.078],[0.243,0.089],[0.186,0.108],[0.132,0.134],[0.092,0.174],[0.077,0.232],[0.082,0.29],[0.121,0.335],[0.17,0.369],[0.224,0.394],[0.28,0.416],[0.336,0.423],[0.396,0.416],[0.454,0.406],[0.511,0.388],[0.568,0.37],[0.624,0.349],[0.679,0.325],[0.653,0.34],[0.597,0.361],[0.54,0.38],[0.483,0.398],[0.426,0.414],[0.366,0.421],[0.313,0.446],[0.264,0.48],[0.219,0.518],[0.172,0.555],[0.134,0.601],[0.111,0.656],[0.106,0.716],[0.119,0.773],[0.155,0.82],[0.204,0.855],[0.258,0.879],[0.316,0.897],[0.374,0.909],[0.433,0.916],[0.493,0.921],[0.552,0.918],[0.612,0.911],[0.671,0.903],[0.73,0.893],[0.788,0.881],[0.847,0.867],[0.904,0.853],[0.958,0.829]]}]},{"index":19,"strokes":[{"order":1,"dot":false,"points":[[0.534,0.317],[0.476,0.3],[0.416,0.29],[0.356,0.282],[0.296,0.28],[0.236,0.289],[0.178,0.305],[0.122,0.328],[0.085,0.372],[0.076,0.431],[0.115,0.476],[0.168,0.506],[0.225,0.526],[0.282,0.544],[0.341,0.549],[0.402,0.543],[0.461,0.534],[0.52,0.52],[0.579,0.504],[0.637,0.487],[0.693,0.465],[0.637,0.489],[0.579,0.505],[0.521,0.521],[0.462,0.535],[0.402,0.544],[0.342,0.55],[0.287,0.575],[0.239,0.612],[0.187,0.642],[0.141,0.681],[0.111,0.733],[0.106,0.793],[0.137,0.844],[0.187,0.878],[0.243,0.901],[0.301,0.916],[0.361,0.927],[0.421,0.934],[0.482,0.938],[0.542,0.936],[0.602,0.931],[0.663,0.925],[0.723,0.918],[0.782,0.908],[0.842,0.897],[0.901,0.885],[0.958,0.867]]},{"order":2,"dot":true,"points":[[0.286,0.077]]}]},{"index":20,"strokes":[{"order":1,"dot":false,"points":[[0.781,0.668],[0.838,0.653],[0.874,0.612],[0.893,0.555],[0.895,0.499],[0.862,0.45],[0.82,0.408],[0.765,0.386],[0.708,0.399],[0.655,0.425],[0.619,0.472],[0.605,0.529],[0.606,0.588],[0.636,0.639],[0.687,0.667],[0.746,0.672],[0.805,0.665],[0.861,0.647],[0.915,0.67],[0.962,0.706],[0.964,0.765],[0.939,0.816],[0.888,0.846],[0.832,0.866],[0.774,0.881],[0.716,0.893],[0.658,0.903],[0.599,0.91],[0.54,0.915],[0.48,0.918],[0.421,0.918],[0.362,0.918],[0.302,0.916],[0.244,0.908],[0.187,0.892],[0.133,0.866],[0.089,0.827],[0.058,0.776],[0.044,0.719],[0.046,0.66],[0.051,0.601]]},{"order":2,"dot":true,"points":[[0.748,0.103]]}]},{"index":21,"strokes":[{"order":1,"dot":false,"points":[[0.747,0.606],[0.805,0.592],[0.852,0.562],[0.891,0.516],[0.866,0.462],[0.828,0.416],[0.783,0.377],[0.73,0.349],[0.672,0.337],[0.612,0.342],[0.554,0.355],[0.499,0.378],[0.454,0.416],[0.427,0.469],[0.424,0.528],[0.452,0.579],[0.504,0.608],[0.562,0.62],[0.621,0.625],[0.681,0.617],[0.74,0.608],[0.798,0.595],[0.847,0.625],[0.887,0.668],[0.924,0.714],[0.898,0.767],[0.849,0.801],[0.797,0.831],[0.742,0.854],[0.686,0.874],[0.628,0.891],[0.57,0.903],[0.511,0.913],[0.451,0.92],[0.392,0.924],[0.332,0.925],[0.273,0.919],[0.214,0.909],[0.157,0.89],[0.108,0.856],[0.071,0.81],[0.053,0.754],[0.057,0.694],[0.068,0.635]]},{"order":2,"dot":true,"points":[[0.767,0.079]]},{"order":3,"dot":true,"points":[[0.513,0.097]]}]},{"index":22,"strokes":[{"order":1,"dot":false,"points":[[0.874,0.068],[0.856,0.125],[0.842,0.182],[0.848,0.242],[0.855,0.301],[0.868,0.36],[0.88,0.418],[0.893,0.477],[0.905,0.536],[0.918,0.594],[0.93,0.653],[0.942,0.712],[0.951,0.771],[0.935,0.826],[0.89,0.864],[0.836,0.89],[0.777,0.899],[0.717,0.904],[0.657,0.906],[0.598,0.909],[0.538,0.909],[0.478,0.912],[0.418,0.911],[0.358,0.909],[0.298,0.909],[0.238,0.906],[0.178,0.901],[0.12,0.908],[0.065,0.932]]},{"order":2,"dot":false,"points":[[0.506,0.407],[0.449,0.406],[0.401,0.435],[0.368,0.479],[0.395,0.523],[0.451,0.532],[0.505,0.546],[0.505,0.596],[0.454,0.623],[0.4,0.641],[0.345,0.655]]}]},{"index":23,"strokes":[{"order":1,"dot":false,"points":[[0.846,0.032],[0.815,0.084],[0.797,0.141],[0.804,0.201],[0.816,0.26],[0.83,0.318],[0.846,0.376],[0.86,0.435],[0.876,0.493],[0.892,0.551],[0.907,0.61],[0.922,0.668],[0.935,0.727],[0.924,0.785],[0.884,0.828],[0.83,0.857],[0.775,0.879],[0.717,0.896],[0.658,0.91],[0.598,0.92],[0.538,0.926],[0.478,0.93],[0.418,0.933],[0.358,0.932],[0.298,0.927],[0.238,0.919],[0.18,0.904],[0.125,0.878],[0.082,0.837],[0.06,0.781],[0.067,0.721],[0.079,0.662]]}]},{"index":24,"strokes":[{"order":1,"dot":false,"points":[[0.184,0.214],[0.231,0.178],[0.279,0.144],[0.333,0.12],[0.391,0.108],[0.449,0.097],[0.508,0.101],[0.565,0.116],[0.616,0.146],[0.662,0.184],[0.71,0.218],[0.759,0.252],[0.794,0.297],[0.814,0.35],[0.777,0.388],[0.718,0.394],[0.659,0.394],[0.6,0.398],[0.541,0.401],[0.482,0.404],[0.423,0.409],[0.364,0.414],[0.305,0.42],[0.246,0.427],[0.189,0.442],[0.135,0.467],[0.093,0.506],[0.079,0.563],[0.094,0.62],[0.108,0.677],[0.124,0.734],[0.136,0.792],[0.149,0.85],[0.135,0.904]]}]},{"index":25,"strokes":[{"order":1,"dot":false,"points":[[0.896,0.244],[0.871,0.299],[0.853,0.357],[0.856,0.417],[0.88,0.473],[0.903,0.529],[0.922,0.587],[0.936,0.645],[0.924,0.704],[0.887,0.751],[0.839,0.788],[0.787,0.819],[0.731,0.844],[0.674,0.864],[0.615,0.879],[0.556,0.889],[0.495,0.898],[0.435,0.904],[0.374,0.904],[0.314,0.898],[0.254,0.888],[0.196,0.87],[0.143,0.841],[0.101,0.798],[0.073,0.744],[0.058,0.686],[0.062,0.625],[0.069,0.565],[0.083,0.506]]},{"order":2,"dot":true,"points":[[0.44,0.117]]}]},{"index":26,"strokes":[{"order":1,"dot":false,"points":[[0.553,0.231],[0.505,0.268],[0.453,0.297],[0.407,0.334],[0.373,0.384],[0.347,0.438],[0.329,0.495],[0.328,0.555],[0.347,0.612],[0.381,0.661],[0.41,0.708],[0.471,0.705],[0.531,0.7],[0.591,0.695],[0.608,0.682],[0.629,0.626],[0.645,0.568],[0.649,0.508],[0.644,0.448],[0.64,0.388],[0.624,0.333],[0.569,0.308],[0.512,0.29],[0.515,0.265],[0.571,0.243],[0.628,0.256],[0.682,0.281],[0.739,0.302],[0.782,0.342],[0.819,0.389],[0.849,0.441],[0.877,0.495],[0.902,0.55],[0.923,0.606],[0.94,0.664],[0.951,0.723],[0.944,0.782],[0.92,0.834],[0.869,0.866],[0.814,0.881],[0.755,0.868],[0.697,0.852],[0.639,0.834],[0.584,0.811],[0.531,0.782],[0.471,0.781],[0.417,0.805],[0.363,0.828],[0.304,0.837],[0.244,0.84],[0.186,0.825],[0.128,0.808],[0.072,0.785]]}]},{"index":27,"strokes":[{"order":1,"dot":false,"points":[[0.79,0.493],[0.838,0.465],[0.876,0.42],[0.891,0.366],[0.867,0.312],[0.832,0.264],[0.791,0.221],[0.745,0.183],[0.694,0.152],[0.638,0.131],[0.58,0.121],[0.521,0.129],[0.464,0.144],[0.408,0.164],[0.356,0.193],[0.315,0.236],[0.286,0.288],[0.272,0.345],[0.272,0.405],[0.296,0.458],[0.34,0.497],[0.394,0.521],[0.452,0.535],[0.511,0.545],[0.57,0.541],[0.629,0.533],[0.687,0.521],[0.745,0.508],[0.803,0.494],[0.858,0.498],[0.896,0.544],[0.92,0.594],[0.895,0.648],[0.859,0.696],[0.819,0.74],[0.772,0.776],[0.722,0.807],[0.668,0.833],[0.613,0.855],[0.556,0.871],[0.497,0.884],[0.438,0.892],[0.379,0.891],[0.32,0.883],[0.261,0.874],[0.203,0.863],[0.145,0.851],[0.087,0.836]]}]},{"index":28,"strokes":[{"order":1,"dot":false,"points":[[0.944,0.129],[0.891,0.101],[0.834,0.083],[0.774,0.088],[0.717,0.106],[0.663,0.132],[0.613,0.166],[0.566,0.204],[0.526,0.249],[0.496,0.301],[0.509,0.356],[0.558,0.389],[0.615,0.406],[0.674,0.419],[0.734,0.429],[0.793,0.44],[0.852,0.453],[0.909,0.471],[0.932,0.524],[0.89,0.564],[0.837,0.592],[0.783,0.618],[0.727,0.64],[0.67,0.659],[0.612,0.675],[0.553,0.689],[0.494,0.699],[0.434,0.705],[0.374,0.71],[0.314,0.708],[0.254,0.701],[0.195,0.688],[0.14,0.665],[0.093,0.627],[0.062,0.576],[0.053,0.517],[0.061,0.458],[0.075,0.4]]},{"order":2,"dot":true,"points":[[0.52,0.904]]},{"order":3,"dot":true,"points":[[0.267,0.922]]}]}]}};
+const IMG = "../assets/illustrations/png/";
+// ---------- data ----------
+const LETTERS = DATA.letters;
+const STAGES = DATA.stages;
+const STROKES = Object.fromEntries(DATA.strokes.letters.map((l) => [l.index, l.strokes]));
+const STAGE_PIC = { 1: 'lion', 2: 'carrot', 3: 'flower', 4: 'rocket', 5: 'bird', 6: 'pencil', 7: 'star' };
+const NON_JOINING = 'أدذرزو';
+const ZWJ = '‍';
+const L = (i) => LETTERS[i - 1];
+const stageOf = (n) => STAGES[n - 1];
+const stageLetters = (n) => LETTERS.filter((l) => l.stage === n);
+const img = (name) => IMG + name + '.png';
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = (arr) => arr.map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---------- state ----------
+const PRESETS = {
+  fresh: { label: 'First day', learned: [] },
+  mid: { label: 'Learning ب', learned: [1] },
+  stageEnd: { label: 'One letter to a sticker', learned: [1, 2, 3] },
+  halfway: { label: 'Halfway (stage 4)', learned: [...Array(12)].map((_, i) => i + 1) },
+  done: { label: 'All 28 learned', learned: [...Array(28)].map((_, i) => i + 1) }
+};
+const S = {
+  mode: 'preschool', learned: new Set([1]), stickers: new Set(),
+  voice: true, vib: true, minutes: 20, unlockAll: false, traceOnly: false,
+  timeUp: false, calm: false, device: 'phone', staticView: false
+};
+function applyPreset(key) {
+  S.learned = new Set(PRESETS[key].learned);
+  S.stickers = new Set(STAGES.filter((s) => stageComplete(s.stage)).map((s) => s.stage));
+}
+const isLearned = (i) => S.learned.has(i);
+const stageComplete = (n) => stageLetters(n).every((l) => isLearned(l.index));
+// Stage 1 is always open; stage n+1 opens once stage n is complete.
+function openStage() {
+  for (const s of STAGES) if (!stageComplete(s.stage)) return s.stage;
+  return null;
+}
+function learningLetter() {
+  const n = openStage();
+  return n ? stageLetters(n).find((l) => !isLearned(l.index)) : null;
+}
+let reviewPick = null;
+function todaysLetter() {
+  const l = learningLetter();
+  if (l) return { letter: l, review: false };
+  if (!reviewPick) reviewPick = pick(LETTERS);
+  return { letter: reviewPick, review: true };
+}
+function stageState(n) {
+  if (stageComplete(n)) return 'finished';
+  if (n === openStage()) return 'current';
+  return S.unlockAll ? 'open' : 'locked';
+}
+const homeRoute = () => (S.mode === 'toddler' ? 'thome' : 'home');
+
+// ---------- feedback captions (audio is not recorded yet) ----------
+let captionTimer;
+function say(...clips) {
+  const el = document.getElementById('caption');
+  if (!el || S.staticView) return;
+  const text = clips.filter(Boolean).map((c) => `<span class="clip">${c}</span>`).join('<span class="then">then</span>');
+  el.innerHTML = `${ICON.speaker}<span class="cap-label">${S.voice ? 'Plays' : 'Voice off, would play'}</span>${text}`;
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  clearTimeout(captionTimer);
+}
+function buzz(kind) {
+  if (!S.vib || S.staticView) return;
+  const el = document.getElementById('buzz');
+  if (!el) return;
+  el.textContent = kind === 'tick' ? 'Buzz: tick' : 'Buzz: confirm';
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
+const AR = (s, cls = '') => `<span dir="rtl" class="ar ${cls}">${s}</span>`;
+const clipAr = (s) => `<span dir="rtl" class="ar">${s}</span>`;
+
+// ---------- icons ----------
+const sv = (d, w = 2.4) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  home: sv('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>'),
+  lock: sv('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
+  speaker: sv('<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a4 4 0 0 1 0 6"/>'),
+  back: sv('<path d="M15 5l-7 7 7 7"/>', 2.8),
+  next: sv('<path d="M9 5l7 7-7 7"/>', 2.8),
+  close: sv('<path d="M6 6l12 12M18 6L6 18"/>', 2.8),
+  check: sv('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 3),
+  eye: sv('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+  pencil: sv('<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/>'),
+  play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>',
+  again: sv('<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>'),
+  hand: sv('<path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M12 10.5V4.5a1.5 1.5 0 0 1 3 0v6"/><path d="M15 10.5V6.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-.5a6 6 0 0 1-4.8-2.4L3.4 15a1.6 1.6 0 0 1 2.4-2.1L9 15.5V9.5"/>', 2),
+  map: sv('<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>', 2.2),
+  sticker: sv('<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>', 2.2),
+  minus: sv('<path d="M6 12h12"/>', 3),
+  plus: sv('<path d="M12 6v12M6 12h12"/>', 3),
+  shield: sv('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>', 2.2),
+  moon: sv('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>', 2.2),
+  exit: sv('<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h10"/>')
+};
+const STAR_PATH = 'M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z';
+const starSvg = (size, fill = '#FFC93C') => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}" fill="${fill}" stroke="#E0A400" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+
+// Celebration: stars fly out from a point. Only ever shown on success.
+const BURST = [[-120, -130, 44], [0, -170, 52], [118, -128, 40], [-140, -20, 36], [140, -30, 46], [-110, 80, 40], [110, 86, 34], [-40, -80, 26], [56, -70, 30], [30, 120, 28]];
+function burst(scale = 1, top = '44%') {
+  return `<span class="burst" aria-hidden="true" style="--top:${top}">${BURST.map(([dx, dy, s], i) =>
+    `<span class="burst-star" style="--dx:${Math.round(dx * scale)}px;--dy:${Math.round(dy * scale)}px;--rot:${(i % 2 ? 1 : -1) * (20 + i * 9)}deg;animation-delay:${(i * 0.05).toFixed(2)}s,1s">${starSvg(Math.round(s * Math.max(scale, 0.6)), i % 3 ? '#FFC93C' : '#FFE07A')}</span>`).join('')}</span>`;
+}
+function wiggle(el, cls = 'wiggle') {
+  if (!el || S.calm) return;
+  el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+}
+
+// ---------- router ----------
+const SCREENS = {};
+let route = { name: 'home', p: {} };
+let timers = [];
+const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
+const CHILD_ROUTES = ['thome', 'tcards', 'tfind', 'tpaint', 'home', 'map', 'stickers', 'lesson', 'trace', 'practice', 'quiz', 'reward'];
+function go(name, p = {}) {
+  timers.forEach(clearTimeout); timers = [];
+  route = { name, p };
+  render();
+}
+function render() {
+  const phone = document.getElementById('screen');
+  let name = route.name;
+  if (S.timeUp && CHILD_ROUTES.includes(name)) name = 'rest';
+  const scr = SCREENS[name];
+  phone.className = 'screen screen-' + name + (S.calm ? ' calm' : '');
+  phone.innerHTML = scr.view(route.p);
+  phone.scrollTop = 0;
+  scr.mount && scr.mount(phone, route.p);
+  document.dispatchEvent(new CustomEvent('routed', { detail: { name, p: route.p } }));
+}
+// What the phone's system Back gesture does on each screen.
+function systemBack() {
+  const n = S.timeUp && CHILD_ROUTES.includes(route.name) ? 'rest' : route.name;
+  const p = route.p;
+  const toddler = S.mode === 'toddler';
+  const table = {
+    thome: null, rest: null, closed: null,
+    tcards: ['thome'], tfind: ['thome'], tpaint: ['thome'],
+    home: ['gate'], map: ['home'], stickers: ['home'], lesson: ['home'], quiz: ['home'], practice: ['home'],
+    trace: ['lesson', { i: p.i }], reward: ['map'],
+    gate: [toddler ? 'thome' : 'home'], zone: [null]
+  };
+  const t = table[n];
+  if (!t) return say('Back is ignored here');
+  if (n === 'zone') return leaveZone();
+  go(t[0], t[1] || {});
+}
+function leaveZone() {
+  reviewPick = null;
+  go(homeRoute());
+}
+
+// ---------- shared pieces ----------
+function bottomNav(active) {
+  const item = (id, label, icon, to) => `<button type="button" class="nav-item ${active === id ? 'on' : ''}" data-go="${to}" ${active === id ? 'aria-current="page"' : ''}>${icon}<span>${label}</span></button>`;
+  return `<nav class="bottom-nav">${item('home', 'Home', ICON.home, 'home')}${item('map', 'Map', ICON.map, 'map')}${item('stickers', 'Stickers', ICON.sticker, 'stickers')}${item('parents', 'Parents', ICON.lock, 'gate')}</nav>`;
+}
+function stepBar(step) {
+  const steps = [['meet', 'Meet', ICON.eye], ['trace', 'Trace', ICON.pencil], ['play', 'Play', ICON.play]];
+  const idx = steps.findIndex((s) => s[0] === step);
+  return `<div class="steps" aria-label="Step ${idx + 1} of 3">${steps.map(([id, label, icon], i) => {
+    const cls = i < idx ? 'done' : i === idx ? 'now' : 'todo';
+    const line = i < steps.length - 1 ? `<span class="step-line ${i < idx ? 'done' : ''}"></span>` : '';
+    return `<span class="step ${cls}">${i < idx ? ICON.check : icon}${i === idx ? `<b>${label}</b>` : ''}</span>${line}`;
+  }).join('')}</div>`;
+}
+function stickerBadge(n, size = 120, earned = true) {
+  const st = stageOf(n);
+  if (!earned) return `<span class="sticker empty" style="width:${size}px;height:${size}px;border-color:${st.border};background:${st.pastel}"><span style="color:${st.accent_dark}">?</span></span>`;
+  return `<span class="sticker" style="width:${size}px;height:${size}px;border-color:${st.border};box-shadow:0 6px 0 ${st.accent_dark}"><img src="${img(STAGE_PIC[n])}" alt=""></span>`;
+}
+const pictureWord = (l, cls = '') => `<span dir="rtl" class="ar word ${cls}"><span class="first" style="color:${stageOf(l.stage).accent_dark}">${l.word_first}</span>${l.word_rest}</span>`;
+function bindGo(root) {
+  root.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => {
+    const to = b.dataset.go;
+    go(to, b.dataset.i ? { i: +b.dataset.i } : b.dataset.stage ? { stage: +b.dataset.stage } : {});
+  }));
+}
+
+// ---------- letter glyph fitting (same idea as GlyphFit.kt: centre the ink box, fill a share of the canvas) ----------
+let FONT_AR = 'Noto Naskh Arabic';
+async function chooseArabicFont() {
+  for (const fam of ['HNaskh', 'Noto Naskh Arabic']) {
+    try {
+      const faces = await document.fonts.load(`700 100px "${fam}"`, 'ب');
+      if (faces.length) { FONT_AR = fam; return; }
+    } catch (e) { /* try the next family */ }
+  }
+}
+function fitGlyph(ch, w, h, share = 0.8) {
+  const c = document.createElement('canvas');
+  c.width = Math.ceil(w); c.height = Math.ceil(h);
+  const ctx = c.getContext('2d');
+  ctx.direction = 'ltr'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.font = `700 200px "${FONT_AR}"`;
+  const probe = ctx.measureText(ch);
+  const pw = probe.actualBoundingBoxLeft + probe.actualBoundingBoxRight;
+  const ph = probe.actualBoundingBoxAscent + probe.actualBoundingBoxDescent;
+  const px = 200 * Math.min((w * share) / pw, (h * share) / ph);
+  ctx.font = `700 ${px}px "${FONT_AR}"`;
+  const m = ctx.measureText(ch);
+  const inkW = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+  const inkH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+  const left = (w - inkW) / 2, top = (h - inkH) / 2;
+  const x = left + m.actualBoundingBoxLeft, y = top + m.actualBoundingBoxAscent;
+  ctx.fillStyle = '#000';
+  ctx.fillText(ch, x, y);
+  const alpha = ctx.getImageData(0, 0, c.width, c.height).data;
+  const inside = (px2, py2) => {
+    const ix = Math.round(px2), iy = Math.round(py2);
+    if (ix < 0 || iy < 0 || ix >= c.width || iy >= c.height) return false;
+    return alpha[(iy * c.width + ix) * 4 + 3] > 40;
+  };
+  return {
+    px, x, y, left, top, inkW, inkH,
+    at: ([nx, ny]) => [left + nx * inkW, top + ny * inkH],
+    // On the letter, with a little slop so a finger on the edge still counts.
+    near: (px2, py2, slop = 8) => inside(px2, py2) || [[slop, 0], [-slop, 0], [0, slop], [0, -slop]].some(([dx, dy]) => inside(px2 + dx, py2 + dy)),
+    svgText: (attrs) => `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-family="${FONT_AR}" font-weight="700" font-size="${px.toFixed(1)}" ${attrs}>${ch}</text>`
+  };
+}
+// Points every `step` px along a polyline.
+function resample(pts, step) {
+  if (pts.length === 1) return [pts[0]];
+  const out = [pts[0]];
+  let carry = 0;
+  for (let k = 1; k < pts.length; k++) {
+    const [ax, ay] = pts[k - 1], [bx, by] = pts[k];
+    const seg = Math.hypot(bx - ax, by - ay);
+    let d = step - carry;
+    while (d <= seg) { out.push([ax + ((bx - ax) * d) / seg, ay + ((by - ay) * d) / seg]); d += step; }
+    carry = seg - (d - step);
+  }
+  const last = pts[pts.length - 1], tail = out[out.length - 1];
+  if (Math.hypot(last[0] - tail[0], last[1] - tail[1]) > step / 2) out.push(last);
+  return out;
+}
+const svgPath = (pts) => pts.map((p, k) => `${k ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+// Pointer position in the SVG's own units.
+function svgPoint(svg, ev) {
+  // Screen CTM covers the letterboxing from preserveAspectRatio and the shell's device scale.
+  const p = new DOMPoint(ev.clientX, ev.clientY).matrixTransform(svg.getScreenCTM().inverse());
+  return [p.x, p.y];
+}
+// Moves a hand along each path in turn; returns a stop function.
+function demoHand(hand, paths, onEnd) {
+  let stopped = false, raf;
+  const speed = 0.18; // px per ms
+  const seq = paths.map((p) => (p.length === 1 ? { pts: p, len: 0 } : { pts: p, len: p.slice(1).reduce((a, q, k) => a + Math.hypot(q[0] - p[k][0], q[1] - p[k][1]), 0) }));
+  let si = 0, t0 = null;
+  const pos = (s, d) => {
+    let acc = 0;
+    for (let k = 1; k < s.pts.length; k++) {
+      const a = s.pts[k - 1], b = s.pts[k], seg = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (acc + seg >= d) { const f = (d - acc) / seg; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; }
+      acc += seg;
+    }
+    return s.pts[s.pts.length - 1];
+  };
+  hand.style.display = 'block';
+  const frame = (ts) => {
+    if (stopped) return;
+    if (t0 === null) t0 = ts;
+    const s = seq[si];
+    const dur = Math.max(s.len / speed, 500);
+    const d = Math.min((ts - t0) / dur, 1);
+    const [x, y] = s.len ? pos(s, d * s.len) : s.pts[0];
+    hand.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+    if (d >= 1) { si++; t0 = null; if (si >= seq.length) { hand.style.display = 'none'; onEnd && onEnd(); return; } }
+    raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+  return () => { stopped = true; cancelAnimationFrame(raf); hand.style.display = 'none'; };
+}
+const HAND_SVG = `<g class="demo-hand" style="display:none"><circle r="16" fill="#FFC93C" opacity="0.55"/><g transform="translate(-6 -2) scale(1.9)" color="#13294B"><rect x="1" y="2" width="20" height="20" rx="10" fill="#FFFFFF" opacity="0.9"/>${ICON.hand.replace('<svg ', '<svg width="22" height="22" ')}</g></g>`;
+
+// ================= Toddler mode =================
+const toddlerTop = (extra = '') => `<div class="t-top">
+  <button type="button" class="t-home" data-go="thome" aria-label="Home">${ICON.home}</button>${extra}
+  <button type="button" class="parent-lock" data-go="gate" aria-label="Grown-ups: open the parent gate">${ICON.lock}</button></div>`;
+
+SCREENS.thome = {
+  title: 'Toddler home',
+  view: () => `<div class="t-wrap">
+    <button type="button" class="parent-lock corner" data-go="gate" aria-label="Grown-ups: open the parent gate">${ICON.lock}</button>
+    <div class="leo-row">
+      <img class="leo" src="${img('lion')}" alt="Leo the lion">
+      <button type="button" class="bubble" data-say="prompt" aria-label="What shall we play? Tap to hear again">
+        <span class="sun-btn">${ICON.speaker}</span>${AR('ماذا نلعب؟', 'bubble-ar')}
+      </button>
+    </div>
+    <button type="button" class="tile tile-cards" data-go="tcards" aria-label="Look and listen">
+      <span class="tile-art"><span class="mini-card tilt-l"><img src="${img('lion')}" alt=""></span><span class="mini-card tilt-r"><img src="${img('duck')}" alt=""></span></span>
+      ${AR('اسمع', 'tile-ar')}<span class="tile-go">${ICON.play}</span></button>
+    <button type="button" class="tile tile-find" data-go="tfind" aria-label="Find it">
+      <span class="tile-art"><span class="mini-pic ok"><img src="${img('duck')}" alt="">${starSvg(28)}</span><span class="mini-pic"><img src="${img('apple')}" alt=""></span></span>
+      ${AR('ابحث', 'tile-ar')}<span class="tile-go">${ICON.play}</span></button>
+    <button type="button" class="tile tile-paint" data-go="tpaint" aria-label="Paint">
+      <span class="tile-art"><span class="mini-paint">${AR('ب')}</span></span>
+      ${AR('ارسم', 'tile-ar')}<span class="tile-go">${ICON.play}</span></button>
+  </div>`,
+  mount: (root) => {
+    bindGo(root);
+    say(clipAr('ماذا نلعب؟'));
+    root.querySelector('[data-say]').addEventListener('click', () => say(clipAr('ماذا نلعب؟')));
+  }
+};
+
+// ---------- Look & listen ----------
+let cardIndex = 2;
+SCREENS.tcards = {
+  title: 'Look & listen',
+  view: () => {
+    const l = L(cardIndex), st = stageOf(l.stage);
+    const prev = L(((cardIndex + 26) % 28) + 1), next = L((cardIndex % 28) + 1);
+    return `<div class="t-wrap" style="background:${st.pastel}">
+      ${toddlerTop()}
+      <div class="big-card" style="border-color:${st.border};box-shadow:0 10px 0 ${st.accent_dark}">
+        <button type="button" class="card-letter" style="background:${st.pastel};color:${st.accent_dark}" aria-label="Letter ${l.name_latin}. Tap to hear">${AR(l.letter)}</button>
+        <button type="button" class="card-pic" aria-label="${cap(l.meaning_en)}. Tap to hear the word"><img src="${img(l.picture)}" alt=""></button>
+        ${pictureWord(l, 'card-word')}
+        <button type="button" class="sun-btn card-sound" aria-label="Hear the word">${ICON.speaker}</button>
+      </div>
+      <div class="card-nav">
+        <button type="button" class="arrow prev" aria-label="Previous picture" style="color:${st.accent_dark}">${ICON.back}</button>
+        <span class="peek" aria-hidden="true"><img src="${img(prev.picture)}" alt=""><img src="${img(next.picture)}" alt=""></span>
+        <button type="button" class="arrow next" aria-label="Next picture">${ICON.next}</button>
+      </div></div>`;
+  },
+  mount: (root) => {
+    bindGo(root);
+    const l = L(cardIndex);
+    const letterClip = () => say(clipAr(l.name_ar)), wordClip = () => say(clipAr(l.word_ar));
+    say(clipAr(l.name_ar), clipAr(l.word_ar));
+    const pic = root.querySelector('.card-pic');
+    pic.addEventListener('click', () => { wiggle(pic); wordClip(); });
+    root.querySelector('.card-sound').addEventListener('click', () => { wiggle(pic); wordClip(); });
+    const chip = root.querySelector('.card-letter');
+    chip.addEventListener('click', () => { wiggle(chip); letterClip(); });
+    const step = (d) => { cardIndex = ((cardIndex - 1 + d + 28) % 28) + 1; render(); };
+    root.querySelector('.prev').addEventListener('click', () => step(-1));
+    root.querySelector('.next').addEventListener('click', () => step(1));
+    let x0 = null;
+    const card = root.querySelector('.big-card');
+    card.addEventListener('pointerdown', (e) => { x0 = e.clientX; });
+    card.addEventListener('pointerup', (e) => { if (x0 !== null && Math.abs(e.clientX - x0) > 60) step(e.clientX < x0 ? 1 : -1); x0 = null; });
+  }
+};
+
+// ---------- Where's the…? ----------
+const TODDLER_POOL = LETTERS.filter((l) => l.toddler_word);
+let find = null;
+function newFindRound() {
+  const prev = find && find.target;
+  const target = pick(TODDLER_POOL.filter((l) => l !== prev));
+  const other = pick(TODDLER_POOL.filter((l) => l !== target));
+  find = { target, options: shuffle([target, other]), solved: false, wrongOnce: false };
+}
+const wherePrompt = (l) => `أين ال${l.word_ar}؟`;
+function findCard(l, tablet) {
+  const ok = find.solved && l === find.target;
+  return `<button type="button" class="find-card ${ok ? 'right' : ''} ${find.solved && !ok ? 'faded' : ''}" data-i="${l.index}" aria-label="${cap(l.meaning_en)}">
+    <img src="${img(l.picture)}" alt="">${ok ? burst(tablet ? 0.9 : 0.75, '50%') : ''}</button>`;
+}
+function findNext(tablet) {
+  if (!find.solved) return tablet ? '' : `<p class="t-hint">${ICON.hand}<span>Tap a picture</span></p>`;
+  if (tablet) return ringNext('Next. It starts by itself in a moment');
+  return `<button type="button" class="fill-next" aria-label="Next. It starts by itself in a moment"><span class="fill"></span><span class="fill-icon">${ICON.next}</span></button>`;
+}
+function ringNext(label) {
+  return `<button type="button" class="ring-next" aria-label="${label}">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" class="ring-track"/><circle cx="60" cy="60" r="54" class="ring-fill" pathLength="100"/></svg>
+    <span class="ring-btn">${ICON.next}</span></button>`;
+}
+SCREENS.tfind = {
+  title: "Where's the…?",
+  view: () => {
+    if (!find) newFindRound();
+    const tablet = S.device === 'tablet';
+    const bubble = `<button type="button" class="bubble find-bubble" aria-label="Hear the question again">${AR(wherePrompt(find.target), 'bubble-ar')}<span class="sun-btn">${ICON.speaker}</span></button>`;
+    if (tablet) {
+      return `<div class="t-wrap tablet-find">
+        <div class="tf-side">${toddlerTop()}${bubble}<div class="tf-foot"><img class="leo" src="${img('lion')}" alt="Leo the lion">${findNext(true)}</div></div>
+        <div class="tf-cards">${find.options.map((l) => findCard(l, true)).join('')}</div></div>`;
+    }
+    return `<div class="t-wrap">${toddlerTop()}
+      <div class="leo-row"><img class="leo" src="${img('lion')}" alt="Leo the lion">${bubble}</div>
+      <div class="find-cards">${find.options.map((l) => findCard(l, false)).join('')}</div>
+      <div class="find-foot">${findNext(false)}</div></div>`;
+  },
+  mount: (root) => {
+    bindGo(root);
+    const prompt = () => say(clipAr(wherePrompt(find.target)));
+    if (!find.solved) prompt();
+    root.querySelector('.find-bubble').addEventListener('click', prompt);
+    root.querySelectorAll('.find-card').forEach((c) => c.addEventListener('click', () => {
+      if (find.solved) return;
+      const l = L(+c.dataset.i);
+      if (l === find.target) {
+        find.solved = true;
+        say(pick(['praise_1', 'praise_2', 'praise_3']).replace(/^/, 'praise: '));
+        buzz('confirm');
+        render();
+        return;
+      }
+      wiggle(c, 'nudge');
+      const right = root.querySelector(`.find-card[data-i="${find.target.index}"]`);
+      later(() => wiggle(right), 300);
+      if (!find.wrongOnce) { find.wrongOnce = true; say('boing', clipAr(wherePrompt(find.target))); } else say('boing');
+    }));
+    const nextBtn = root.querySelector('.fill-next, .ring-next');
+    if (nextBtn) {
+      const advance = () => { newFindRound(); render(); };
+      nextBtn.addEventListener('click', advance);
+      later(advance, 5000); // 1 s to enjoy the stars, then a 4 s countdown
+    }
+  }
+};
+
+// ---------- Finger paint ----------
+const CRAYONS = [['Orange', '#FF7A59', '#D9573A'], ['Blue', '#3B8CF0', '#1F64C0'], ['Green', '#3BAA5C', '#22803F'], ['Purple', '#8A6CE8', '#6347C4']];
+let paint = null;
+function newPaint() {
+  const prev = paint && paint.letter;
+  paint = { letter: pick(LETTERS.filter((l) => l !== prev)), crayon: paint ? paint.crayon : 1, strokes: [], dist: 0, done: false, demoShown: false };
+}
+const PAINT_GOAL = 400; // px painted on the letter
+const PAINT_W = 334, PAINT_H = 470;
+SCREENS.tpaint = {
+  title: 'Finger paint',
+  view: () => {
+    if (!paint) newPaint();
+    const l = paint.letter, done = paint.done;
+    const g = fitGlyph(l.letter, PAINT_W, PAINT_H, 0.78);
+    const ink = paint.strokes.map((s) => `<path d="${svgPath(s.pts)}" stroke="${s.color}" stroke-width="30" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+    return `<div class="t-wrap paint-wrap ${done ? 'done' : ''}">
+      ${toddlerTop(`<button type="button" class="sun-btn big paint-say" aria-label="Hear: paint the letter ${l.name_latin}">${ICON.speaker}</button>`)}
+      <div class="paint-card">
+        <svg class="paint-svg" viewBox="0 0 ${PAINT_W} ${PAINT_H}" aria-label="${done ? `You painted ${l.name_latin}!` : `Paint the letter ${l.name_latin} with your finger`}">
+          <defs><clipPath id="letterClip">${g.svgText('')}</clipPath></defs>
+          ${g.svgText('fill="#FFE7F0" stroke="#F2B5CC" stroke-width="4" stroke-dasharray="3 10" stroke-linecap="round"')}
+          <g clip-path="url(#letterClip)" class="ink">${ink}</g>
+          ${HAND_SVG}
+        </svg>
+        ${done ? burst(1) + `<img class="cheer-leo" src="${img('lion')}" alt="">` : ''}
+      </div>
+      ${done ? `<div class="paint-done-row">
+          <button type="button" class="round-btn paint-again" aria-label="Paint it again">${ICON.again}</button>
+          ${ringNext('Next letter. It starts by itself in a moment')}</div>`
+        : `<div class="crayons" role="radiogroup" aria-label="Crayon colour">${CRAYONS.map(([n, c, d], k) =>
+          `<button type="button" role="radio" class="crayon ${k === paint.crayon ? 'on' : ''}" aria-checked="${k === paint.crayon}" aria-label="${n}" data-k="${k}" style="background:${c};box-shadow:0 5px 0 ${d}"></button>`).join('')}</div>
+        <button type="button" class="wipe" aria-label="Wipe and paint again">${ICON.again}</button>`}
+    </div>`;
+  },
+  mount: (root) => {
+    bindGo(root);
+    const l = paint.letter;
+    const prompt = () => say(clipAr('لوّن ال' + l.name_ar));
+    root.querySelector('.paint-say').addEventListener('click', prompt);
+    if (paint.done) {
+      const again = () => { paint.strokes = []; paint.dist = 0; paint.done = false; render(); };
+      root.querySelector('.paint-again').addEventListener('click', again);
+      const next = () => { newPaint(); render(); };
+      root.querySelector('.ring-next').addEventListener('click', next);
+      later(next, 5000);
+      return;
+    }
+    if (!paint.strokes.length) prompt();
+    const svg = root.querySelector('.paint-svg');
+    const g = fitGlyph(l.letter, PAINT_W, PAINT_H, 0.78);
+    const strokes = STROKES[l.index] || [];
+    let stopDemo = null;
+    if (!paint.demoShown) {
+      paint.demoShown = true;
+      later(() => { stopDemo = demoHand(svg.querySelector('.demo-hand'), strokes.map((s) => s.points.map(g.at))); }, 900);
+    }
+    root.querySelectorAll('.crayon').forEach((b) => b.addEventListener('click', () => { paint.crayon = +b.dataset.k; render(); }));
+    root.querySelector('.wipe').addEventListener('click', () => { paint.strokes = []; paint.dist = 0; render(); });
+    const inkG = svg.querySelector('.ink');
+    let cur = null, last = null;
+    svg.addEventListener('pointerdown', (e) => {
+      stopDemo && stopDemo();
+      try { svg.setPointerCapture(e.pointerId); } catch (err) { /* pointer already gone */ }
+      const p = svgPoint(svg, e);
+      cur = { color: CRAYONS[paint.crayon][1], pts: [p] };
+      paint.strokes.push(cur);
+      cur.el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      Object.entries({ stroke: cur.color, 'stroke-width': 30, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }).forEach(([k, v]) => cur.el.setAttribute(k, v));
+      inkG.appendChild(cur.el);
+      cur.el.setAttribute('d', svgPath([p, p]));
+      last = p;
+    });
+    svg.addEventListener('pointermove', (e) => {
+      if (!cur) return;
+      const p = svgPoint(svg, e);
+      if (g.near(p[0], p[1]) && g.near(last[0], last[1])) paint.dist += Math.hypot(p[0] - last[0], p[1] - last[1]);
+      cur.pts.push(p); last = p;
+      cur.el.setAttribute('d', svgPath(cur.pts));
+    });
+    const up = () => {
+      if (!cur) return;
+      cur = null;
+      if (paint.dist >= PAINT_GOAL && !paint.done) {
+        paint.done = true;
+        say('praise: ' + pick(['praise_1', 'praise_2', 'praise_3']));
+        buzz('confirm');
+        render();
+      }
+    };
+    svg.addEventListener('pointerup', up);
+    svg.addEventListener('pointercancel', up);
+  }
+};
+
+// ================= Preschool / Early reader =================
+const startLetter = (l) => (S.traceOnly ? go('practice', { i: l.index }) : go('lesson', { i: l.index }));
+
+// ---------- Home ----------
+const SLOTS = [[90, 430], [200, 330], [250, 200], [110, 92]];
+SCREENS.home = {
+  title: 'Home',
+  view: () => {
+    const { letter: today, review } = todaysLetter();
+    const n = today.stage, st = stageOf(n);
+    const letters = stageLetters(n);
+    const learnedCount = letters.filter((l) => isLearned(l.index)).length;
+    const nodes = letters.map((l, k) => {
+      const [x, y] = SLOTS[k];
+      if (l === today) {
+        const picLeft = x > 170 ? x - 150 : x + 62;
+        return `<button type="button" class="node today" style="left:${x - 56}px;top:${y - 56}px" aria-label="Today's letter ${l.name_latin}. Tap to hear">${AR(l.letter)}</button>
+          <span class="today-chip" style="left:${x - 30}px;top:${y + 60}px">Today</span>
+          <button type="button" class="node-pic" style="left:${picLeft}px;top:${y - 44}px" aria-label="${cap(l.meaning_en)}. Tap to hear"><img src="${img(l.picture)}" alt=""></button>`;
+      }
+      const learned = isLearned(l.index);
+      return `<span class="node ${learned ? 'learned' : 'togo'}" style="left:${x - 34}px;top:${y - 34}px;${learned ? '' : `border-color:${st.border};color:${st.accent_dark}`}" aria-label="${l.name_latin}, ${learned ? 'learned' : 'coming up'}">${AR(l.letter)}</span>`;
+    }).join('');
+    const label = S.traceOnly ? 'Trace' : review ? 'Practise' : "Let's learn";
+    return `<div class="learn-wrap">
+      <header class="home-head">
+        <span class="avatar"><img src="${img('lion')}" alt=""></span>
+        <span class="home-hello"><b>${review ? "Let's practise a letter!" : 'Hi there!'}</b><span>Stage ${n} · ${st.name} · ${learnedCount} of 4</span></span>
+      </header>
+      <div class="path-card" style="background:${st.pastel};border-color:${st.border}">
+        <svg viewBox="0 0 340 500" preserveAspectRatio="none" aria-hidden="true"><path d="M90 430 C 40 380, 120 340, 200 330 S 320 250, 250 200 S 60 150, 110 92" fill="none" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round"/><path d="M90 430 C 40 380, 120 340, 200 330 S 320 250, 250 200 S 60 150, 110 92" fill="none" stroke="${st.border}" stroke-opacity="0.45" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 14"/></svg>
+        ${nodes}
+        <span class="prize" aria-label="${st.name} sticker${S.stickers.has(n) ? ', earned' : ', waiting at the end of this stage'}">${stickerBadge(n, 70, S.stickers.has(n))}</span>
+      </div>
+      <button type="button" class="primary-btn go-btn">${label} ${AR(today.letter, 'btn-ar')}${ICON.next}</button>
+      ${bottomNav('home')}</div>`;
+  },
+  mount: (root) => {
+    bindGo(root);
+    const { letter: l } = todaysLetter();
+    const hear = (el) => { wiggle(el); say(clipAr(l.name_ar), clipAr(l.word_ar)); };
+    root.querySelector('.node.today').addEventListener('click', (e) => hear(e.currentTarget));
+    root.querySelector('.node-pic').addEventListener('click', (e) => hear(e.currentTarget));
+    root.querySelector('.go-btn').addEventListener('click', () => startLetter(l));
+  }
+};
+
+// ---------- Letter map ----------
+let lastFinishedPick = null;
+SCREENS.map = {
+  title: 'Letter map',
+  view: () => {
+    const learned = S.learned.size;
+    const cards = STAGES.map((s) => {
+      const state = stageState(s.stage);
+      const letters = stageLetters(s.stage);
+      const pic = `<span class="map-pic"><img src="${img(STAGE_PIC[s.stage])}" alt=""></span>`;
+      const name = `<span class="map-name"><span class="map-num" style="color:${state === 'current' ? s.accent_dark : ''}">Stage ${s.stage}</span><b>${s.name}</b>${state !== 'current' ? `<span dir="rtl" class="ar map-chars">${letters.map((l) => l.letter).join(' ')}</span>` : ''}</span>`;
+      if (state === 'current') {
+        const ll = learningLetter();
+        const chips = letters.map((l) => {
+          const cls = isLearned(l.index) ? 'learned' : l === ll ? 'learning' : 'togo';
+          return `<span class="map-chip ${cls}" aria-label="${l.name_latin}, ${cls === 'learned' ? 'learned' : cls === 'learning' ? 'today' : 'coming up'}">${AR(l.letter)}</span>`;
+        }).join('');
+        return `<div class="map-card current" style="background:${s.pastel};border-color:${s.border};box-shadow:0 6px 0 ${s.accent_dark}">
+          <div class="map-row">${pic}${name}<span class="map-count" style="color:${s.accent_dark}">${letters.filter((l) => isLearned(l.index)).length}/4</span></div>
+          <div class="map-chips" dir="rtl">${chips}</div>
+          <button type="button" class="primary-btn small map-go" data-stage="${s.stage}">${S.traceOnly ? 'Trace' : 'Continue with'} ${AR(S.traceOnly ? letters[0].letter : ll.letter, 'btn-ar')}</button></div>`;
+      }
+      if (state === 'finished') {
+        return `<button type="button" class="map-card finished" data-stage="${s.stage}" aria-label="Stage ${s.stage}, ${s.name}, finished. Tap to play a letter again">
+          <div class="map-row">${pic}${name}<span class="map-badge done">${ICON.check}</span></div></button>`;
+      }
+      if (state === 'open') {
+        return `<button type="button" class="map-card open" data-stage="${s.stage}" aria-label="Stage ${s.stage}, ${s.name}. Start">
+          <div class="map-row">${pic}${name}<span class="map-badge play">${ICON.play}</span></div></button>`;
+      }
+      return `<button type="button" class="map-card locked" data-stage="${s.stage}" aria-label="Stage ${s.stage}, ${s.name}, locked">
+        <div class="map-row">${pic}${name}<span class="map-badge">${ICON.lock}</span></div></button>`;
+    }).join('');
+    return `<div class="learn-wrap scroll">
+      <header class="page-head"><h1>Letter map</h1><span>${learned} of 28 letters learned · ${S.unlockAll ? 'start any stage' : 'finish one stage to unlock the next'}</span></header>
+      <div class="map-list"><span class="map-line" aria-hidden="true"></span>${cards}</div>
+      ${bottomNav('map')}</div>`;
+  },
+  mount: (root) => {
+    bindGo(root);
+    root.querySelectorAll('.map-card[data-stage], .map-go').forEach((c) => c.addEventListener('click', () => {
+      const n = +c.dataset.stage;
+      const letters = stageLetters(n);
+      const state = stageState(n);
+      if (state === 'locked') { wiggle(c); say('boing'); return; }
+      if (S.traceOnly) return go('practice', { i: letters[0].index });
+      if (state === 'current') return go('lesson', { i: learningLetter().index });
+      if (state === 'open') return go('lesson', { i: letters.find((l) => !isLearned(l.index)).index });
+      const again = pick(letters.filter((l) => l !== lastFinishedPick));
+      lastFinishedPick = again;
+      go('lesson', { i: again.index });
+    }));
+  }
+};
+
+// ---------- Sticker book ----------
+SCREENS.stickers = {
+  title: 'Sticker book',
+  view: () => `<div class="learn-wrap scroll">
+    <header class="page-head"><h1>Sticker book</h1><span>${S.stickers.size} of 7 stickers · finish a stage to earn one</span></header>
+    <div class="sticker-grid">${STAGES.map((s) => {
+      const earned = S.stickers.has(s.stage);
+      return earned
+        ? `<button type="button" class="sticker-slot" data-stage="${s.stage}" aria-label="${s.name} sticker. Tap to hear its letters">${stickerBadge(s.stage, 112, true)}<b>${s.name}</b></button>`
+        : `<div class="sticker-slot empty" aria-label="${s.name} sticker, not earned yet">${stickerBadge(s.stage, 112, false)}<span>${s.name}</span></div>`;
+    }).join('')}</div>
+    ${bottomNav('stickers')}</div>`,
+  mount: (root) => {
+    bindGo(root);
+    root.querySelectorAll('.sticker-slot[data-stage]').forEach((b) => b.addEventListener('click', () => {
+      wiggle(b.querySelector('.sticker'));
+      say(...stageLetters(+b.dataset.stage).map((l) => clipAr(l.name_ar)));
+    }));
+  }
+};
+
+// ---------- Meet (Lesson) ----------
+function shapes(l) {
+  const ch = l.letter;
+  const all = [['Alone', ch], ['Start', ch + ZWJ], ['Middle', ZWJ + ch + ZWJ], ['End', ZWJ + ch]];
+  return NON_JOINING.includes(ch) ? [all[0], all[3]] : all;
+}
+SCREENS.lesson = {
+  title: 'Meet the letter',
+  view: ({ i }) => {
+    const l = L(i), st = stageOf(l.stage);
+    const reader = S.mode === 'reader';
+    return `<div class="learn-wrap lesson ${reader ? 'reader' : ''}">
+      <div class="flow-head"><button type="button" class="round-btn" data-go="home" aria-label="Back to home">${ICON.back}</button>${stepBar('meet')}</div>
+      <div class="letter-card" style="background:${st.pastel};border-color:${st.border};box-shadow:0 8px 0 ${st.accent_dark}">
+        <span class="letter-name"><b>${l.name_latin}</b> ${AR(l.name_ar)}</span>
+        <button type="button" class="sun-btn lesson-sound" aria-label="Hear ${l.name_latin} and ${l.meaning_en}">${ICON.speaker}</button>
+        <button type="button" class="big-letter" aria-label="Letter ${l.name_latin}. Tap to hear">${AR(l.letter)}</button>
+      </div>
+      <button type="button" class="word-card" aria-label="${cap(l.meaning_en)}. Tap to hear">
+        <span class="word-pic"><img src="${img(l.picture)}" alt=""></span>
+        <span class="word-text">${pictureWord(l, 'lesson-word')}<span class="meaning">${l.meaning_en}</span></span>
+      </button>
+      ${reader ? `<div class="shapes-card"><div class="shapes-head"><b>${AR(l.letter)} in words</b><span class="reader-chip">Early reader</span></div>
+        <div class="shapes" dir="rtl">${shapes(l).map(([n, s], k) => `<span class="shape ${k === 0 ? 'alone' : ''}" aria-label="${n} shape">${AR(s)}<small dir="ltr">${n}</small></span>`).join('')}</div></div>` : ''}
+      <button type="button" class="primary-btn lesson-next" data-go="trace" data-i="${i}">Trace it ${ICON.next}</button>
+    </div>`;
+  },
+  mount: (root, { i }) => {
+    bindGo(root);
+    const l = L(i);
+    say(clipAr(l.name_ar), clipAr(l.word_ar));
+    root.querySelector('.lesson-sound').addEventListener('click', () => say(clipAr(l.name_ar), clipAr(l.word_ar)));
+    const big = root.querySelector('.big-letter');
+    big.addEventListener('click', () => { wiggle(big); say(clipAr(l.name_ar)); });
+    const wc = root.querySelector('.word-card');
+    wc.addEventListener('click', () => { wiggle(wc.querySelector('.word-pic')); say(clipAr(l.word_ar)); });
+  }
+};
+
+// ---------- Trace (and Trace practice) ----------
+const TRACE_W = 350, TRACE_H = 420, DOT_STEP = 18, TOLERANCE = 30, COVER = 1;
+const PAINTS = [...CRAYONS, ['Pink', '#FF6FA5', '#D94C84']];
+let trace = null;
+function newTrace(i, practice) {
+  trace = { i, practice, ink: [], paint: 0, covered: null, finished: [], done: false, demoDone: false };
+}
+function traceView({ i }, practice) {
+  if (!trace || trace.i !== i || trace.practice !== practice) newTrace(i, practice);
+  const l = L(i), st = stageOf(l.stage);
+  const g = fitGlyph(l.letter, TRACE_W, TRACE_H, 0.8);
+  const strokes = (STROKES[i] || []).map((s) => ({ ...s, pts: s.points.map(g.at) }));
+  const dots = strokes.map((s) => resample(s.pts, DOT_STEP));
+  if (!trace.covered) { trace.covered = dots.map((d) => d.map(() => false)); trace.finished = dots.map(() => false); }
+  const nextStroke = trace.finished.indexOf(false);
+  const done = trace.done;
+  const dotEls = dots.map((ds, si) => ds.map((p, k) => `<circle class="tdot ${trace.covered[si][k] ? 'on' : ''} ${si === nextStroke || done ? '' : 'later'}" data-s="${si}" data-k="${k}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${trace.covered[si][k] ? 6 : 4.5}"/>`).join('')).join('');
+  const arrows = strokes.map((s, si) => {
+    if (s.pts.length < 2) return '';
+    const [ax, ay] = s.pts[s.pts.length - 1], [bx, by] = s.pts[s.pts.length - 2];
+    const a = Math.atan2(ay - by, ax - bx), r = 13;
+    const pt = (t) => `${(ax + r * Math.cos(a + t)).toFixed(1)},${(ay + r * Math.sin(a + t)).toFixed(1)}`;
+    return `<polygon class="tarrow ${si === nextStroke ? '' : 'later'}" points="${pt(0)} ${pt(2.5)} ${pt(-2.5)}" fill="${si === 0 ? '#158048' : '#1F6FE0'}"/>`;
+  }).join('');
+  const coins = strokes.map((s, si) => {
+    const [x, y] = s.pts[0];
+    if (trace.finished[si]) return `<g transform="translate(${(x - 15).toFixed(1)} ${(y - 15).toFixed(1)})">${starSvg(30).replace('<svg ', '<svg x="0" y="0" ')}</g>`;
+    return `<g class="coin ${si === nextStroke ? 'next' : 'later'}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle r="15" fill="${si === 0 ? '#158048' : '#1F6FE0'}" stroke="#FFFFFF" stroke-width="3"/><text y="6" text-anchor="middle" font-size="17" font-weight="800" fill="#FFFFFF" font-family="Baloo Bhaijaan 2, system-ui">${si + 1}</text></g>`;
+  }).join('');
+  const ink = trace.ink.map((s) => `<path d="${svgPath(s.pts.length === 1 ? [s.pts[0], s.pts[0]] : s.pts)}" stroke="${s.color}" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+  const hint = done ? (practice ? 'Well done! Tap Next for another letter' : 'Well done! Tap Play for the picture game') : 'Start at the green 1, then follow the dots!';
+  const head = practice
+    ? `<div class="flow-head"><button type="button" class="round-btn" data-go="home" aria-label="Back to home">${ICON.back}</button><span class="practice-title">Trace practice</span></div>`
+    : `<div class="flow-head"><button type="button" class="round-btn" data-go="lesson" data-i="${i}" aria-label="Back to Meet">${ICON.back}</button>${stepBar('trace')}</div>`;
+  const nextBtn = done
+    ? `<button type="button" class="primary-btn ready trace-next">${practice ? 'Next letter' : 'Play'} ${ICON.next}</button>`
+    : `<button type="button" class="primary-btn locked" disabled aria-label="Next is locked until ${l.name_latin} is traced">${ICON.lock} Finish ${AR(l.letter, 'btn-ar')} first</button>`;
+  return `<div class="learn-wrap trace ${done ? 'done' : ''}">
+    ${head}
+    <button type="button" class="hint-bubble ${done ? 'ok' : ''}" aria-label="${hint} Tap to hear and see how">${ICON.speaker.replace('<svg', '<svg class="hint-ico"')}<span>${hint}</span></button>
+    <div class="trace-card ${done ? 'done' : ''}">
+      <svg class="trace-svg" viewBox="0 0 ${TRACE_W} ${TRACE_H}" aria-label="${done ? `You traced ${l.name_latin}` : `Trace the letter ${l.name_latin}`}">
+        <defs><clipPath id="traceClip">${g.svgText('')}</clipPath></defs>
+        ${g.svgText('fill="#C8DCF4" stroke="#13294B" stroke-width="3" stroke-linejoin="round"')}
+        <g clip-path="url(#traceClip)" class="ink">${ink}</g>
+        <g class="dots">${dotEls}</g>${arrows}${coins}
+        ${HAND_SVG}
+      </svg>
+      ${done ? burst(1) + `<span class="done-badge"><img src="${img('lion')}" alt=""><span>You traced ${AR(l.letter)}!</span></span>` : ''}
+    </div>
+    <div class="paints" role="radiogroup" aria-label="Paint colour">${PAINTS.map(([n, c, d], k) => `<button type="button" role="radio" class="paint ${k === trace.paint ? 'on' : ''}" aria-checked="${k === trace.paint}" aria-label="${n}" data-k="${k}" style="background:${c}"></button>`).join('')}</div>
+    <div class="trace-foot"><button type="button" class="square-btn trace-again" aria-label="Again: clear and show me how">${ICON.again}</button>${nextBtn}</div>
+  </div>`;
+}
+function traceMount(root, { i }, practice) {
+  bindGo(root);
+  const l = L(i);
+  const svg = root.querySelector('.trace-svg');
+  const g = fitGlyph(l.letter, TRACE_W, TRACE_H, 0.8);
+  const strokes = (STROKES[i] || []).map((s) => s.points.map(g.at));
+  const dots = strokes.map((s) => resample(s, DOT_STEP));
+  const hand = svg.querySelector('.demo-hand');
+  let stopDemo = null, idle = null;
+  const stop = () => { stopDemo && stopDemo(); stopDemo = null; clearTimeout(idle); };
+  const demo = (which) => { stop(); stopDemo = demoHand(hand, which, armIdle); };
+  // After 5 s without a touch, show only the next unfinished stroke again.
+  const armIdle = () => { clearTimeout(idle); if (trace.done) return; idle = later(() => { const n = trace.finished.indexOf(false); if (n >= 0) demo([strokes[n]]); }, 5000); };
+  root.querySelectorAll('.paint').forEach((b) => b.addEventListener('click', () => { trace.paint = +b.dataset.k; render(); }));
+  root.querySelector('.trace-again').addEventListener('click', () => { newTrace(i, practice); render(); });
+  const hintClip = () => say(trace.done ? 'praise' : 'trace_hint');
+  root.querySelector('.hint-bubble').addEventListener('click', () => { hintClip(); if (!trace.done) demo(strokes); });
+  if (trace.done) {
+    root.querySelector('.trace-next').addEventListener('click', () => {
+      if (practice) go('practice', { i: (i % 28) + 1 }); else { quiz = null; go('quiz', { i }); }
+    });
+    return;
+  }
+  if (!trace.demoDone && !trace.ink.length) {
+    trace.demoDone = true;
+    say(clipAr(l.name_ar), 'trace_hint');
+    later(() => demo(strokes), 1400);
+  } else armIdle();
+
+  const inkG = svg.querySelector('.ink');
+  let cur = null;
+  const cover = (p) => {
+    dots.forEach((ds, si) => ds.forEach((d, k) => {
+      if (trace.covered[si][k] || Math.hypot(d[0] - p[0], d[1] - p[1]) > TOLERANCE) return;
+      trace.covered[si][k] = true;
+      const c = svg.querySelector(`.tdot[data-s="${si}"][data-k="${k}"]`);
+      if (c) { c.classList.add('on'); c.setAttribute('r', 6); }
+    }));
+  };
+  svg.addEventListener('pointerdown', (e) => {
+    stop();
+    try { svg.setPointerCapture(e.pointerId); } catch (err) { /* pointer already gone */ }
+    const p = svgPoint(svg, e);
+    cur = { color: PAINTS[trace.paint][1], pts: [p] };
+    trace.ink.push(cur);
+    cur.el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    Object.entries({ stroke: cur.color, 'stroke-width': 26, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }).forEach(([k, v]) => cur.el.setAttribute(k, v));
+    cur.el.setAttribute('d', svgPath([p, p]));
+    inkG.appendChild(cur.el);
+    cover(p);
+  });
+  svg.addEventListener('pointermove', (e) => {
+    if (!cur) return;
+    const p = svgPoint(svg, e);
+    cur.pts.push(p);
+    cur.el.setAttribute('d', svgPath(cur.pts));
+    cover(p);
+  });
+  // Completion is checked when the finger lifts: a stroke counts once every one of its dots is covered, any order or direction.
+  // Covered dots stay green across touches, so a child can go back and fill in the ones they missed.
+  const up = () => {
+    if (!cur) return;
+    cur = null;
+    let changed = false;
+    trace.covered.forEach((cv, si) => {
+      if (!trace.finished[si] && cv.filter(Boolean).length / cv.length >= COVER) { trace.finished[si] = true; changed = true; buzz('tick'); }
+    });
+    if (trace.finished.every(Boolean)) {
+      trace.done = true;
+      buzz('confirm');
+      say('cheer', 'praise');
+      render();
+      return;
+    }
+    if (changed) render(); else armIdle();
+  };
+  svg.addEventListener('pointerup', up);
+  svg.addEventListener('pointercancel', up);
+}
+SCREENS.trace = { title: 'Trace it', view: (p) => traceView(p, false), mount: (r, p) => traceMount(r, p, false) };
+SCREENS.practice = { title: 'Trace practice', view: (p) => traceView(p, true), mount: (r, p) => traceMount(r, p, true) };
+
+// ---------- Play (Quiz) ----------
+const ROUNDS = 3;
+let quiz = null;
+function newQuizRound(i, round) {
+  const l = L(i);
+  const n = S.mode === 'reader' ? 4 : 3;
+  const others = shuffle(LETTERS.filter((x) => x.word_first !== l.letter && x.index !== i)).slice(0, n - 1);
+  let options;
+  do { options = shuffle([l, ...others]); } while (quiz && quiz.i === i && options.indexOf(l) === quiz.slot && n > 1);
+  quiz = { i, round, options, slot: options.indexOf(l), solved: false, wrong: null, saved: quiz && quiz.i === i ? quiz.saved : null };
+}
+SCREENS.quiz = {
+  title: 'Picture game',
+  view: ({ i }) => {
+    if (!quiz || quiz.i !== i) { quiz = null; newQuizRound(i, 1); }
+    const l = L(i);
+    const reader = S.mode === 'reader';
+    const dots = [...Array(ROUNDS)].map((_, k) => {
+      const r = k + 1;
+      const cls = r < quiz.round || (r === quiz.round && quiz.solved) ? 'done' : r === quiz.round ? 'now' : '';
+      return `<span class="qdot ${cls}"></span>`;
+    }).join('');
+    const cards = quiz.options.map((o) => {
+      const right = quiz.solved && o === l;
+      const dim = quiz.wrong === o && !quiz.solved;
+      return `<button type="button" class="q-card ${right ? 'right' : ''} ${dim ? 'dim' : ''} ${quiz.solved && !right ? 'faded' : ''}" data-i="${o.index}" aria-label="${cap(o.meaning_en)}">
+        <img src="${img(o.picture)}" alt="">${right ? pictureWord(o, 'q-word') + `<span class="q-star">${starSvg(34)}</span>` : ''}</button>`;
+    }).join('');
+    let foot;
+    if (quiz.solved) {
+      const last = quiz.round === ROUNDS;
+      const label = !last ? 'Great job! Next' : quiz.saved === 'sticker' ? 'Get your sticker' : quiz.saved === 'review' ? 'Back home' : quiz.saved === 'all' ? 'See your sticker' : 'Next letter';
+      foot = `<button type="button" class="primary-btn success q-next">${label} ${ICON.next}</button>`;
+    } else if (quiz.wrong) {
+      const w = quiz.wrong;
+      foot = `<div class="almost" role="status"><b>Almost! Try again</b><span>${cap(w.meaning_en)} (${AR(w.word_ar)}) starts with ${AR(w.word_first)}</span></div>`;
+    } else foot = `<p class="q-hint">${ICON.hand}<span>Listen, then tap a picture</span></p>`;
+    return `<div class="learn-wrap quiz ${reader ? 'four' : ''}">
+      <div class="quiz-head"><button type="button" class="round-btn" data-go="home" aria-label="Leave game">${ICON.close}</button><span class="qdots" aria-label="Question ${quiz.round} of ${ROUNDS}">${dots}</span><span class="head-gap"></span></div>
+      <div class="leo-row small"><img class="leo" src="${img('lion')}" alt="Leo the lion">
+        <button type="button" class="bubble q-bubble" aria-label="Hear the question"><span class="sun-btn">${ICON.speaker}</span><span class="q-ask">Which starts with</span><span class="q-letter">${AR(l.letter)}</span></button></div>
+      <div class="q-cards">${cards}</div>
+      <div class="q-foot">${foot}</div></div>`;
+  },
+  mount: (root, { i }) => {
+    bindGo(root);
+    const l = L(i);
+    const ask = () => say('which_starts_with', clipAr(l.name_ar));
+    if (!quiz.solved && !quiz.wrong) ask();
+    root.querySelector('.q-bubble').addEventListener('click', ask);
+    root.querySelectorAll('.q-card').forEach((c) => c.addEventListener('click', () => {
+      if (quiz.solved) return;
+      const o = L(+c.dataset.i);
+      if (o === l) {
+        quiz.solved = true;
+        say('praise', clipAr(l.word_ar));
+        buzz('confirm');
+        if (quiz.round === ROUNDS) {
+          // The letter is learned on the third right answer; a stage's sticker is given in the same step.
+          if (isLearned(i)) quiz.saved = 'review';
+          else {
+            S.learned.add(i);
+            if (stageComplete(l.stage)) { S.stickers.add(l.stage); quiz.saved = S.learned.size === 28 ? 'all' : 'sticker'; }
+            else quiz.saved = 'next';
+          }
+        }
+        render();
+        return;
+      }
+      quiz.wrong = o;
+      say('boing');
+      render();
+      const right = document.querySelector(`.q-card[data-i="${i}"]`);
+      later(() => wiggle(right), 300);
+    }));
+    const nx = root.querySelector('.q-next');
+    if (nx) nx.addEventListener('click', () => {
+      if (quiz.round < ROUNDS) { newQuizRound(i, quiz.round + 1); render(); return; }
+      const saved = quiz.saved;
+      quiz = null; reviewPick = null;
+      if (saved === 'sticker' || saved === 'all') return go('reward', { stage: l.stage });
+      if (saved === 'review') return go('home');
+      go('lesson', { i: learningLetter().index });
+    });
+  }
+};
+
+// ---------- Stage complete (Reward) ----------
+SCREENS.reward = {
+  title: 'Stage complete',
+  view: ({ stage }) => {
+    const n = stage || 1, st = stageOf(n), next = STAGES[n];
+    const unlocked = next && stageState(next.stage) !== 'locked';
+    const all = S.learned.size === 28;
+    const conf = ['#EC4F8C', '#3BAA5C', '#1F6FE0', '#8A6CE8', '#FFC93C', '#F07D2A'].map((c, k) => `<span class="confetti" style="background:${c};left:${8 + k * 16}%;animation-delay:${k * 0.2}s"></span>`).join('');
+    const after = all
+      ? `<div class="unlock-card" style="border-color:#158048;background:#E3F5EA"><span class="unlock-pic">${starSvg(56)}</span><span class="unlock-text"><small style="color:#0F5F35">ALL DONE</small><b>All 28 letters learned!</b></span></div>`
+      : unlocked
+        ? `<div class="unlock-card" style="border-color:${next.border};background:${next.pastel}"><span class="unlock-pic"><img src="${img(STAGE_PIC[next.stage])}" alt=""></span><span class="unlock-text"><small style="color:${next.accent_dark}">UNLOCKED</small><b>${next.name}</b></span>${AR(stageLetters(next.stage).map((l) => l.letter).join(' '), 'unlock-ar')}</div>`
+        : '';
+    return `<div class="learn-wrap reward" style="background:${st.pastel}">
+      ${S.calm ? '' : conf}
+      <h1 class="reward-title">${st.name} done!</h1>
+      <button type="button" class="medal" aria-label="${st.name} sticker. Tap to hear its letters"><span class="rays" style="--ray:${st.border}"></span>${stickerBadge(n, 190, true)}<span class="new-chip">NEW STICKER</span></button>
+      <div class="reward-letters" dir="rtl">${stageLetters(n).map((l) => `<span class="reward-letter">${AR(l.letter)}<img src="${img(l.picture)}" alt=""></span>`).join('')}</div>
+      <p class="reward-sub">4 letters learned · added to your sticker book</p>
+      ${after}
+      <div class="reward-foot"><button type="button" class="square-btn" data-go="stickers" aria-label="Open the sticker book">${ICON.sticker}</button>
+        <button type="button" class="primary-btn" data-go="map">${unlocked && !all ? `Go to ${next.name}` : 'Back to map'} ${ICON.next}</button></div></div>`;
+  },
+  mount: (root, { stage }) => {
+    bindGo(root);
+    say('cheer');
+    buzz('confirm');
+    const m = root.querySelector('.medal');
+    m.addEventListener('click', () => { wiggle(m.querySelector('.sticker')); say(...stageLetters(stage || 1).map((l) => clipAr(l.name_ar))); });
+  }
+};
+
+// ================= Grown-up screens =================
+const HOLD_MS = 2000;
+let gateOpen = false;
+SCREENS.gate = {
+  title: 'Parent gate',
+  view: () => `<div class="gate-wrap">
+    <button type="button" class="back-to-play" data-go="${homeRoute()}"><span class="btp-ico">${ICON.home}</span><b>Back to play</b><img src="${img('lion')}" alt=""></button>
+    <div class="gate-body">
+      <span class="gate-chip">GROWN-UPS ONLY</span>
+      <h1>${gateOpen ? 'Unlocked' : 'Hold to open settings'}</h1>
+      <p>${gateOpen ? 'Choose where to go.' : 'Keep your finger on the circle for 2 seconds.'}</p>
+      ${gateOpen
+        ? `<div class="gate-actions"><button type="button" class="primary-btn sun" data-go="zone">Open Parent zone ${ICON.next}</button>
+           <button type="button" class="ghost-btn close-app">${ICON.exit} Close Huroofi</button></div>`
+        : `<button type="button" class="hold" aria-label="Press and hold for 2 seconds">
+            <svg viewBox="0 0 220 220" aria-hidden="true"><circle cx="110" cy="110" r="100" class="hold-track"/><circle cx="110" cy="110" r="100" class="hold-ring" pathLength="100"/></svg>
+            <span class="hold-pad">${ICON.hand}<b class="hold-label">Hold</b></span></button>`}
+    </div>
+    <p class="gate-foot">${gateOpen ? '' : 'Letting go starts the circle again.'}</p></div>`,
+  mount: (root) => {
+    bindGo(root);
+    root.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { gateOpen = false; }, { capture: true }));
+    if (gateOpen) {
+      root.querySelector('.close-app').addEventListener('click', () => { gateOpen = false; go('closed'); });
+      return;
+    }
+    const pad = root.querySelector('.hold'), ring = root.querySelector('.hold-ring'), label = root.querySelector('.hold-label');
+    let t0 = null, raf;
+    const set = (f) => { ring.style.strokeDashoffset = String(100 - f * 100); };
+    const tick = (ts) => {
+      if (t0 === null) t0 = ts;
+      const f = Math.min((ts - t0) / HOLD_MS, 1);
+      set(f);
+      if (f >= 1) { gateOpen = true; buzz('confirm'); render(); return; }
+      raf = requestAnimationFrame(tick);
+    };
+    const start = (e) => { e.preventDefault(); t0 = null; label.textContent = 'Keep holding…'; raf = requestAnimationFrame(tick); };
+    const reset = () => { cancelAnimationFrame(raf); set(0); label.textContent = 'Hold'; };
+    pad.addEventListener('pointerdown', start);
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => pad.addEventListener(ev, reset));
+    pad.addEventListener('keydown', (e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) start(e); });
+    pad.addEventListener('keyup', reset);
+  }
+};
+
+// ---------- Parent zone ----------
+let zoneMode = null;
+let confirmStartOver = false;
+SCREENS.zone = {
+  title: 'Parent zone',
+  view: () => {
+    if (!zoneMode) zoneMode = S.mode;
+    const learned = S.learned.size, ll = learningLetter();
+    const learning = ll ? 1 : 0, togo = 28 - learned - learning;
+    const n = openStage() || 7;
+    const sw = (id, on, disabled = false) => `<button type="button" role="switch" class="switch ${on ? 'on' : ''}" aria-checked="${on}" data-sw="${id}" ${disabled ? 'disabled' : ''}><span></span></button>`;
+    const row = (title, sub, ctl, extra = '') => `<div class="z-row"><span class="z-text"><b>${title}</b><span>${sub}</span>${extra}</span>${ctl}</div>`;
+    const modes = [['toddler', 'Toddler', '18m – 3y', 'Picture cards, find-it game, finger paint'], ['preschool', 'Preschool', '3 – 5y', 'Meet, trace and a 3-picture game per letter'], ['reader', 'Early reader', '5y+', 'Adds letter shapes and a 4-picture game']];
+    const grid = LETTERS.map((l) => {
+      const cls = isLearned(l.index) ? 'learned' : l === ll ? 'learning' : 'togo';
+      return `<span class="z-letter ${cls}" aria-label="${l.name_latin}, ${cls === 'togo' ? 'to go' : cls}">${AR(l.letter)}</span>`;
+    }).join('');
+    return `<div class="zone-wrap">
+      <header class="zone-head"><button type="button" class="round-btn zone-back" aria-label="Back to kid mode">${ICON.back}</button><h1>Parent zone</h1>
+        <button type="button" class="btn-small zone-back">${ICON.home} Back to kid mode</button></header>
+      <section class="z-card child-card">
+        <div class="child-row"><span class="avatar small"><img src="${img('lion')}" alt=""></span><span class="z-text"><b>Your child</b><span>Stage ${n} of 7 · ${stageOf(n).name}</span></span></div>
+        <div class="z-bar"><span style="width:${(learned / 28) * 100}%;background:#158048"></span><span style="width:${(learning / 28) * 100}%;background:#1F6FE0"></span></div>
+        <div class="legend"><span><i class="lg learned"></i>${learned} learned</span><span><i class="lg learning"></i>${learning} learning</span><span><i class="lg togo"></i>${togo} to go</span></div>
+        ${zoneMode === 'toddler' ? '<p class="z-note">Toddler play isn\'t tracked. Letters count once lessons start (Preschool mode).</p>' : ''}
+        <div class="z-grid" dir="rtl">${grid}</div>
+      </section>
+      <section class="z-card"><h2>Learning mode</h2><span class="z-sub">Changes what your child sees when you go back to kid mode</span>
+        ${modes.map(([id, t, age, what]) => `<button type="button" class="mode ${zoneMode === id ? 'on' : ''}" aria-pressed="${zoneMode === id}" data-mode="${id}"><span class="radio"><span></span></span><span class="z-text"><b>${t} <em>· ${age}</em></b><span>${what}</span></span></button>`).join('')}
+      </section>
+      <section class="z-card list">
+        ${row('Voice & sounds', 'Native-speaker audio for every letter', sw('voice', S.voice))}
+        ${row('Vibration', 'A gentle buzz when your child gets it right', sw('vib', S.vib))}
+        ${row('Show vowel marks', `Adds vowel marks like ${AR('بَ بِ بُ')} in lessons`, sw('marks', false, true), '<small class="soon">Coming soon: vowel marks arrive in a later update.</small>')}
+        ${row('Daily play time', 'A calm “time to rest” screen appears when it is used up', `<span class="stepper"><button type="button" class="step-btn" data-step="-5" aria-label="5 minutes less" ${S.minutes <= 5 ? 'disabled' : ''}>${ICON.minus}</button><b>${S.minutes} min</b><button type="button" class="step-btn" data-step="5" aria-label="5 minutes more" ${S.minutes >= 60 ? 'disabled' : ''}>${ICON.plus}</button></span>`)}
+        ${row('Offline pack', 'All content is on this device.', '', '<small>To keep your child in Huroofi, turn on App pinning in your phone\'s Settings.</small>')}
+      </section>
+      <section class="z-card list"><h2>Lessons</h2>
+        ${row('Unlock all', 'Start any stage from the Letter map', sw('unlockAll', S.unlockAll))}
+        ${row('Trace only', 'Letters open straight into tracing, as practice', sw('traceOnly', S.traceOnly))}
+      </section>
+      <section class="z-card list">
+        ${confirmStartOver
+          ? `<div class="confirm"><b>Start over?</b><span>This clears every learned letter and sticker. It can't be undone.</span><div class="confirm-btns"><button type="button" class="btn-small ghost" data-confirm="no">Cancel</button><button type="button" class="btn-small warn" data-confirm="yes">Start over</button></div></div>`
+          : row('Start over', 'Clears every learned letter and sticker', '<button type="button" class="btn-small ghost start-over">Start over</button>')}
+      </section>
+      <p class="trust">${ICON.shield} No ads · no tracking · works offline</p>
+    </div>`;
+  },
+  mount: (root) => {
+    root.querySelectorAll('.zone-back').forEach((b) => b.addEventListener('click', () => { S.mode = zoneMode; zoneMode = null; confirmStartOver = false; leaveZone(); }));
+    root.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => { zoneMode = b.dataset.mode; render(); }));
+    root.querySelectorAll('[data-sw]').forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.sw;
+      if (k === 'marks') return;
+      S[k] = !S[k];
+      render();
+      document.dispatchEvent(new Event('settings'));
+    }));
+    root.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => {
+      S.minutes = Math.min(60, Math.max(5, S.minutes + +b.dataset.step));
+      if (S.timeUp && +b.dataset.step > 0) S.timeUp = false;
+      render();
+      document.dispatchEvent(new Event('settings'));
+    }));
+    const so = root.querySelector('.start-over');
+    if (so) so.addEventListener('click', () => { confirmStartOver = true; render(); });
+    root.querySelectorAll('[data-confirm]').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.confirm === 'yes') { S.learned.clear(); S.stickers.clear(); }
+      confirmStartOver = false;
+      render();
+      document.dispatchEvent(new Event('settings'));
+    }));
+  }
+};
+
+// ---------- Rest ----------
+SCREENS.rest = {
+  title: 'Rest',
+  view: () => `<div class="rest-wrap">
+    <button type="button" class="parent-lock corner" data-go="gate" aria-label="Grown-ups: open the parent gate">${ICON.lock}</button>
+    <span class="moon">${ICON.moon}</span>
+    <span class="rest-stars" aria-hidden="true">${starSvg(22, '#FFE07A')}${starSvg(16, '#FFE07A')}${starSvg(26, '#FFE07A')}</span>
+    <img class="rest-leo" src="${img('lion')}" alt="Leo the lion, resting">
+    ${AR('وقت الراحة', 'rest-ar')}
+    <p>Time to rest. See you tomorrow!</p></div>`,
+  mount: (root) => { bindGo(root); say(clipAr('وقت الراحة')); }
+};
+
+// ---------- App closed (prototype only) ----------
+SCREENS.closed = {
+  title: 'App closed',
+  view: () => `<div class="closed-wrap"><p>Huroofi is closed.</p><p class="muted">On a phone this returns to the home screen.</p>
+    <button type="button" class="primary-btn" data-go="${homeRoute()}">Open Huroofi again</button></div>`,
+  mount: (root) => bindGo(root)
+};
+
+// ================= Review shell: screen list, notes, controls, design system =================
+const GROUPS = [
+  ['Toddler mode', ['thome', 'tcards', 'tfind', 'tpaint']],
+  ['Preschool and Early reader', ['home', 'lesson', 'trace', 'quiz', 'reward', 'map', 'stickers', 'practice']],
+  ['Grown-ups and limits', ['gate', 'zone', 'rest']]
+];
+const NOTES = {
+  thome: { file: 'ToddlerHome', from: 'App start in Toddler mode; Home button on toddler screens.', rules: ['Leo asks “ماذا نلعب؟” on open; tapping the bubble asks again.', 'Three activity tiles, each a preview of its game. Every tile is far above 64 dp.', 'The small lock is a tap; the hold happens on the parent gate.', 'System Back does nothing here.'] },
+  tcards: { file: 'ToddlerCards', from: 'Toddler home, “اسمع” tile.', rules: ['All 28 letters in alphabet order; wraps at both ends.', 'On arrival: letter, then word. Tap the letter for the letter, the picture or sound button for the word; both wiggle.', '96 dp arrows plus swipe. The two small pictures between the arrows show what comes before and after.', 'No page dots: 28 dots are noise to a toddler.'] },
+  tfind: { file: 'ToddlerFind', from: 'Toddler home, “ابحث” tile.', rules: ['Asks only for toddler words (21 of 28). Two pictures; the target never repeats the last one.', 'Wrong tap: that picture nudges, the right one wiggles, a soft “boing”. The first wrong tap of a round also repeats the question. No X, no red, nothing lost.', 'Right tap: stars burst from the picture, praise plays, vibration.', 'No star counter and no sets of three. After the celebration the Next button fills up for 4 seconds, then the next round starts by itself; tapping Next skips the wait.', 'Tablets in landscape get the side-by-side layout (switch Device to Tablet).'] },
+  tpaint: { file: 'ToddlerPaint', from: 'Toddler home, “ارسم” tile.', rules: ['A random letter from all 28, never the same twice in a row. “لوّن ال…” plays on each new letter.', 'A hand shows the strokes once; the first touch stops it.', 'Fat 30 dp brush, 4 crayons, wipe. Paint only shows on the letter.', 'No star meter. After about 400 dp of paint on the letter: green frame, star burst, Leo cheers.', 'Then a ring counts down 4 seconds and a new letter starts by itself; “Paint it again” keeps the same letter.'] },
+  home: { file: 'Main', from: 'App start in Preschool or Early reader mode; Home tab.', rules: ['No name and no star count: the app stores no profile, and stickers are the only reward.', 'The stage path shows this stage’s 4 letters: learned green, today’s big and blue, the rest waiting. The stage sticker waits at the end of the path.', 'Tapping today’s letter or picture plays it; nothing plays on open.', 'One button: “Let’s learn ب”. With Trace only on it reads “Trace ب”; once all 28 are learned it offers a random letter to practise.', 'System Back opens the parent gate.'] },
+  lesson: { file: 'Lesson', from: 'Home button; Map; after the previous letter’s game.', rules: ['Step bar: Meet, Trace, Play.', 'Plays letter, then word, on open. The big letter, the picture and the sound button replay.', 'Picture word with its first letter in the stage colour, plus the English meaning for parents.', 'Early reader adds the letter shapes card (Alone, Start, Middle, End; non-joining letters show Alone and End only). Switch mode in the controls to see it.', '“Trace it” goes on; Back goes home.'] },
+  trace: { file: 'Trace', from: 'Meet, “Trace it”.', rules: ['Plays the letter, then the spoken hint, then a hand shows every stroke in order.', 'Guide: pale blue letter with a navy outline, dots every 18 dp, numbered start coins (1 is green), arrows at stroke ends. The next stroke is bright; later strokes are faded.', 'Dots turn green under the finger (30 dp tolerance). A stroke counts only when every one of its dots is green (100 %), in any order or direction; its coin turns into a star. Missed dots stay white, and green ones stay green, so the child can go back and fill in the gaps.', 'No stars while tracing and no “I did it!” button. Next stays grey and locked (“Finish ب first”) until every stroke is done.', 'When done: star burst, “You traced ب!”, and Next turns blue and pulses. It never moves on by itself.', 'After 5 s without a touch the hand shows the next stroke again. Again clears the ink and replays the demo.'] },
+  practice: { file: 'Trace (practice)', from: 'Home or Map while Trace only is on.', rules: ['Same tracing as Trace, without the step bar.', 'Practice never makes a letter learned, never gives a sticker and never unlocks a stage.', 'Next letter goes to the following letter in the alphabet, only when tapped.'] },
+  quiz: { file: 'Quiz', from: 'Trace, “Play”.', rules: ['Asks “Which starts with ب?” on open; the bubble asks again.', 'Pictures only. Preschool 3 in a column; Early reader 4 in a 2×2 grid. The right picture never sits in the same place two rounds running.', 'Three rounds, shown as three dots. No star counter.', 'Wrong: soft “boing”, the picture dims, the right one wiggles, and an orange “Almost! Try again” explains what the tapped picture starts with. Unlimited tries.', 'Right: green frame, a star pops, the word appears, praise and vibration. Then “Great job! Next”, only when tapped.', 'The third right answer makes the letter learned. The button then reads “Next letter”, or “Get your sticker” when the stage is complete.'] },
+  reward: { file: 'Reward', from: 'The game’s last round when it completes a stage.', rules: ['The stage sticker is the hero; tapping it says the stage’s letters. Confetti unless calm motion is on.', 'The four letters with their pictures, then the next stage shown as unlocked.', 'No stars or points: the sticker is the only reward.', '“Go to Carrot Farm” opens the map; the square button opens the sticker book. “Back to map” when nothing new unlocked.'] },
+  map: { file: 'StageMap', from: 'Map tab; Reward.', rules: ['Seven stages in a list. The current stage is open wide with its 4 letters and “Continue with ب”.', 'Finished stages get a green tick; tapping one replays Meet for a random letter of that stage.', 'Locked stages are compact with a lock; tapping one gives a “boing” and a wiggle.', 'With Unlock all on, unfinished stages get a play button instead of a lock.'] },
+  stickers: { file: 'Stickers', from: 'Stickers tab; Reward.', rules: ['One sticker per stage, seven in all.', 'Earned stickers are filled in; tapping one wiggles and says its letters.', 'The rest are gentle empty slots with a question mark, not greyed-out failures.'] },
+  gate: { file: 'ParentGate', from: 'Every lock, the Parents tab, Back on the preschool home, the lock on Rest.', rules: ['“Back to play” comes first and is the biggest thing on screen.', 'Press and hold the circle for 2 seconds; the ring fills. Letting go resets it.', 'Once unlocked: “Open Parent zone” or “Close Huroofi”.'] },
+  zone: { file: 'Parents', from: 'Parent gate only.', rules: ['Your child: stage, a progress bar with learned / learning / to go, and all 28 letters.', 'Learning mode applies when you go back to kid mode.', 'Voice & sounds, Vibration, vowel marks (shown, but locked until the vowelled text is reviewed), daily play time 5–60 min in steps of 5.', 'Lessons: Unlock all and Trace only. Start over asks first, inside the page.', 'No child name, no weekly report, no download button: everything is already on the device.'] },
+  rest: { file: 'Rest', from: 'Replaces any child screen once today’s play time is used up.', rules: ['Calm night colours, Leo resting, “وقت الراحة” is spoken once.', 'No countdown and no red. Only the lock leads anywhere.', 'Raising the limit in the Parent zone sends the child back to play. Trace practice counts as play too.'] },
+  closed: { file: '', from: 'Parent gate, “Close Huroofi”.', rules: ['Prototype stand-in for leaving the app.'] }
+};
+
+// Fixed states used for the static snapshots in design-reference/screens/.
+const g2 = () => L(2);
+const STATIC = {
+  Main: () => { S.mode = 'preschool'; applyPreset('mid'); return ['home']; },
+  Lesson: () => { S.mode = 'preschool'; return ['lesson', { i: 2 }]; },
+  'Lesson-reader': () => { S.mode = 'reader'; return ['lesson', { i: 2 }]; },
+  Trace: () => { newTrace(2, false); trace.demoDone = true; return ['trace', { i: 2 }]; },
+  'Trace-done': () => { fillTrace(2); return ['trace', { i: 2 }]; },
+  Quiz: () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: false, wrong: null, saved: null }; return ['quiz', { i: 2 }]; },
+  'Quiz-almost': () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: false, wrong: L(4), saved: null }; return ['quiz', { i: 2 }]; },
+  'Quiz-done': () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: true, wrong: null, saved: null }; return ['quiz', { i: 2 }]; },
+  'Quiz-reader': () => { S.mode = 'reader'; quiz = { i: 2, round: 1, options: [L(4), g2(), L(3), L(11)], slot: 1, solved: false, wrong: null, saved: null }; return ['quiz', { i: 2 }]; },
+  Reward: () => { applyPreset('halfway'); S.learned = new Set([1, 2, 3, 4]); S.stickers = new Set([1]); return ['reward', { stage: 1 }]; },
+  StageMap: () => { applyPreset('halfway'); S.learned = new Set([1, 2, 3, 4, 5]); S.stickers = new Set([1]); return ['map']; },
+  Stickers: () => { S.learned = new Set([...Array(8)].map((_, k) => k + 1)); S.stickers = new Set([1, 2]); return ['stickers']; },
+  ParentGate: () => { gateOpen = false; return ['gate']; },
+  Parents: () => { S.mode = 'preschool'; applyPreset('mid'); return ['zone']; },
+  ToddlerHome: () => { S.mode = 'toddler'; return ['thome']; },
+  ToddlerCards: () => { cardIndex = 2; return ['tcards']; },
+  ToddlerFind: () => { find = { target: g2(), options: [g2(), L(3)], solved: false, wrongOnce: false }; return ['tfind']; },
+  'ToddlerFind-done': () => { find = { target: g2(), options: [g2(), L(3)], solved: true, wrongOnce: false }; return ['tfind']; },
+  ToddlerFindTablet: () => { S.device = 'tablet'; find = { target: g2(), options: [g2(), L(3)], solved: true, wrongOnce: false }; return ['tfind']; },
+  ToddlerPaint: () => { paint = { letter: g2(), crayon: 1, strokes: [], dist: 0, done: false, demoShown: true }; return ['tpaint']; },
+  'ToddlerPaint-done': () => { fillPaint(2); return ['tpaint']; },
+  Rest: () => { S.timeUp = true; return ['home']; }
+};
+function fillTrace(i) {
+  newTrace(i, false);
+  const g = fitGlyph(L(i).letter, TRACE_W, TRACE_H, 0.8);
+  const strokes = STROKES[i].map((s) => s.points.map(g.at));
+  trace.ink = strokes.map((pts) => ({ color: PAINTS[0][1], pts }));
+  trace.covered = strokes.map((s) => resample(s, DOT_STEP).map(() => true));
+  trace.finished = strokes.map(() => true);
+  trace.done = true; trace.demoDone = true;
+}
+function fillPaint(i) {
+  const g = fitGlyph(L(i).letter, PAINT_W, PAINT_H, 0.78);
+  const strokes = STROKES[i].map((s) => s.points.map(g.at));
+  paint = { letter: L(i), crayon: 1, strokes: strokes.map((pts, k) => ({ color: CRAYONS[k % 2 ? 1 : 0][1], pts: pts.length === 1 ? [pts[0], pts[0]] : pts })), dist: 999, done: true, demoShown: true };
+}
+
+// ---------- shell ----------
+function screenList() {
+  return GROUPS.map(([g, ids]) => `<div class="nav-group"><h3>${g}</h3>${ids.map((id) => `<button type="button" class="nav-link" data-route="${id}"><span>${NOTES[id] && SCREENS[id].title}</span></button>`).join('')}</div>`).join('');
+}
+function routeParams(id) {
+  if (['lesson', 'trace', 'quiz', 'practice'].includes(id)) return { i: todaysLetter().letter.index };
+  if (id === 'reward') return { stage: Math.max(1, ...[...S.stickers], 1) };
+  return {};
+}
+function syncShell(name) {
+  document.querySelectorAll('.nav-link').forEach((b) => b.classList.toggle('on', b.dataset.route === name));
+  const n = NOTES[name] || NOTES.closed;
+  document.getElementById('notes').innerHTML = `<h2>${SCREENS[name].title}</h2>
+    ${n.file ? `<p class="note-file">Reference: <code>screens/${n.file}.html</code></p>` : ''}
+    <p class="note-from"><b>Reached from</b> ${n.from}</p><ul>${n.rules.map((r) => `<li>${r}</li>`).join('')}</ul>`;
+  const tablet = S.device === 'tablet' && name === 'tfind';
+  document.getElementById('device').classList.toggle('tablet', tablet);
+  document.getElementById('device-note').hidden = !(S.device === 'tablet' && name !== 'tfind');
+  fitDevice();
+  try { history.replaceState(null, '', '#' + name); } catch (e) { /* sandboxed */ }
+  syncControls();
+}
+function syncControls() {
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  set('ctl-mode', S.mode);
+  set('ctl-device', S.device);
+  const t = document.getElementById('ctl-time'); if (t) t.checked = S.timeUp;
+  const c = document.getElementById('ctl-calm'); if (c) c.checked = S.calm;
+  document.getElementById('progress-line').textContent = `${S.learned.size} of 28 learned · ${S.stickers.size} of 7 stickers`;
+}
+function fitDevice() {
+  const stage = document.getElementById('stage');
+  const dev = document.getElementById('device');
+  const holder = document.getElementById('device-holder');
+  const w = dev.classList.contains('tablet') ? 1180 : 390, h = dev.classList.contains('tablet') ? 820 : 844;
+  const availW = stage.clientWidth - 8;
+  const availH = window.innerWidth > 900 ? window.innerHeight - 150 : 4000;
+  const scale = Math.min(1, availW / (w + 24), availH / (h + 24));
+  dev.style.transform = `scale(${scale})`;
+  holder.style.width = (w + 24) * scale + 'px';
+  holder.style.height = (h + 24) * scale + 'px';
+}
+function designSystem() {
+  const sw = (name, hex, use) => `<div class="swatch"><span style="background:${hex}"></span><b>${name}</b><code>${hex}</code><small>${use}</small></div>`;
+  return `<div class="ds">
+    <section><h2>Colour</h2><div class="swatches">
+      ${sw('navy', '#13294B', 'Text, big letters')}${sw('muted', '#4A5D7A', 'Secondary text')}${sw('sky', '#E8F4FF', 'Child background')}
+      ${sw('primary', '#1F6FE0', 'Main buttons')}${sw('primary shadow', '#1555B0', '3D edge')}${sw('sun', '#FFC93C', 'Sound buttons, stars')}
+      ${sw('success', '#158048', 'Right answer, done')}${sw('guide', '#C8DCF4', 'Trace letter band')}${sw('almost', '#FFE4D6', 'Gentle wrong hint')}
+      ${sw('parent bg', '#F4F7FB', 'Parent zone')}${sw('gate bg', '#13294B', 'Parent gate')}${sw('rest', '#24345E', 'Rest screen')}</div></section>
+    <section><h2>Stage families</h2><div class="stage-fams">${STAGES.map((s) => `<div class="fam" style="background:${s.pastel};border-color:${s.border}"><img src="${img(STAGE_PIC[s.stage])}" alt=""><b style="color:${s.accent_dark}">${s.stage}. ${s.name}</b><span dir="rtl" class="ar">${s.letters.join(' ')}</span></div>`).join('')}</div></section>
+    <section><h2>Type</h2><div class="type-scale">
+      <p style="font:800 30px/1.1 var(--app-en)">Screen title 26–36</p><p style="font:800 22px/1.2 var(--app-en)">Primary button 22</p><p style="font:800 20px/1.2 var(--app-en)">Section heading 20</p><p style="font:600 18px/1.3 var(--app-en)">Body 18 · never below 16</p>
+      <p><span dir="rtl" class="ar" style="font-size:42px">أين البطة؟</span> <small>Toddler sentence 34–42</small></p><p><span dir="rtl" class="ar" style="font-size:96px;line-height:1.3">ب</span> <small>Lesson letter (170 on device)</small></p></div></section>
+    <section><h2>Buttons and controls</h2><div class="ds-demo screen">
+      <button type="button" class="primary-btn">Let’s learn ${AR('ب', 'btn-ar')}${ICON.next}</button>
+      <button type="button" class="primary-btn success">Great job! Next ${ICON.next}</button>
+      <button type="button" class="primary-btn locked" disabled>${ICON.lock} Finish ${AR('ب', 'btn-ar')} first</button>
+      <div class="ds-row"><button type="button" class="sun-btn big" aria-label="Sound">${ICON.speaker}</button><button type="button" class="round-btn" aria-label="Back">${ICON.back}</button><button type="button" class="square-btn" aria-label="Again">${ICON.again}</button><button type="button" class="parent-lock" aria-label="Parent lock">${ICON.lock}</button>${ringNext('Countdown Next')}</div>
+      <button type="button" class="fill-next" aria-label="Fill Next"><span class="fill"></span><span class="fill-icon">${ICON.next}</span></button></div></section>
+    <section><h2>Rules every screen follows</h2><ul class="ds-rules">
+      <li>Stars appear only to celebrate a success. No counters or meters while a child is working.</li>
+      <li>Preschool and Early reader: Next is locked until the step is done and never moves on by itself.</li>
+      <li>Toddler: after the celebration the next item starts by itself, with a visible countdown; tapping Next skips the wait.</li>
+      <li>Every instruction is spoken. No X, no red, nothing lost on a wrong tap.</li>
+      <li>Touch targets at least 48 dp, and 64 dp in Toddler mode. Text never below 16 sp.</li>
+      <li>Calm motion (the phone’s “Remove animations”) drops confetti, wiggles and pulses.</li></ul></section></div>`;
+}
+function buildShell() {
+  document.getElementById('screen-list').innerHTML = screenList();
+  document.querySelectorAll('.nav-link').forEach((b) => b.addEventListener('click', () => { showView('screens'); go(b.dataset.route, routeParams(b.dataset.route)); }));
+  document.getElementById('ds').innerHTML = designSystem();
+  const on = (id, ev, fn) => document.getElementById(id).addEventListener(ev, fn);
+  on('ctl-mode', 'change', (e) => { S.mode = e.target.value; reviewPick = null; quiz = null; go(homeRoute()); });
+  on('ctl-progress', 'change', (e) => { applyPreset(e.target.value); reviewPick = null; render(); });
+  on('ctl-time', 'change', (e) => { S.timeUp = e.target.checked; render(); });
+  on('ctl-calm', 'change', (e) => { S.calm = e.target.checked; render(); });
+  on('ctl-device', 'change', (e) => { S.device = e.target.value; if (S.device === 'tablet' && route.name !== 'tfind') { S.mode = 'toddler'; go('tfind'); } else render(); });
+  on('ctl-back', 'click', systemBack);
+  on('ctl-reset', 'click', () => { Object.assign(S, { mode: 'preschool', voice: true, vib: true, minutes: 20, unlockAll: false, traceOnly: false, timeUp: false, calm: false, device: 'phone' }); applyPreset('mid'); trace = quiz = find = paint = null; gateOpen = false; go('home'); });
+  document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));
+  document.addEventListener('routed', (e) => syncShell(e.detail.name));
+  document.addEventListener('settings', syncControls);
+  window.addEventListener('resize', fitDevice);
+  document.getElementById('ctl-progress').innerHTML = Object.entries(PRESETS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+  document.getElementById('ctl-progress').value = 'mid';
+}
+function showView(v) {
+  document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
+  document.getElementById('stage-screens').hidden = v !== 'screens';
+  document.getElementById('ds').hidden = v !== 'ds';
+  if (v === 'screens') fitDevice();
+}
+
+async function boot() {
+  await chooseArabicFont();
+  await document.fonts.ready;
+  const hash = decodeURIComponent(location.hash.slice(1));
+  if (hash.startsWith('static-')) {
+    // Snapshot mode: only the device, no review shell. Used to write design-reference/screens/*.html.
+    S.staticView = true;
+    const key = hash.slice(7);
+    const [name, p] = STATIC[key]();
+    document.body.classList.add('static');
+    document.getElementById('shell').remove();
+    const dev = document.createElement('div');
+    dev.id = 'screen';
+    document.body.appendChild(dev);
+    route = { name, p: p || {} };
+    const tablet = S.device === 'tablet';
+    let n = name;
+    if (S.timeUp && CHILD_ROUTES.includes(n)) n = 'rest';
+    dev.className = `screen screen-${n} static-${tablet ? 'tablet' : 'phone'}`;
+    dev.innerHTML = SCREENS[n].view(route.p);
+    document.title = 'Huroofi – ' + key;
+    document.body.dataset.ready = '1';
+    return;
+  }
+  buildShell();
+  showView('screens');
+  const start = SCREENS[hash] && hash !== 'closed' ? hash : 'home';
+  if (['thome', 'tcards', 'tfind', 'tpaint'].includes(start)) S.mode = 'toddler';
+  go(start, routeParams(start));
+}
+boot();
+
+</script>
+</body>
+</html>
