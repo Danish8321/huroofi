@@ -71,6 +71,7 @@ System Back: on Toddler home and Rest it does nothing; on other toddler screens 
 | success | `#158048` / shadow `#0F5F35` | Correct answer, Next after success |
 | outline | `#26324A` | Illustration outlines |
 | guide | `#C8DCF4` | Trace letter band (navy outline) |
+| locked | `#D5E0EC`, edge `#BCCADB`, text muted | Next before its step is done |
 | almost | `#FFE4D6` / text `#8A3B12` | Gentle "Almost!" hint |
 | rest | `#24345E` to `#3A4F86` | Rest screen gradient |
 | parent bg | `#F4F7FB` | Parent zone background |

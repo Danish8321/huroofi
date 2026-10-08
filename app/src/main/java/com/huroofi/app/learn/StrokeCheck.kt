@@ -3,8 +3,8 @@ package com.huroofi.app.learn
 import androidx.compose.ui.geometry.Offset
 import kotlin.math.ceil
 
-/** Share of each stroke's dots that must be inked (plan 09 decision 3). */
-const val STROKE_NEED = 0.7f
+/** Share of each stroke's dots that must be inked: all of them (plan 15 decision 1; was 70 %, plan 09 decision 3). */
+const val STROKE_NEED = 1f
 
 /**
  * [points] resampled evenly, about [spacingPx] apart, first and last point included.

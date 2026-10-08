@@ -237,7 +237,7 @@ private fun NavGraphBuilder.learnDestinations(nav: NavHostController) {
         val index = entry.arguments?.getInt(LearnRoutes.ARG_INDEX) ?: return@composable
         val toLesson = { nav.navigate(LearnRoutes.lesson(index), overHome) }
         LearnBackHandler(LearnRoutes.Trace, onToLesson = toLesson)
-        TraceRoute(index, onBack = toLesson, onDone = { nav.navigate(LearnRoutes.quiz(index), overHome) })
+        TraceRoute(index, onBack = toLesson, onNext = { nav.navigate(LearnRoutes.quiz(index), overHome) })
     }
     composable(LearnRoutes.Practice, arguments = indexArg) { entry ->
         val index = entry.arguments?.getInt(LearnRoutes.ARG_INDEX) ?: return@composable

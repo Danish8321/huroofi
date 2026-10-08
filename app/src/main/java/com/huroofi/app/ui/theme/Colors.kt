@@ -21,6 +21,10 @@ object HuroofiTokens {
     val Outline = Color(0xFF26324A)
     val ParentBg = Color(0xFFF4F7FB)
     val GateBg = Color(0xFF13294B)
+
+    /** A Next button before its step is done (prototype, plan 15 decision 1). */
+    val Locked = Color(0xFFD5E0EC)
+    val LockedShadow = Color(0xFFBCCADB)
 }
 
 /** Tokens that have no Material 3 slot. Read with [LocalHuroofiColors]. */
@@ -39,6 +43,8 @@ data class HuroofiColors(
     val outline: Color = HuroofiTokens.Outline,
     val parentBg: Color = HuroofiTokens.ParentBg,
     val gateBg: Color = HuroofiTokens.GateBg,
+    val locked: Color = HuroofiTokens.Locked,
+    val lockedShadow: Color = HuroofiTokens.LockedShadow,
 )
 
 val LocalHuroofiColors = staticCompositionLocalOf { HuroofiColors() }

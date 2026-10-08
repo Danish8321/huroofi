@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.huroofi.app.ui.theme.ContrastPair
@@ -29,7 +30,8 @@ import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 
-enum class ButtonKind { Primary, Success, Sun }
+/** [Locked] is a Next that waits for its step: grey, not dimmed, and not clickable. */
+enum class ButtonKind { Primary, Success, Sun, Locked }
 
 private data class ButtonColors(val face: Color, val shadow: Color, val label: Color)
 
@@ -37,6 +39,7 @@ private fun ButtonKind.colors(c: HuroofiColors) = when (this) {
     ButtonKind.Primary -> ButtonColors(c.primary, c.primaryShadow, c.card)
     ButtonKind.Success -> ButtonColors(c.success, c.successShadow, c.card)
     ButtonKind.Sun -> ButtonColors(c.sun, c.sunShadow, c.navy)
+    ButtonKind.Locked -> ButtonColors(c.locked, c.lockedShadow, c.muted)
 }
 
 /** For the contrast sweep: the label is 22 sp ExtraBold, so large text, and the icon follows it. */
@@ -50,7 +53,7 @@ fun ButtonKind.contrastPairs(): List<ContrastPair> {
 
 /**
  * 64 dp tall, 22 dp corners, solid face with a 6 dp darker bottom edge that sinks when pressed.
- * [icon] (see [ButtonIcons]) follows the label, as in the prototypes.
+ * [icon] (see [ButtonIcons]) follows the label, as in the prototypes; [leadingIcon] goes before it.
  */
 @Composable
 fun PrimaryButton(
@@ -60,7 +63,21 @@ fun PrimaryButton(
     kind: ButtonKind = ButtonKind.Primary,
     enabled: Boolean = true,
     icon: List<String>? = null,
+    leadingIcon: List<String>? = null,
+) = PrimaryButton(AnnotatedString(text), onClick, modifier, kind, enabled, icon, leadingIcon)
+
+/** A label with spans, such as an Arabic letter in Naskh inside an English label. */
+@Composable
+fun PrimaryButton(
+    text: AnnotatedString,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    kind: ButtonKind = ButtonKind.Primary,
+    enabled: Boolean = true,
+    icon: List<String>? = null,
+    leadingIcon: List<String>? = null,
 ) {
+    val clickable = enabled && kind != ButtonKind.Locked
     val colors = kind.colors(LocalHuroofiColors.current)
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
@@ -71,11 +88,11 @@ fun PrimaryButton(
         modifier = modifier
             .fillMaxWidth()
             .height(HuroofiDimens.PrimaryButtonHeight + depth)
-            .alpha(if (enabled) 1f else 0.5f)
+            .alpha(if (enabled || kind == ButtonKind.Locked) 1f else 0.5f)
             .clickable(
                 interactionSource = source,
                 indication = null,
-                enabled = enabled,
+                enabled = clickable,
                 role = Role.Button,
                 onClick = onClick,
             ),
@@ -97,6 +114,7 @@ fun PrimaryButton(
             contentAlignment = Alignment.Center,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (leadingIcon != null) LineIcon(leadingIcon, colors.label, size = 22.dp, strokeWidth = 2.6f)
                 Text(text, style = HuroofiText.buttonPrimary, color = colors.label)
                 if (icon != null) LineIcon(icon, colors.label, size = 26.dp, strokeWidth = 2.6f)
             }
