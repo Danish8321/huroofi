@@ -360,6 +360,8 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .tdot { fill: #FFFFFF; stroke: #13294B; stroke-width: 2 }
 .tdot.on { fill: var(--success); stroke: #FFFFFF }
 .tdot.later, .tarrow.later, .coin.later { opacity: 0.35 }
+.tgap { fill: var(--sun); stroke: var(--navy); stroke-width: 2.5; animation: gap 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center }
+@keyframes gap { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.5) } }
 .coin.next circle { animation: coin 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center }
 @keyframes coin { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.18) } }
 .done-badge { position: absolute; left: 0; right: 0; bottom: 18px; margin: 0 auto; width: max-content; display: flex; align-items: center; gap: 8px; padding: 6px 18px 6px 6px; border-radius: 999px; background: var(--success); color: #FFFFFF; font-size: 20px; font-weight: 800; z-index: 4; animation: hop 0.5s 0.3s ease-out both }
@@ -773,6 +775,14 @@ function fitGlyph(ch, w, h, share = 0.8) {
     px, x, y, left, top, inkW, inkH,
     at: ([nx, ny]) => [left + nx * inkW, top + ny * inkH],
     // On the letter, with a little slop so a finger on the edge still counts.
+    // Grid points every `step` px that lie inside the letter, at least `inset` px from its edge
+    // (so soft edge pixels and hair-thin tips never block a child).
+    area: (step = 6, inset = 4) => {
+      const pts = [];
+      const deep = (px2, py2) => inside(px2, py2) && [[inset, 0], [-inset, 0], [0, inset], [0, -inset]].every(([dx, dy]) => inside(px2 + dx, py2 + dy));
+      for (let py2 = step / 2; py2 < c.height; py2 += step) for (let px2 = step / 2; px2 < c.width; px2 += step) if (deep(px2, py2)) pts.push([px2, py2]);
+      return pts;
+    },
     near: (px2, py2, slop = 8) => inside(px2, py2) || [[slop, 0], [-slop, 0], [0, slop], [0, -slop]].some(([dx, dy]) => inside(px2 + dx, py2 + dy)),
     svgText: (attrs) => `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-family="${FONT_AR}" font-weight="700" font-size="${px.toFixed(1)}" ${attrs}>${ch}</text>`
   };
@@ -1233,11 +1243,20 @@ SCREENS.lesson = {
 };
 
 // ---------- Trace (and Trace practice) ----------
-const TRACE_W = 350, TRACE_H = 420, DOT_STEP = 18, TOLERANCE = 30, COVER = 1;
+const TRACE_W = 350, TRACE_H = 420, DOT_STEP = 18, TOLERANCE = 30, COVER = 1, BRUSH_SLACK = 4;
 const PAINTS = [...CRAYONS, ['Pink', '#FF6FA5', '#D94C84']];
 let trace = null;
 function newTrace(i, practice) {
-  trace = { i, practice, ink: [], paint: 0, covered: null, finished: [], done: false, demoDone: false };
+  trace = { i, practice, ink: [], paint: 0, covered: null, finished: [], areaPts: null, area: null, done: false, demoDone: false };
+}
+// The letter's area, and a brush as wide as the letter: a trace down the middle of every stroke
+// paints the whole letter; wandering off the middle leaves gaps to colour in.
+function letterArea(g, strokes) {
+  trace.areaPts = g.area();
+  trace.area = trace.areaPts.map(() => false);
+  const line = strokes.flatMap((s) => resample(s, 2));
+  const reach = Math.max(...trace.areaPts.map((q) => Math.min(...line.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1])))));
+  trace.reach = Math.max(13, reach + BRUSH_SLACK);
 }
 function traceView({ i }, practice) {
   if (!trace || trace.i !== i || trace.practice !== practice) newTrace(i, practice);
@@ -1246,9 +1265,13 @@ function traceView({ i }, practice) {
   const strokes = (STROKES[i] || []).map((s) => ({ ...s, pts: s.points.map(g.at) }));
   const dots = strokes.map((s) => resample(s.pts, DOT_STEP));
   if (!trace.covered) { trace.covered = dots.map((d) => d.map(() => false)); trace.finished = dots.map(() => false); }
+  if (!trace.areaPts) letterArea(g, strokes.map((s) => s.pts));
   const nextStroke = trace.finished.indexOf(false);
   const done = trace.done;
-  const dotEls = dots.map((ds, si) => ds.map((p, k) => `<circle class="tdot ${trace.covered[si][k] ? 'on' : ''} ${si === nextStroke || done ? '' : 'later'}" data-s="${si}" data-k="${k}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${trace.covered[si][k] ? 6 : 4.5}"/>`).join('')).join('');
+  // Every stroke followed but some of the letter still unpainted: show the gaps.
+  const filling = !done && nextStroke < 0;
+  const gapEls = filling ? trace.areaPts.map((p, k) => trace.area[k] ? '' : `<circle class="tgap" data-a="${k}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="7"/>`).join("") : "";
+  const dotEls = dots.map((ds, si) => ds.map((p, k) => `<circle class="tdot ${trace.covered[si][k] ? 'on' : ''} ${si === nextStroke || nextStroke < 0 ? "" : "later"}" data-s="${si}" data-k="${k}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${trace.covered[si][k] ? 6 : 4.5}"/>`).join('')).join('');
   const arrows = strokes.map((s, si) => {
     if (s.pts.length < 2) return '';
     const [ax, ay] = s.pts[s.pts.length - 1], [bx, by] = s.pts[s.pts.length - 2];
@@ -1261,8 +1284,8 @@ function traceView({ i }, practice) {
     if (trace.finished[si]) return `<g transform="translate(${(x - 15).toFixed(1)} ${(y - 15).toFixed(1)})">${starSvg(30).replace('<svg ', '<svg x="0" y="0" ')}</g>`;
     return `<g class="coin ${si === nextStroke ? 'next' : 'later'}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle r="15" fill="${si === 0 ? '#158048' : '#1F6FE0'}" stroke="#FFFFFF" stroke-width="3"/><text y="6" text-anchor="middle" font-size="17" font-weight="800" fill="#FFFFFF" font-family="Baloo Bhaijaan 2, system-ui">${si + 1}</text></g>`;
   }).join('');
-  const ink = trace.ink.map((s) => `<path d="${svgPath(s.pts.length === 1 ? [s.pts[0], s.pts[0]] : s.pts)}" stroke="${s.color}" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
-  const hint = done ? (practice ? 'Well done! Tap Next for another letter' : 'Well done! Tap Play for the picture game') : 'Start at the green 1, then follow the dots!';
+  const ink = trace.ink.map((s) => `<path d="${svgPath(s.pts.length === 1 ? [s.pts[0], s.pts[0]] : s.pts)}" stroke="${s.color}" stroke-width="${(trace.reach * 2).toFixed(1)}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+  const hint = done ? (practice ? 'Well done! Tap Next for another letter' : 'Well done! Tap Play for the picture game') : filling ? 'Now colour in the yellow spots!' : 'Start at the green 1, then follow the dots!';
   const head = practice
     ? `<div class="flow-head"><button type="button" class="round-btn" data-go="home" aria-label="Back to home">${ICON.back}</button><span class="practice-title">Trace practice</span></div>`
     : `<div class="flow-head"><button type="button" class="round-btn" data-go="lesson" data-i="${i}" aria-label="Back to Meet">${ICON.back}</button>${stepBar('trace')}</div>`;
@@ -1277,7 +1300,7 @@ function traceView({ i }, practice) {
         <defs><clipPath id="traceClip">${g.svgText('')}</clipPath></defs>
         ${g.svgText('fill="#C8DCF4" stroke="#13294B" stroke-width="3" stroke-linejoin="round"')}
         <g clip-path="url(#traceClip)" class="ink">${ink}</g>
-        <g class="dots">${dotEls}</g>${arrows}${coins}
+        <g class="dots">${dotEls}</g>${arrows}${coins}<g class="gaps">${gapEls}</g>
         ${HAND_SVG}
       </svg>
       ${done ? burst(1) + `<span class="done-badge"><img src="${img('lion')}" alt=""><span>You traced ${AR(l.letter)}!</span></span>` : ''}
@@ -1298,10 +1321,10 @@ function traceMount(root, { i }, practice) {
   const stop = () => { stopDemo && stopDemo(); stopDemo = null; clearTimeout(idle); };
   const demo = (which) => { stop(); stopDemo = demoHand(hand, which, armIdle); };
   // After 5 s without a touch, show only the next unfinished stroke again.
-  const armIdle = () => { clearTimeout(idle); if (trace.done) return; idle = later(() => { const n = trace.finished.indexOf(false); if (n >= 0) demo([strokes[n]]); }, 5000); };
+  const armIdle = () => { clearTimeout(idle); if (trace.done) return; idle = later(() => { const n = trace.finished.indexOf(false); if (n >= 0) demo([strokes[n]]); else say('fill_hint'); }, 5000); };
   root.querySelectorAll('.paint').forEach((b) => b.addEventListener('click', () => { trace.paint = +b.dataset.k; render(); }));
   root.querySelector('.trace-again').addEventListener('click', () => { newTrace(i, practice); render(); });
-  const hintClip = () => say(trace.done ? 'praise' : 'trace_hint');
+  const hintClip = () => say(trace.done ? 'praise' : trace.finished.every(Boolean) ? 'fill_hint' : 'trace_hint');
   root.querySelector('.hint-bubble').addEventListener('click', () => { hintClip(); if (!trace.done) demo(strokes); });
   if (trace.done) {
     root.querySelector('.trace-next').addEventListener('click', () => {
@@ -1317,6 +1340,18 @@ function traceMount(root, { i }, practice) {
 
   const inkG = svg.querySelector('.ink');
   let cur = null;
+  const coverArea = (a, b) => {
+    // Everything within the brush of the segment a–b is painted.
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    trace.areaPts.forEach((q, k) => {
+      if (trace.area[k]) return;
+      const t = Math.max(0, Math.min(1, ((q[0] - a[0]) * (b[0] - a[0]) + (q[1] - a[1]) * (b[1] - a[1])) / (len * len)));
+      if (Math.hypot(q[0] - (a[0] + t * (b[0] - a[0])), q[1] - (a[1] + t * (b[1] - a[1]))) > trace.reach) return;
+      trace.area[k] = true;
+      const el = svg.querySelector(`.tgap[data-a="${k}"]`);
+      if (el) el.remove();
+    });
+  };
   const cover = (p) => {
     dots.forEach((ds, si) => ds.forEach((d, k) => {
       if (trace.covered[si][k] || Math.hypot(d[0] - p[0], d[1] - p[1]) > TOLERANCE) return;
@@ -1332,14 +1367,16 @@ function traceMount(root, { i }, practice) {
     cur = { color: PAINTS[trace.paint][1], pts: [p] };
     trace.ink.push(cur);
     cur.el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    Object.entries({ stroke: cur.color, 'stroke-width': 26, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }).forEach(([k, v]) => cur.el.setAttribute(k, v));
+    Object.entries({ stroke: cur.color, 'stroke-width': trace.reach * 2, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }).forEach(([k, v]) => cur.el.setAttribute(k, v));
     cur.el.setAttribute('d', svgPath([p, p]));
     inkG.appendChild(cur.el);
     cover(p);
+    coverArea(p, p);
   });
   svg.addEventListener('pointermove', (e) => {
     if (!cur) return;
     const p = svgPoint(svg, e);
+    coverArea(cur.pts[cur.pts.length - 1], p);
     cur.pts.push(p);
     cur.el.setAttribute('d', svgPath(cur.pts));
     cover(p);
@@ -1353,14 +1390,15 @@ function traceMount(root, { i }, practice) {
     trace.covered.forEach((cv, si) => {
       if (!trace.finished[si] && cv.filter(Boolean).length / cv.length >= COVER) { trace.finished[si] = true; changed = true; buzz('tick'); }
     });
-    if (trace.finished.every(Boolean)) {
+    // Done only when every stroke is followed and the whole letter is painted.
+    if (trace.finished.every(Boolean) && trace.area.every(Boolean)) {
       trace.done = true;
       buzz('confirm');
       say('cheer', 'praise');
       render();
       return;
     }
-    if (changed) render(); else armIdle();
+    if (changed) { if (trace.finished.every(Boolean)) say('fill_hint'); render(); } else armIdle();
   };
   svg.addEventListener('pointerup', up);
   svg.addEventListener('pointercancel', up);
@@ -1642,7 +1680,7 @@ const NOTES = {
   tpaint: { file: 'ToddlerPaint', from: 'Toddler home, “ارسم” tile.', rules: ['A random letter from all 28, never the same twice in a row. “لوّن ال…” plays on each new letter.', 'A hand shows the strokes once; the first touch stops it.', 'Fat 30 dp brush, 4 crayons, wipe. Paint only shows on the letter.', 'No star meter. After about 400 dp of paint on the letter: green frame, star burst, Leo cheers.', 'Then a ring counts down 4 seconds and a new letter starts by itself; “Paint it again” keeps the same letter.'] },
   home: { file: 'Main', from: 'App start in Preschool or Early reader mode; Home tab.', rules: ['No name and no star count: the app stores no profile, and stickers are the only reward.', 'The stage path shows this stage’s 4 letters: learned green, today’s big and blue, the rest waiting. The stage sticker waits at the end of the path.', 'Tapping today’s letter or picture plays it; nothing plays on open.', 'One button: “Let’s learn ب”. With Trace only on it reads “Trace ب”; once all 28 are learned it offers a random letter to practise.', 'System Back opens the parent gate.'] },
   lesson: { file: 'Lesson', from: 'Home button; Map; after the previous letter’s game.', rules: ['Step bar: Meet, Trace, Play.', 'Plays letter, then word, on open. The big letter, the picture and the sound button replay.', 'Picture word with its first letter in the stage colour, plus the English meaning for parents.', 'Early reader adds the letter shapes card (Alone, Start, Middle, End; non-joining letters show Alone and End only). Switch mode in the controls to see it.', '“Trace it” goes on; Back goes home.'] },
-  trace: { file: 'Trace', from: 'Meet, “Trace it”.', rules: ['Plays the letter, then the spoken hint, then a hand shows every stroke in order.', 'Guide: pale blue letter with a navy outline, dots every 18 dp, numbered start coins (1 is green), arrows at stroke ends. The next stroke is bright; later strokes are faded.', 'Dots turn green under the finger (30 dp tolerance). A stroke counts only when every one of its dots is green (100 %), in any order or direction; its coin turns into a star. Missed dots stay white, and green ones stay green, so the child can go back and fill in the gaps.', 'No stars while tracing and no “I did it!” button. Next stays grey and locked (“Finish ب first”) until every stroke is done.', 'When done: star burst, “You traced ب!”, and Next turns blue and pulses. It never moves on by itself.', 'After 5 s without a touch the hand shows the next stroke again. Again clears the ink and replays the demo.'] },
+  trace: { file: 'Trace', from: 'Meet, “Trace it”.', rules: ['Plays the letter, then the spoken hint, then a hand shows every stroke in order.', 'Guide: pale blue letter with a navy outline, dots every 18 dp, numbered start coins (1 is green), arrows at stroke ends. The next stroke is bright; later strokes are faded.', 'Dots turn green under the finger (30 dp tolerance). A stroke counts only when every one of its dots is green (100 %), in any order or direction; its coin turns into a star. Missed dots stay white, and green ones stay green, so the child can go back and fill in the gaps.', 'The letter is done only when the paint also covers the whole letter shape, not just the dotted line (a fine grid inside the letter; the soft 4 dp edge does not count). The brush is as wide as the letter, so a trace down the middle fills it; wandering off the middle leaves gaps. Once every stroke is followed, any unpainted spots pulse yellow and Leo says “Now colour in the yellow spots!”.', 'No stars while tracing and no “I did it!” button. Next stays grey and locked (“Finish ب first”) until every stroke is done.', 'When done: star burst, “You traced ب!”, and Next turns blue and pulses. It never moves on by itself.', 'After 5 s without a touch the hand shows the next stroke again. Again clears the ink and replays the demo.'] },
   practice: { file: 'Trace (practice)', from: 'Home or Map while Trace only is on.', rules: ['Same tracing as Trace, without the step bar.', 'Practice never makes a letter learned, never gives a sticker and never unlocks a stage.', 'Next letter goes to the following letter in the alphabet, only when tapped.'] },
   quiz: { file: 'Quiz', from: 'Trace, “Play”.', rules: ['Asks “Which starts with ب?” on open; the bubble asks again.', 'Pictures only. Preschool 3 in a column; Early reader 4 in a 2×2 grid. The right picture never sits in the same place two rounds running.', 'Three rounds, shown as three dots. No star counter.', 'Wrong: soft “boing”, the picture dims, the right one wiggles, and an orange “Almost! Try again” explains what the tapped picture starts with. Unlimited tries.', 'Right: green frame, a star pops, the word appears, praise and vibration. Then “Great job! Next”, only when tapped.', 'The third right answer makes the letter learned. The button then reads “Next letter”, or “Get your sticker” when the stage is complete.'] },
   reward: { file: 'Reward', from: 'The game’s last round when it completes a stage.', rules: ['The stage sticker is the hero; tapping it says the stage’s letters. Confetti unless calm motion is on.', 'The four letters with their pictures, then the next stage shown as unlocked.', 'No stars or points: the sticker is the only reward.', '“Go to Carrot Farm” opens the map; the square button opens the sticker book. “Back to map” when nothing new unlocked.'] },
@@ -1662,6 +1700,7 @@ const STATIC = {
   'Lesson-reader': () => { S.mode = 'reader'; return ['lesson', { i: 2 }]; },
   Trace: () => { newTrace(2, false); trace.demoDone = true; return ['trace', { i: 2 }]; },
   'Trace-done': () => { fillTrace(2); return ['trace', { i: 2 }]; },
+  'Trace-fill': () => { fillTrace(2, 10); return ['trace', { i: 2 }]; },
   Quiz: () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: false, wrong: null, saved: null }; return ['quiz', { i: 2 }]; },
   'Quiz-almost': () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: false, wrong: L(4), saved: null }; return ['quiz', { i: 2 }]; },
   'Quiz-done': () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: true, wrong: null, saved: null }; return ['quiz', { i: 2 }]; },
@@ -1680,14 +1719,18 @@ const STATIC = {
   'ToddlerPaint-done': () => { fillPaint(2); return ['tpaint']; },
   Rest: () => { S.timeUp = true; return ['home']; }
 };
-function fillTrace(i) {
+// shift > 0: every stroke followed that far off-centre, so part of the letter is still unpainted.
+function fillTrace(i, shift = 0) {
   newTrace(i, false);
   const g = fitGlyph(L(i).letter, TRACE_W, TRACE_H, 0.8);
   const strokes = STROKES[i].map((s) => s.points.map(g.at));
-  trace.ink = strokes.map((pts) => ({ color: PAINTS[0][1], pts }));
+  trace.ink = strokes.map((pts) => ({ color: PAINTS[0][1], pts: pts.map(([x, y]) => [x, y + shift]) }));
   trace.covered = strokes.map((s) => resample(s, DOT_STEP).map(() => true));
   trace.finished = strokes.map(() => true);
-  trace.done = true; trace.demoDone = true;
+  letterArea(g, strokes);
+  const ink = trace.ink.flatMap((s) => resample(s.pts, 2));
+  trace.area = trace.areaPts.map((q) => ink.some((p) => Math.hypot(p[0] - q[0], p[1] - q[1]) <= trace.reach));
+  trace.done = trace.area.every(Boolean); trace.demoDone = true;
 }
 function fillPaint(i) {
   const g = fitGlyph(L(i).letter, PAINT_W, PAINT_H, 0.78);

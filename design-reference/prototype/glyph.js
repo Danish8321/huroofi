@@ -36,6 +36,14 @@ function fitGlyph(ch, w, h, share = 0.8) {
     px, x, y, left, top, inkW, inkH,
     at: ([nx, ny]) => [left + nx * inkW, top + ny * inkH],
     // On the letter, with a little slop so a finger on the edge still counts.
+    // Grid points every `step` px that lie inside the letter, at least `inset` px from its edge
+    // (so soft edge pixels and hair-thin tips never block a child).
+    area: (step = 6, inset = 4) => {
+      const pts = [];
+      const deep = (px2, py2) => inside(px2, py2) && [[inset, 0], [-inset, 0], [0, inset], [0, -inset]].every(([dx, dy]) => inside(px2 + dx, py2 + dy));
+      for (let py2 = step / 2; py2 < c.height; py2 += step) for (let px2 = step / 2; px2 < c.width; px2 += step) if (deep(px2, py2)) pts.push([px2, py2]);
+      return pts;
+    },
     near: (px2, py2, slop = 8) => inside(px2, py2) || [[slop, 0], [-slop, 0], [0, slop], [0, -slop]].some(([dx, dy]) => inside(px2 + dx, py2 + dy)),
     svgText: (attrs) => `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-family="${FONT_AR}" font-weight="700" font-size="${px.toFixed(1)}" ${attrs}>${ch}</text>`
   };

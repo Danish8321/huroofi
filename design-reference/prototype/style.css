@@ -348,6 +348,8 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .tdot { fill: #FFFFFF; stroke: #13294B; stroke-width: 2 }
 .tdot.on { fill: var(--success); stroke: #FFFFFF }
 .tdot.later, .tarrow.later, .coin.later { opacity: 0.35 }
+.tgap { fill: var(--sun); stroke: var(--navy); stroke-width: 2.5; animation: gap 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center }
+@keyframes gap { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.5) } }
 .coin.next circle { animation: coin 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center }
 @keyframes coin { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.18) } }
 .done-badge { position: absolute; left: 0; right: 0; bottom: 18px; margin: 0 auto; width: max-content; display: flex; align-items: center; gap: 8px; padding: 6px 18px 6px 6px; border-radius: 999px; background: var(--success); color: #FFFFFF; font-size: 20px; font-weight: 800; z-index: 4; animation: hop 0.5s 0.3s ease-out both }

@@ -161,11 +161,20 @@ SCREENS.lesson = {
 };
 
 // ---------- Trace (and Trace practice) ----------
-const TRACE_W = 350, TRACE_H = 420, DOT_STEP = 18, TOLERANCE = 30, COVER = 1;
+const TRACE_W = 350, TRACE_H = 420, DOT_STEP = 18, TOLERANCE = 30, COVER = 1, BRUSH_SLACK = 4;
 const PAINTS = [...CRAYONS, ['Pink', '#FF6FA5', '#D94C84']];
 let trace = null;
 function newTrace(i, practice) {
-  trace = { i, practice, ink: [], paint: 0, covered: null, finished: [], done: false, demoDone: false };
+  trace = { i, practice, ink: [], paint: 0, covered: null, finished: [], areaPts: null, area: null, done: false, demoDone: false };
+}
+// The letter's area, and a brush as wide as the letter: a trace down the middle of every stroke
+// paints the whole letter; wandering off the middle leaves gaps to colour in.
+function letterArea(g, strokes) {
+  trace.areaPts = g.area();
+  trace.area = trace.areaPts.map(() => false);
+  const line = strokes.flatMap((s) => resample(s, 2));
+  const reach = Math.max(...trace.areaPts.map((q) => Math.min(...line.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1])))));
+  trace.reach = Math.max(13, reach + BRUSH_SLACK);
 }
 function traceView({ i }, practice) {
   if (!trace || trace.i !== i || trace.practice !== practice) newTrace(i, practice);
@@ -174,9 +183,13 @@ function traceView({ i }, practice) {
   const strokes = (STROKES[i] || []).map((s) => ({ ...s, pts: s.points.map(g.at) }));
   const dots = strokes.map((s) => resample(s.pts, DOT_STEP));
   if (!trace.covered) { trace.covered = dots.map((d) => d.map(() => false)); trace.finished = dots.map(() => false); }
+  if (!trace.areaPts) letterArea(g, strokes.map((s) => s.pts));
   const nextStroke = trace.finished.indexOf(false);
   const done = trace.done;
-  const dotEls = dots.map((ds, si) => ds.map((p, k) => `<circle class="tdot ${trace.covered[si][k] ? 'on' : ''} ${si === nextStroke || done ? '' : 'later'}" data-s="${si}" data-k="${k}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${trace.covered[si][k] ? 6 : 4.5}"/>`).join('')).join('');
+  // Every stroke followed but some of the letter still unpainted: show the gaps.
+  const filling = !done && nextStroke < 0;
+  const gapEls = filling ? trace.areaPts.map((p, k) => trace.area[k] ? '' : `<circle class="tgap" data-a="${k}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="7"/>`).join("") : "";
+  const dotEls = dots.map((ds, si) => ds.map((p, k) => `<circle class="tdot ${trace.covered[si][k] ? 'on' : ''} ${si === nextStroke || nextStroke < 0 ? "" : "later"}" data-s="${si}" data-k="${k}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${trace.covered[si][k] ? 6 : 4.5}"/>`).join('')).join('');
   const arrows = strokes.map((s, si) => {
     if (s.pts.length < 2) return '';
     const [ax, ay] = s.pts[s.pts.length - 1], [bx, by] = s.pts[s.pts.length - 2];
@@ -189,8 +202,8 @@ function traceView({ i }, practice) {
     if (trace.finished[si]) return `<g transform="translate(${(x - 15).toFixed(1)} ${(y - 15).toFixed(1)})">${starSvg(30).replace('<svg ', '<svg x="0" y="0" ')}</g>`;
     return `<g class="coin ${si === nextStroke ? 'next' : 'later'}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle r="15" fill="${si === 0 ? '#158048' : '#1F6FE0'}" stroke="#FFFFFF" stroke-width="3"/><text y="6" text-anchor="middle" font-size="17" font-weight="800" fill="#FFFFFF" font-family="Baloo Bhaijaan 2, system-ui">${si + 1}</text></g>`;
   }).join('');
-  const ink = trace.ink.map((s) => `<path d="${svgPath(s.pts.length === 1 ? [s.pts[0], s.pts[0]] : s.pts)}" stroke="${s.color}" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
-  const hint = done ? (practice ? 'Well done! Tap Next for another letter' : 'Well done! Tap Play for the picture game') : 'Start at the green 1, then follow the dots!';
+  const ink = trace.ink.map((s) => `<path d="${svgPath(s.pts.length === 1 ? [s.pts[0], s.pts[0]] : s.pts)}" stroke="${s.color}" stroke-width="${(trace.reach * 2).toFixed(1)}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+  const hint = done ? (practice ? 'Well done! Tap Next for another letter' : 'Well done! Tap Play for the picture game') : filling ? 'Now colour in the yellow spots!' : 'Start at the green 1, then follow the dots!';
   const head = practice
     ? `<div class="flow-head"><button type="button" class="round-btn" data-go="home" aria-label="Back to home">${ICON.back}</button><span class="practice-title">Trace practice</span></div>`
     : `<div class="flow-head"><button type="button" class="round-btn" data-go="lesson" data-i="${i}" aria-label="Back to Meet">${ICON.back}</button>${stepBar('trace')}</div>`;
@@ -205,7 +218,7 @@ function traceView({ i }, practice) {
         <defs><clipPath id="traceClip">${g.svgText('')}</clipPath></defs>
         ${g.svgText('fill="#C8DCF4" stroke="#13294B" stroke-width="3" stroke-linejoin="round"')}
         <g clip-path="url(#traceClip)" class="ink">${ink}</g>
-        <g class="dots">${dotEls}</g>${arrows}${coins}
+        <g class="dots">${dotEls}</g>${arrows}${coins}<g class="gaps">${gapEls}</g>
         ${HAND_SVG}
       </svg>
       ${done ? burst(1) + `<span class="done-badge"><img src="${img('lion')}" alt=""><span>You traced ${AR(l.letter)}!</span></span>` : ''}
@@ -226,10 +239,10 @@ function traceMount(root, { i }, practice) {
   const stop = () => { stopDemo && stopDemo(); stopDemo = null; clearTimeout(idle); };
   const demo = (which) => { stop(); stopDemo = demoHand(hand, which, armIdle); };
   // After 5 s without a touch, show only the next unfinished stroke again.
-  const armIdle = () => { clearTimeout(idle); if (trace.done) return; idle = later(() => { const n = trace.finished.indexOf(false); if (n >= 0) demo([strokes[n]]); }, 5000); };
+  const armIdle = () => { clearTimeout(idle); if (trace.done) return; idle = later(() => { const n = trace.finished.indexOf(false); if (n >= 0) demo([strokes[n]]); else say('fill_hint'); }, 5000); };
   root.querySelectorAll('.paint').forEach((b) => b.addEventListener('click', () => { trace.paint = +b.dataset.k; render(); }));
   root.querySelector('.trace-again').addEventListener('click', () => { newTrace(i, practice); render(); });
-  const hintClip = () => say(trace.done ? 'praise' : 'trace_hint');
+  const hintClip = () => say(trace.done ? 'praise' : trace.finished.every(Boolean) ? 'fill_hint' : 'trace_hint');
   root.querySelector('.hint-bubble').addEventListener('click', () => { hintClip(); if (!trace.done) demo(strokes); });
   if (trace.done) {
     root.querySelector('.trace-next').addEventListener('click', () => {
@@ -245,6 +258,18 @@ function traceMount(root, { i }, practice) {
 
   const inkG = svg.querySelector('.ink');
   let cur = null;
+  const coverArea = (a, b) => {
+    // Everything within the brush of the segment a–b is painted.
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    trace.areaPts.forEach((q, k) => {
+      if (trace.area[k]) return;
+      const t = Math.max(0, Math.min(1, ((q[0] - a[0]) * (b[0] - a[0]) + (q[1] - a[1]) * (b[1] - a[1])) / (len * len)));
+      if (Math.hypot(q[0] - (a[0] + t * (b[0] - a[0])), q[1] - (a[1] + t * (b[1] - a[1]))) > trace.reach) return;
+      trace.area[k] = true;
+      const el = svg.querySelector(`.tgap[data-a="${k}"]`);
+      if (el) el.remove();
+    });
+  };
   const cover = (p) => {
     dots.forEach((ds, si) => ds.forEach((d, k) => {
       if (trace.covered[si][k] || Math.hypot(d[0] - p[0], d[1] - p[1]) > TOLERANCE) return;
@@ -260,14 +285,16 @@ function traceMount(root, { i }, practice) {
     cur = { color: PAINTS[trace.paint][1], pts: [p] };
     trace.ink.push(cur);
     cur.el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    Object.entries({ stroke: cur.color, 'stroke-width': 26, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }).forEach(([k, v]) => cur.el.setAttribute(k, v));
+    Object.entries({ stroke: cur.color, 'stroke-width': trace.reach * 2, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }).forEach(([k, v]) => cur.el.setAttribute(k, v));
     cur.el.setAttribute('d', svgPath([p, p]));
     inkG.appendChild(cur.el);
     cover(p);
+    coverArea(p, p);
   });
   svg.addEventListener('pointermove', (e) => {
     if (!cur) return;
     const p = svgPoint(svg, e);
+    coverArea(cur.pts[cur.pts.length - 1], p);
     cur.pts.push(p);
     cur.el.setAttribute('d', svgPath(cur.pts));
     cover(p);
@@ -281,14 +308,15 @@ function traceMount(root, { i }, practice) {
     trace.covered.forEach((cv, si) => {
       if (!trace.finished[si] && cv.filter(Boolean).length / cv.length >= COVER) { trace.finished[si] = true; changed = true; buzz('tick'); }
     });
-    if (trace.finished.every(Boolean)) {
+    // Done only when every stroke is followed and the whole letter is painted.
+    if (trace.finished.every(Boolean) && trace.area.every(Boolean)) {
       trace.done = true;
       buzz('confirm');
       say('cheer', 'praise');
       render();
       return;
     }
-    if (changed) render(); else armIdle();
+    if (changed) { if (trace.finished.every(Boolean)) say('fill_hint'); render(); } else armIdle();
   };
   svg.addEventListener('pointerup', up);
   svg.addEventListener('pointercancel', up);

@@ -11,7 +11,7 @@ const NOTES = {
   tpaint: { file: 'ToddlerPaint', from: 'Toddler home, “ارسم” tile.', rules: ['A random letter from all 28, never the same twice in a row. “لوّن ال…” plays on each new letter.', 'A hand shows the strokes once; the first touch stops it.', 'Fat 30 dp brush, 4 crayons, wipe. Paint only shows on the letter.', 'No star meter. After about 400 dp of paint on the letter: green frame, star burst, Leo cheers.', 'Then a ring counts down 4 seconds and a new letter starts by itself; “Paint it again” keeps the same letter.'] },
   home: { file: 'Main', from: 'App start in Preschool or Early reader mode; Home tab.', rules: ['No name and no star count: the app stores no profile, and stickers are the only reward.', 'The stage path shows this stage’s 4 letters: learned green, today’s big and blue, the rest waiting. The stage sticker waits at the end of the path.', 'Tapping today’s letter or picture plays it; nothing plays on open.', 'One button: “Let’s learn ب”. With Trace only on it reads “Trace ب”; once all 28 are learned it offers a random letter to practise.', 'System Back opens the parent gate.'] },
   lesson: { file: 'Lesson', from: 'Home button; Map; after the previous letter’s game.', rules: ['Step bar: Meet, Trace, Play.', 'Plays letter, then word, on open. The big letter, the picture and the sound button replay.', 'Picture word with its first letter in the stage colour, plus the English meaning for parents.', 'Early reader adds the letter shapes card (Alone, Start, Middle, End; non-joining letters show Alone and End only). Switch mode in the controls to see it.', '“Trace it” goes on; Back goes home.'] },
-  trace: { file: 'Trace', from: 'Meet, “Trace it”.', rules: ['Plays the letter, then the spoken hint, then a hand shows every stroke in order.', 'Guide: pale blue letter with a navy outline, dots every 18 dp, numbered start coins (1 is green), arrows at stroke ends. The next stroke is bright; later strokes are faded.', 'Dots turn green under the finger (30 dp tolerance). A stroke counts only when every one of its dots is green (100 %), in any order or direction; its coin turns into a star. Missed dots stay white, and green ones stay green, so the child can go back and fill in the gaps.', 'No stars while tracing and no “I did it!” button. Next stays grey and locked (“Finish ب first”) until every stroke is done.', 'When done: star burst, “You traced ب!”, and Next turns blue and pulses. It never moves on by itself.', 'After 5 s without a touch the hand shows the next stroke again. Again clears the ink and replays the demo.'] },
+  trace: { file: 'Trace', from: 'Meet, “Trace it”.', rules: ['Plays the letter, then the spoken hint, then a hand shows every stroke in order.', 'Guide: pale blue letter with a navy outline, dots every 18 dp, numbered start coins (1 is green), arrows at stroke ends. The next stroke is bright; later strokes are faded.', 'Dots turn green under the finger (30 dp tolerance). A stroke counts only when every one of its dots is green (100 %), in any order or direction; its coin turns into a star. Missed dots stay white, and green ones stay green, so the child can go back and fill in the gaps.', 'The letter is done only when the paint also covers the whole letter shape, not just the dotted line (a fine grid inside the letter; the soft 4 dp edge does not count). The brush is as wide as the letter, so a trace down the middle fills it; wandering off the middle leaves gaps. Once every stroke is followed, any unpainted spots pulse yellow and Leo says “Now colour in the yellow spots!”.', 'No stars while tracing and no “I did it!” button. Next stays grey and locked (“Finish ب first”) until every stroke is done.', 'When done: star burst, “You traced ب!”, and Next turns blue and pulses. It never moves on by itself.', 'After 5 s without a touch the hand shows the next stroke again. Again clears the ink and replays the demo.'] },
   practice: { file: 'Trace (practice)', from: 'Home or Map while Trace only is on.', rules: ['Same tracing as Trace, without the step bar.', 'Practice never makes a letter learned, never gives a sticker and never unlocks a stage.', 'Next letter goes to the following letter in the alphabet, only when tapped.'] },
   quiz: { file: 'Quiz', from: 'Trace, “Play”.', rules: ['Asks “Which starts with ب?” on open; the bubble asks again.', 'Pictures only. Preschool 3 in a column; Early reader 4 in a 2×2 grid. The right picture never sits in the same place two rounds running.', 'Three rounds, shown as three dots. No star counter.', 'Wrong: soft “boing”, the picture dims, the right one wiggles, and an orange “Almost! Try again” explains what the tapped picture starts with. Unlimited tries.', 'Right: green frame, a star pops, the word appears, praise and vibration. Then “Great job! Next”, only when tapped.', 'The third right answer makes the letter learned. The button then reads “Next letter”, or “Get your sticker” when the stage is complete.'] },
   reward: { file: 'Reward', from: 'The game’s last round when it completes a stage.', rules: ['The stage sticker is the hero; tapping it says the stage’s letters. Confetti unless calm motion is on.', 'The four letters with their pictures, then the next stage shown as unlocked.', 'No stars or points: the sticker is the only reward.', '“Go to Carrot Farm” opens the map; the square button opens the sticker book. “Back to map” when nothing new unlocked.'] },
@@ -31,6 +31,7 @@ const STATIC = {
   'Lesson-reader': () => { S.mode = 'reader'; return ['lesson', { i: 2 }]; },
   Trace: () => { newTrace(2, false); trace.demoDone = true; return ['trace', { i: 2 }]; },
   'Trace-done': () => { fillTrace(2); return ['trace', { i: 2 }]; },
+  'Trace-fill': () => { fillTrace(2, 10); return ['trace', { i: 2 }]; },
   Quiz: () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: false, wrong: null, saved: null }; return ['quiz', { i: 2 }]; },
   'Quiz-almost': () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: false, wrong: L(4), saved: null }; return ['quiz', { i: 2 }]; },
   'Quiz-done': () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: true, wrong: null, saved: null }; return ['quiz', { i: 2 }]; },
@@ -49,14 +50,18 @@ const STATIC = {
   'ToddlerPaint-done': () => { fillPaint(2); return ['tpaint']; },
   Rest: () => { S.timeUp = true; return ['home']; }
 };
-function fillTrace(i) {
+// shift > 0: every stroke followed that far off-centre, so part of the letter is still unpainted.
+function fillTrace(i, shift = 0) {
   newTrace(i, false);
   const g = fitGlyph(L(i).letter, TRACE_W, TRACE_H, 0.8);
   const strokes = STROKES[i].map((s) => s.points.map(g.at));
-  trace.ink = strokes.map((pts) => ({ color: PAINTS[0][1], pts }));
+  trace.ink = strokes.map((pts) => ({ color: PAINTS[0][1], pts: pts.map(([x, y]) => [x, y + shift]) }));
   trace.covered = strokes.map((s) => resample(s, DOT_STEP).map(() => true));
   trace.finished = strokes.map(() => true);
-  trace.done = true; trace.demoDone = true;
+  letterArea(g, strokes);
+  const ink = trace.ink.flatMap((s) => resample(s.pts, 2));
+  trace.area = trace.areaPts.map((q) => ink.some((p) => Math.hypot(p[0] - q[0], p[1] - q[1]) <= trace.reach));
+  trace.done = trace.area.every(Boolean); trace.demoDone = true;
 }
 function fillPaint(i) {
   const g = fitGlyph(L(i).letter, PAINT_W, PAINT_H, 0.78);

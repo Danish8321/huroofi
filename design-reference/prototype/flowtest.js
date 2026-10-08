@@ -36,8 +36,12 @@
     const body = STROKES[2][0].points.map(g.at);
     drawStrokes('.trace-svg', [resample(body, 4).slice(0, -12)]);
     ok(!trace.finished[0] && $('.primary-btn.locked'), 'stroke with missed dots stays unfinished');
-    drawStrokes('.trace-svg', STROKES[2].map((s) => s.points.map(g.at)));
-    ok(trace.done && $('.trace-next'), 'tracing all strokes unlocks Play ' + JSON.stringify(trace.covered.map((c) => c.filter(Boolean).length + '/' + c.length)) + ' ink ' + trace.ink.length + ' ' + JSON.stringify(trace.ink[0] && trace.ink[0].pts.slice(0, 3)));
+    // Follow every stroke a little off-centre: all dots go green, but part of the letter stays unpainted.
+    drawStrokes('.trace-svg', STROKES[2].map((s) => s.points.map(g.at).map(([x, y]) => [x, y + 10])));
+    const gaps = trace.area.filter((v) => !v).length;
+    ok(trace.finished.every(Boolean) && gaps > 0 && !trace.done && $('.primary-btn.locked') && $('.tgap'), `dots alone do not finish the letter (${gaps} of ${trace.area.length} spots unpainted, gaps shown)`);
+    drawStrokes(".trace-svg", trace.areaPts.filter((p, k) => !trace.area[k]).map((p) => [p]));
+    ok(trace.done && $('.trace-next'), 'painting the whole letter unlocks Play');
     await wait(4000); ok(route.name === 'trace', 'trace does not auto-advance');
     click('.trace-next'); ok(route.name === 'quiz', 'Play opens quiz');
     await solveQuiz(2);
@@ -73,6 +77,12 @@
     S.timeUp = false; go('home');
     for (const r of ['map', 'stickers', 'practice', 'thome', 'tcards']) { go(r, routeParams(r)); }
     go('practice', { i: 5 }); ok($('.practice-title'), 'practice route renders');
+    for (const i of [5, 8, 26]) {
+      trace = null; go('practice', { i });
+      const gi = fitGlyph(L(i).letter, TRACE_W, TRACE_H, 0.8);
+      drawStrokes('.trace-svg', STROKES[i].map((st) => st.points.map(gi.at)));
+      ok(trace.done, 'tracing down the middle of ' + L(i).letter + ' paints the whole letter');
+    }
     systemBack(); ok(route.name === 'home', 'back from practice to home');
     ok(errs.length === 0, 'no JS errors ' + errs.join(' | '));
     const pre = document.createElement('pre'); pre.id = 'testlog'; pre.textContent = log.join('\n'); document.body.appendChild(pre);

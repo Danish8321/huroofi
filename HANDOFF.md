@@ -31,7 +31,7 @@ Snapshots are in `design-reference/screens/`; extra states have a suffix (`-done
 |---|---|---|
 | Home (preschool / reader) | `Main.html` | App start in those modes; Home tab |
 | Meet the letter | `Lesson.html`, `Lesson-reader.html` | Home "Let's learn ب"; Letter map |
-| Trace it | `Trace.html`, `Trace-done.html` | Meet "Trace it" |
+| Trace it | `Trace.html`, `Trace-fill.html`, `Trace-done.html` | Meet "Trace it" |
 | Picture game | `Quiz.html`, `Quiz-almost.html`, `Quiz-done.html`, `Quiz-reader.html` | Trace "Play" (tapped, never automatic) |
 | Stage complete | `Reward.html` | The game's last round when it completes a stage |
 | Letter map | `StageMap.html` | Map tab; Reward |
@@ -55,7 +55,7 @@ System Back: on Toddler home and Rest it does nothing; on other toddler screens 
 
 - Card images: `assets/cards/` (1064 × 1512 PNG). Overview: `design-reference/all_28_cards_overview.png`.
 - Picture illustrations: `assets/illustrations/svg/` (originals, import as VectorDrawable where Android Studio accepts them) and `assets/illustrations/png/` (512 px fallback, transparent background).
-- Audio is **not recorded yet**. Use the file names in `letters.json` and ship silent placeholders until a native Arabic speaker records them. Also needed: toddler prompts ("أين البطة؟" etc.), "ماذا نلعب؟", "لوّن الباء", praise sounds and a gentle "boing" for wrong taps.
+- Audio is **not recorded yet**. Use the file names in `letters.json` and ship silent placeholders until a native Arabic speaker records them. Also needed: toddler prompts ("أين البطة؟" etc.), "ماذا نلعب؟", "لوّن الباء", praise sounds, a gentle "boing" for wrong taps, and the trace hints ("Start at the green 1…", "Now colour in the yellow spots!").
 
 ## 5. Design tokens
 
@@ -118,7 +118,7 @@ Per screen:
 
 - **Home:** "Hi there!" and the current stage; a winding path card with the stage's 4 letters (learned green, today's letter big and blue, the rest waiting) and the stage sticker as a "?" at the end. One button: "Let's learn ب" ("Trace ب" with Trace only; a random learned letter once all 28 are learned). Nothing plays on open; tapping today's letter plays it.
 - **Meet (Lesson):** step bar Meet / Trace / Play. Plays letter then word on open; the big letter, picture and sound button replay. Picture word with its first letter in the stage accent colour, plus the English meaning. Early reader adds the letter shapes card (non-joining letters show Alone and End only).
-- **Trace:** guided trace as built (guide band, dots every 18 dp, numbered coins with 1 in green, end arrows, demo hand, 5 s idle re-demo, Again, 5 paints). A stroke counts only when every one of its dots (100 %) has been covered within 30 dp, in any order or direction, over one or more touches; missed dots stay white so the child can fill them in. Its coin then turns into a star. When every stroke is done: star burst, "You traced ب!", and "Play" unlocks. It never moves on to the game by itself.
+- **Trace:** guided trace as built (guide band, dots every 18 dp, numbered coins with 1 in green, end arrows, demo hand, 5 s idle re-demo, Again, 5 paints). A stroke counts only when every one of its dots (100 %) has been covered within 30 dp, in any order or direction, over one or more touches; missed dots stay white so the child can fill them in. Its coin then turns into a star. The letter is done only when the paint also covers the whole letter shape: a grid of points every 6 dp inside the glyph, ignoring the outer 4 dp of soft edge. The brush is as wide as the letter (its radius is the furthest the letter reaches from the stroke line, plus 4 dp), so a careful trace down the middle fills it and wandering leaves gaps. Paint is clipped to the letter. Once every stroke is followed, unpainted spots pulse yellow (`Trace-fill.html`) and "Now colour in the yellow spots!" plays. When every stroke is done: star burst, "You traced ب!", and "Play" unlocks. It never moves on to the game by itself.
 - **Picture game (Quiz):** "Which starts with ب?", pictures only: Preschool 3 in a column, Early reader 4 in a 2×2 grid. Three rounds shown as three dots. Wrong: the picture dims, the right one wiggles, "Almost! Try again" plus "Fox (ثعلب) starts with ث". Right: green frame, a star pops, the word appears, praise and vibration, then "Great job! Next", only on tap. The third right answer makes the letter learned; the button then reads "Next letter", or "Get your sticker" when the stage is complete.
 - **Stage complete (Reward):** the stage sticker as the hero with rays and confetti, the 4 letters with pictures, the next stage shown as unlocked. "Go to <next stage>" opens the map; the square button opens the sticker book.
 - **Letter map:** the current stage open wide with its 4 letters and "Continue with ب"; finished stages with a green tick; locked stages compact with a lock (tap: boing and wiggle). Unlock all swaps the locks for play buttons.
@@ -160,7 +160,7 @@ The app already implements most of this file. The approved redesign changes:
 7. Home: the path card replaces the current layout; the button reads "Let's learn ب".
 8. Meet shows the English meaning under the picture word.
 9. Trace practice counts toward daily play time (`practice/{index}` joins the child routes).
-10. Trace needs 100 % of each stroke's dots, not 70 %.
+10. Trace needs 100 % of each stroke's dots, not 70 %, and the whole letter area painted, with a brush sized to the letter and pulsing yellow gap spots.
 11. New screen designs: Sticker book, Rest, Trace practice.
 
 ## 10. Notes on the illustrations
