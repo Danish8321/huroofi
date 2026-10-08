@@ -6,12 +6,14 @@ import com.huroofi.app.learn.LearnRoutes
 
 /**
  * Screens the child plays on. Only these count towards Daily play time and only these are
- * replaced by the Rest screen (plan 06 decision 6; learn screens: plan 07 decision 9).
+ * replaced by the Rest screen (plan 06 decision 6; learn screens: plan 07 decision 9; Trace
+ * practice: plan 15 decision 3).
  */
 val ChildRoutes = setOf(
     LearnRoutes.Home,
     LearnRoutes.Lesson,
     LearnRoutes.Trace,
+    LearnRoutes.Practice,
     LearnRoutes.Quiz,
     LearnRoutes.Reward,
     LearnRoutes.Stickers,

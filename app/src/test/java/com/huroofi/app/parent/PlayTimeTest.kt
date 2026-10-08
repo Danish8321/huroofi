@@ -1,6 +1,7 @@
 package com.huroofi.app.parent
 
 import com.huroofi.app.Routes
+import com.huroofi.app.learn.LearnRoutes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -16,6 +17,11 @@ class PlayTimeTest {
             assertEquals(route, RestMove.ToRest, restMove(route, limitReached = true))
             assertEquals(route, RestMove.None, restMove(route, limitReached = false))
         }
+    }
+
+    @Test
+    fun tracePracticeCountsAsPlay() {
+        assertEquals(RestMove.ToRest, restMove(LearnRoutes.Practice, limitReached = true))
     }
 
     @Test
