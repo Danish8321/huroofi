@@ -12,7 +12,10 @@ Approved 2026-10-08 by the maintainer ("Go ahead") after the prototype `design-r
    - When done: confirm buzz, cheer, star burst and "You traced ب!"; a locked grey "Finish ب first" button turns into "Play" ("Next letter" in practice). Nothing moves on until it is tapped.
 2. **Quiz waits for "Great job! Next"** after each right answer (§9 item 3).
 3. **Trace practice counts toward play time** (§9 item 9).
-4. **Find**: no sets of three or star counter; 4 s fill-up Next (§9 item 5).
+4. **Find: one round at a time, and Next presses itself** (§9 item 5). Branch `feat/redesign-find`.
+   - Sets of three, the header stars and the set-complete cheer go; a right tap plays praise only.
+   - Before the answer, the phone shows "Tap a picture" with a pointing hand where Next will be.
+   - Once found: the phone shows a full-width green Next (96 dp) that a darker bar fills over 4 s after a 1 s pause; the tablet shows a 120 dp ring around a round Next, filling clockwise on the same clock. When full it moves on; a tap moves on at once. Both live in `toddler/CountdownNext.kt` for Paint (decision 5) to reuse.
 5. **Paint**: celebration, 4 s ring countdown, "Paint it again" (§9 item 4).
 6. Shared components, then the layouts screen by screen: Home / Map / Stickers, Meet / Trace / Quiz, Reward / gate / Parent zone / Rest, Toddler home and Look & listen (§9 items 1, 6, 7, 8, 11).
 
@@ -29,3 +32,5 @@ The unapproved explorations (ToddlerIntro, ToddlerWellDone, ParentProgress); rec
 - Decision 2, `feat/redesign-quiz`. `check.sh`, `test-fast.sh` PASS; `QuizRoundTest` covers the button label ("Great job! Next", then "Next letter", "Get your sticker", "See your sticker" once all 28 are learned, "Back home" for a review). A right answer plays praise then the word, as in the prototype. Emulator `huroofi_phone`, Play ص: each of the three rounds stayed on its right answer for 5 s until "Great job! Next" was tapped; the third read "Get your sticker" and opened the Rocket Base sticker; `a11y.sh` PASS on the answered screen. The panel's own "Great job!" was dropped (the button says it), so it reads "صاروخ starts with ص"; that change is after the emulator walk, gates only.
 - Not verified: "Back home" and "See your sticker" on the emulator, Early reader's 2 × 2 grid.
 - Decision 3, `feat/redesign-practice-time`. `check.sh`, `test-fast.sh` PASS; `PlayTimeTest.tracePracticeCountsAsPlay`. Not walked on the emulator (needs a 5-minute limit to run out).
+- Decision 4, `feat/redesign-find`. `check.sh`, `test-fast.sh` PASS; `FindGameTest` (no sets, `next` needs a solve and starts clean), `FindAudioTest.rightTapsOnlyEverPraise`, `FindSpecTest` (1 s + 4 s). Emulator `huroofi_phone` (its clock moved a day ahead, because today's 60 minutes were used up): no star counter, "Tap a picture" before the answer; after the fox the bar was about a third full at 2.5 s and the next round opened by 6 s with nothing tapped; a wrong tap kept the round open; tapping Next 0.5 s after a solve opened the next round at once. `a11y.sh` PASS on the solved screen (6 targets, min 64 dp).
+- Not verified: the tablet ring on a device, sound.
