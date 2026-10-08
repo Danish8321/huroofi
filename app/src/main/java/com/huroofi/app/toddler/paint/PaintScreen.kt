@@ -81,7 +81,7 @@ import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
-import com.huroofi.app.ui.components.StarIcon
+import com.huroofi.app.ui.components.StarBurst
 import com.huroofi.app.ui.components.ToddlerHomeButtonSpec
 import com.huroofi.app.ui.components.WipeIcon
 import com.huroofi.app.ui.components.parentLockPairs
@@ -115,7 +115,6 @@ object PaintSpec {
     /** A finger this close to the letter still counts as painting on it. */
     val OnLetterSlop = 8.dp
     const val STROKE_ALPHA = 0.9f
-    val Star = 86.dp
     /** Under the canvas: the crayons, or once done "Paint it again" and the ring (`.paint-done-row`). */
     val ControlsHeight = 156.dp
     val DoneGap = 24.dp
@@ -146,7 +145,7 @@ object PaintSpec {
     val colors = listOf(Pink, PinkShadow, WipeBorderColor, CrayonShadowColor, AgainColor, RingTrack)
 
     /**
-     * The star and cheering Leo are a reward, not a cue. A crayon's colour is the content itself, like a
+     * The star burst and cheering Leo are a reward, not a cue. A crayon's colour is the content itself, like a
      * picture, so only the picked ring is checked.
      */
     val textPairs: List<ContrastPair> = listOf(
@@ -163,7 +162,7 @@ object PaintSpec {
 
 /**
  * Finger paint: a random letter to paint over (plan 05 slice 5). After 400 dp on the letter it
- * celebrates (green frame, star, cheering Leo), then a ring counts down to a new letter; "Paint it
+ * celebrates (green frame, star burst, cheering Leo), then a ring counts down to a new letter; "Paint it
  * again" keeps the letter (plan 15 decision 5).
  */
 @Composable
@@ -265,9 +264,7 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                     LetterOutline(page.letter.letter, Modifier.matchParentSize(), fill = false)
                     DemoHand(demoPaths, demoRun, onFinished = { demoRun = null })
                     if (done) {
-                        PopIn(page.letter, Modifier.align(Alignment.TopEnd).padding(14.dp)) {
-                            StarIcon(fill = colors.sun, size = PaintSpec.Star, outlineWidth = 1.1f)
-                        }
+                        StarBurst()
                         CheeringLeo(Modifier.align(Alignment.BottomEnd).padding(PaintSpec.LeoInset))
                     }
                 }
@@ -429,21 +426,6 @@ private fun CrayonButton(crayon: Crayon, selected: Boolean, onClick: () -> Unit)
                 .border(PaintSpec.CrayonRing, ring, CircleShape),
         )
     }
-}
-
-/** Pops its content in, again each time [key] changes. */
-@Composable
-private fun PopIn(key: Any, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    val pop = remember(key) { Animatable(0f) }
-    LaunchedEffect(pop) { pop.animateTo(1f, tween(450)) }
-    Box(
-        modifier.graphicsLayer {
-            scaleX = pop.value
-            scaleY = pop.value
-            rotationZ = -30f * (1f - pop.value)
-            alpha = pop.value
-        },
-    ) { content() }
 }
 
 /**

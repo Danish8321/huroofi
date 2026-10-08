@@ -83,6 +83,7 @@ import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.PrimaryButton
+import com.huroofi.app.ui.components.StarBurst
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.GlyphMask
@@ -573,7 +574,10 @@ fun TraceScreen(
                     }
                 }
                 DemoHand(demoPaths, demoRun, onFinished = { demoRun = null })
-                if (finished) DoneBadge(letter, Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp))
+                if (finished) {
+                    StarBurst()
+                    DoneBadge(letter, Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp))
+                }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 for ((color, label) in TraceSpec.crayons) {
