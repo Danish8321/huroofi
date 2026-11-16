@@ -10,8 +10,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -74,12 +72,14 @@ import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.DemoHand
+import com.huroofi.app.ui.components.Ink
 import com.huroofi.app.ui.components.DemoHandSpec
 import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.StarBurst
+import com.huroofi.app.ui.components.drawWithPen
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.GlyphMask
@@ -498,27 +498,33 @@ fun TraceScreen(
                     .semantics { contentDescription = if (finished) "You traced the letter $letter" else "Tracing area for the letter $letter" }
                     .pointerInput(Unit) {
                         val stepPx = TraceSpec.Tolerance.toPx() / 2f
-                        awaitEachGesture {
-                            val down = awaitFirstDown()
-                            down.consume()
-                            send(DemoEvent.Touch)
-                            val stroke = InkStroke(currentCrayon, mutableStateListOf(down.position))
-                            inkStrokes += stroke
-                            currentCheck?.addInk(down.position)
-                            send(DemoEvent.Ink)
-                            while (true) {
-                                val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
-                                if (!change.pressed) break
-                                change.consume()
-                                val before = currentCheck?.finishedStrokes
-                                currentCheck?.addSegment(stroke.points.last(), change.position, stepPx)
-                                // A light tick for each finished stroke; the last one gets finish()'s buzz instead.
-                                currentCheck?.let { if (!it.done && before != null && it.finishedStrokes > before) buzz.tick() }
-                                send(DemoEvent.Ink)
-                                stroke.points += change.position
-                            }
-                            lifted(currentCheck)
-                        }
+                        drawWithPen(
+                            onTouch = { send(DemoEvent.Touch) },
+                            ink = object : Ink {
+                                var stroke: InkStroke? = null
+
+                                override fun start(at: Offset) {
+                                    stroke = InkStroke(currentCrayon, mutableStateListOf(at)).also { inkStrokes += it }
+                                    currentCheck?.addInk(at)
+                                    send(DemoEvent.Ink)
+                                }
+
+                                override fun move(to: Offset) {
+                                    val s = stroke ?: return
+                                    val before = currentCheck?.finishedStrokes
+                                    currentCheck?.addSegment(s.points.last(), to, stepPx)
+                                    // A light tick for each finished stroke; the last one gets finish()'s buzz instead.
+                                    currentCheck?.let { if (!it.done && before != null && it.finishedStrokes > before) buzz.tick() }
+                                    send(DemoEvent.Ink)
+                                    s.points += to
+                                }
+
+                                override fun end() {
+                                    stroke = null
+                                    lifted(currentCheck)
+                                }
+                            },
+                        )
                     },
             ) {
                 // Ink shows only on the letter (plan 12 decision 4): the band is drawn first, out to
