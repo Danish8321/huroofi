@@ -13,50 +13,58 @@ interface Ink {
 }
 
 /**
- * Picks the finger that draws (plan 16 slice 2). A finger becomes the pen once it moves past
- * [slop]; a finger that stays still leaves no ink, so a resting thumb or palm never blocks or
- * smudges. A lone finger that lifts without moving is a tap and leaves a dot. While the pen is
- * down, other fingers are ignored; once it lifts, the next finger to move takes over.
+ * Picks the finger that draws (plan 16 slice 2): whichever finger is moving. A finger moves when
+ * it gets [slop] away from where it last moved. A finger that stays still leaves no ink, so a
+ * resting thumb or palm never blocks or smudges. A pen that has not moved for [idleMs] hands over
+ * to the next finger that moves. A still finger that lifts leaves a dot (a tap), unless ink was
+ * made while it was down, which is what a resting thumb looks like.
  */
-class Pen(private val slop: Float, private val ink: Ink) {
-    private class Finger(val anchor: Offset) {
+class Pen(private val slop: Float, private val ink: Ink, private val idleMs: Long = 300) {
+    private class Finger(var anchor: Offset, var movedAt: Long) {
         var moved = false
-        var alone = true
+        var sawInk = false
     }
 
     private val fingers = HashMap<Long, Finger>()
     private var pen: Long? = null
 
-    fun update(id: Long, position: Offset, pressed: Boolean) {
+    fun update(id: Long, position: Offset, pressed: Boolean, time: Long) {
         val finger = fingers[id]
-        when {
-            finger == null && pressed -> {
-                fingers[id] = Finger(position)
-                if (fingers.size > 1) fingers.values.forEach { it.alone = false }
-            }
-            finger == null -> Unit
-            !pressed -> {
-                fingers.remove(id)
-                if (id == pen) {
-                    pen = null
-                    ink.end()
-                } else if (pen == null && !finger.moved && finger.alone) {
-                    ink.start(finger.anchor)
-                    ink.end()
-                }
-            }
-            id == pen -> ink.move(position)
-            !finger.moved && (position - finger.anchor).getDistance() <= slop -> Unit
-            else -> {
-                val first = !finger.moved
-                finger.moved = true
-                if (pen == null) {
-                    pen = id
-                    ink.start(if (first) finger.anchor else position)
-                    if (first) ink.move(position)
-                }
-            }
+        if (finger == null) {
+            if (pressed) fingers[id] = Finger(position, time)
+            return
         }
+        if (!pressed) {
+            fingers.remove(id)
+            if (id == pen) {
+                pen = null
+                ink.end()
+            } else if (pen == null && !finger.moved && !finger.sawInk) {
+                draw { start(finger.anchor); end() }
+            }
+            return
+        }
+        val far = (position - finger.anchor).getDistance() > slop
+        if (id == pen) {
+            if (far) finger.anchor = position.also { finger.movedAt = time }
+            draw { move(position) }
+            return
+        }
+        if (!far) return
+        val from = if (finger.moved) position else finger.anchor
+        finger.moved = true
+        finger.anchor = position
+        finger.movedAt = time
+        val current = pen?.let { fingers.getValue(it) }
+        if (current != null && time - current.movedAt <= idleMs) return
+        if (current != null) ink.end()
+        pen = id
+        draw { start(from); if (from != position) move(position) }
+    }
+
+    private inline fun draw(block: Ink.() -> Unit) {
+        ink.block()
+        fingers.values.forEach { it.sawInk = true }
     }
 
     /** The gesture stopped early (cancelled): close the open stroke. */
@@ -75,12 +83,12 @@ suspend fun PointerInputScope.drawWithPen(ink: Ink, onTouch: () -> Unit = {}) {
             val down = awaitFirstDown()
             down.consume()
             onTouch()
-            pen.update(down.id.value, down.position, pressed = true)
+            pen.update(down.id.value, down.position, pressed = true, down.uptimeMillis)
             do {
                 val event = awaitPointerEvent()
                 for (change in event.changes) {
                     change.consume()
-                    pen.update(change.id.value, change.position, change.pressed)
+                    pen.update(change.id.value, change.position, change.pressed, change.uptimeMillis)
                 }
             } while (event.changes.any { it.pressed })
         } finally {
