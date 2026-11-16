@@ -13,8 +13,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -76,12 +74,14 @@ import com.huroofi.app.toddler.ToddlerPhrases
 import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.DemoHand
+import com.huroofi.app.ui.components.Ink
 import com.huroofi.app.ui.components.DemoRun
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarBurst
+import com.huroofi.app.ui.components.drawWithPen
 import com.huroofi.app.ui.components.WipeIcon
 import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.theme.ArabicText
@@ -371,17 +371,13 @@ private fun PaintLayer(
     Canvas(
         modifier.graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen).pointerInput(Unit) {
             fun point(p: Offset) = PaintPoint(p.x.toDp().value, p.y.toDp().value)
-            awaitEachGesture {
-                val down = awaitFirstDown()
-                down.consume()
-                onStart(point(down.position))
-                while (true) {
-                    val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
-                    if (!change.pressed) break
-                    change.consume()
-                    onMove(point(change.position))
-                }
-            }
+            drawWithPen(
+                object : Ink {
+                    override fun start(at: Offset) = onStart(point(at))
+                    override fun move(to: Offset) = onMove(point(to))
+                    override fun end() = Unit
+                },
+            )
         },
     ) {
         val g = glyph ?: return@Canvas
