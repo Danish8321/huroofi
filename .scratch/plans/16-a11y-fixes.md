@@ -9,9 +9,13 @@ Source: second-pass design and accessibility review, run on `huroofi_phone` and 
    - Fix: `HuroofiTheme` provides `LayoutDirection.Ltr`. `MainActivity` has one `setContent`, which goes through `HuroofiTheme` (`HuroofiApp.kt:84`). There are no dialogs or popups. The Arabic rows keep their own `Rtl` (`LessonScreen.kt:290`, `MapScreen.kt:335`, `RewardScreen.kt:249`, `ParentZoneScreen.kt:581`).
    - `supportsRtl` stays on, so system bars and any future platform UI still follow the phone.
 
-2. **Any finger draws** (outline, sharpened before it starts).
+2. **The moving finger draws.** Branch `feat/a11y-fingers`.
    - Finding: Trace and Paint follow only the first finger down (`TraceScreen.kt:502`, `PaintScreen.kt:374–384`). A second finger already resting on the card left 0 px of ink, against 75,883 px without it.
    - Decided (maintainer, 2026-11-16): follow whichever finger moves. A finger that stays still leaves no ink and ticks no dots.
+   - Fix: `Pen` (`ui/components/Pen.kt`) picks the finger that draws, and Trace and Paint both use it.
+     - A finger becomes the pen once it moves past touch slop, and its stroke starts where it landed.
+     - A lone finger that lifts without moving is a tap and leaves a dot, so dot strokes still work. A still finger that shared the screen leaves nothing.
+     - While the pen is down, other fingers are ignored. Once it lifts, the next finger to move draws, within the same multi-finger gesture.
 
 3. **Rotation and dark-theme switches keep the round** (outline).
    - Finding: rotating the tablet mid-paint swapped the letter and dropped the paint. A dark-theme switch wiped a half-traced letter.
@@ -42,3 +46,12 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - Map: stage chips still ق ك ل م from right to left.
   - `a11y.sh` PASS on all four (6, 5, 8 and 9 targets, min 64 dp).
   - No gate covers layout direction.
+- Slice 2, `feat/a11y-fingers`, merged to `main`. `check.sh` and `test-fast.sh` PASS. New `PenTest`: a stroke starts where it landed, a lone tap makes a dot, a resting thumb leaves no ink and does not block, a second finger takes over after the pen lifts, and closing ends an open stroke.
+  - Emulator `huroofi_phone`, Trace ق, the review's multi-touch scripts, ink counted in the crayon colour:
+    - One finger: 77,071 px.
+    - A thumb resting on the card: 76,094 px (it was 0 before the fix).
+    - A thumb resting beside the card: 75,769 px.
+    - A second finger landing mid-stroke, then a later stroke: 157,498 px, both strokes painted (the later one was blocked before the fix).
+    - A lone tap on dot stroke 2 still turned it green.
+  - `a11y.sh` PASS on Trace (8 targets, min 64 dp).
+  - Paint uses the same `Pen` but was not walked on the emulator.
