@@ -22,4 +22,13 @@ class InkShiftTest {
     fun offCentreInkMovesBothWays() {
         assertEquals(Offset(15f, 20f), inkShift(IntSize(100, 100), Rect(0f, 0f, 70f, 60f)))
     }
+
+    @Test
+    fun refitKeepsAPointOnTheSameSpotOfTheLetter() {
+        val portrait = Rect(100f, 200f, 300f, 600f)
+        val landscape = Rect(400f, 50f, 500f, 250f) // half the size, elsewhere
+        assertEquals(Offset(400f, 50f), refit(Offset(100f, 200f), portrait, landscape))
+        assertEquals(Offset(450f, 200f), refit(Offset(200f, 500f), portrait, landscape))
+        assertEquals(Offset(200f, 500f), refit(refit(Offset(200f, 500f), portrait, landscape), landscape, portrait))
+    }
 }

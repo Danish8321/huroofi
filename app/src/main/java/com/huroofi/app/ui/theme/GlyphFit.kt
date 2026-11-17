@@ -56,6 +56,10 @@ fun fitGlyph(measurer: TextMeasurer, letter: String, size: Size, share: Float, d
 /** A stroke point, as fractions (0..1) of the glyph's ink box, mapped into [ink] on the canvas (plan 09 decision 1). */
 fun toCanvas(point: List<Float>, ink: Rect): Offset = Offset(ink.left + point[0] * ink.width, ink.top + point[1] * ink.height)
 
+/** Moves [point] drawn on a letter fitted at [from] to the same spot on it fitted at [to] (a rotation or settings change). */
+fun refit(point: Offset, from: Rect, to: Rect): Offset =
+    Offset(to.left + (point.x - from.left) * to.width / from.width, to.top + (point.y - from.top) * to.height / from.height)
+
 /** How far to move a laid-out glyph so the centre of its [ink] lands on the centre of its [box]. */
 fun inkShift(box: IntSize, ink: Rect): Offset = Offset(box.width / 2f - ink.center.x, box.height / 2f - ink.center.y)
 

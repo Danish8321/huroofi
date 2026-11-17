@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -91,6 +92,7 @@ import com.huroofi.app.ui.theme.GlyphMask
 import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.LocalHuroofiColors
 import com.huroofi.app.ui.theme.fitGlyph
+import com.huroofi.app.ui.theme.refit
 import com.huroofi.app.ui.theme.toCanvas
 import kotlin.math.PI
 import kotlin.math.cos
@@ -185,6 +187,18 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     val strokes = remember(page.letter) { strokesOf(page.letter.index) }
     val glyph = remember(page.letter, canvasSize) {
         if (canvasSize == IntSize.Zero) null else fitGlyph(measurer, page.letter.letter, Size(canvasSize.width.toFloat(), canvasSize.height.toFloat()), LetterOutlineSpec.INK_SHARE, density)
+    }
+    // A rotation or settings change refits the letter: the paint moves with it (plan 16 slice 3).
+    // Kept in dp, since a Display size change also changes px per dp.
+    val paintedOn = remember(page.letter) { arrayOfNulls<Rect>(1) }
+    LaunchedEffect(glyph) {
+        val g = glyph ?: return@LaunchedEffect
+        val now = g.ink.let { Rect(it.left / density.density, it.top / density.density, it.right / density.density, it.bottom / density.density) }
+        val before = paintedOn[0]
+        if (before != null && before != now) {
+            page = page.copy(painting = page.painting.moved { p -> refit(Offset(p.x, p.y), before, now).let { PaintPoint(it.x, it.y) } })
+        }
+        paintedOn[0] = now
     }
     // Only paint on the letter shows and counts towards the star (plan 12 decision 4).
     val onLetter = remember(glyph) { glyph?.let { GlyphMask(it, canvasSize, density) } }

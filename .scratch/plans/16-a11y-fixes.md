@@ -17,10 +17,14 @@ Source: second-pass design and accessibility review, run on `huroofi_phone` and 
      - A lone finger that lifts without moving is a tap and leaves a dot, so dot strokes still work. A still finger that shared the screen leaves nothing.
      - While the pen is down, other fingers are ignored. Once it lifts, the next finger to move draws, within the same multi-finger gesture.
 
-3. **Rotation and dark-theme switches keep the round** (outline).
+3. **Rotation and settings changes keep the round.** Branch `feat/a11y-config`.
    - Finding: rotating the tablet mid-paint swapped the letter and dropped the paint. A dark-theme switch wiped a half-traced letter.
-   - Fix: add `android:configChanges` for orientation, screenSize, screenLayout, smallestScreenSize and uiMode. Put the letter index in `rememberSaveable` (`PaintScreen.kt:178`, `TraceScreen.kt:347`, `FindScreen.kt:201–203`).
-   - Decided (maintainer, 2026-11-16): also add `fontScale|density|locale`, so settings changes mid-round keep it too.
+   - Decided (maintainer, 2026-11-16): also cover `fontScale|density|locale`, so settings changes mid-round keep it too.
+   - Fix:
+     - `android:configChanges` covers orientation, screen size and layout, uiMode, fontScale, density, locale, layoutDirection, keyboard and navigation. The activity is no longer recreated, so every round keeps its state.
+     - A resize refits the letter, so the ink moves with it. Trace remaps its ink with `refit` and replays it into the new check, so ticked dots stay ticked. Paint remaps its strokes in dp (`Painting.moved`); the painted distance stays.
+     - `BoxWithConstraints`' `maxWidth`/`maxHeight` keep the old density after a Display size change, because the px constraints are unchanged and it is not re-measured. All six users now read `windowWidth`/`windowHeight` (`LiveConstraints.kt`).
+   - Dropped: the letter index in `rememberSaveable`. The round state is a whole object, so process death still restarts the round.
 
 4. **The countdown keeps its time with animations removed** (outline).
    - Finding: with "Remove animations" on, Find moved on 0.5 s after the right tap instead of after 5 s, and Paint jumped mid-stroke (`CountdownNext.kt:73–81`).
@@ -29,7 +33,7 @@ Source: second-pass design and accessibility review, run on `huroofi_phone` and 
 ## Later (needs the prototype first, then `design.sh`)
 
 - Short windows: Lesson, Quiz and Trace minimum heights push the main button off-screen on a 600 dp-tall tablet and a 320 dp phone.
-- Toddler layouts at 360 and 320 dp, and on the tablet in landscape: wrapping prompt, play circle over the labels, crayon and eraser row too wide.
+- Toddler layouts at 360 and 320 dp, and on the tablet in landscape: wrapping prompt, play circle over the labels, crayon and eraser row too wide. The same happens at a larger Display size (520 dpi on the phone): Paint's eraser and Trace's pink crayon are clipped at the right edge.
 - Fix next, items 7–14: live regions, the gate's long-click action, missing labels, auto-advance under TalkBack and Arabic `localeList`, text at 150 % and above, the alif target, sub-16 sp text, and Paint's gate "Back to play".
 
 ## Needs the maintainer's decision
@@ -55,3 +59,14 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - A lone tap on dot stroke 2 still turned it green.
   - `a11y.sh` PASS on Trace (8 targets, min 64 dp).
   - Paint uses the same `Pen` but was not walked on the emulator.
+- Slice 3, `feat/a11y-config`, not merged. `check.sh` and `test-fast.sh` PASS. New tests:
+  - `refitKeepsAPointOnTheSameSpotOfTheLetter`.
+  - `inkRefittedToAnotherSizeKeepsItsFinishedStrokes`, over all 28 letters at a larger and a smaller fit. A smaller fit can finish one more stroke (ث's dots at 160 px), as fresh tracing there would.
+  - Emulator `huroofi_phone`, same pid throughout (no recreation):
+    - Trace ق: font 1.3 → 1.0 and density 520 → 420 keep the ink and the green dots. Before the remap, the dots reset after a font change.
+    - Paint ب: font and density changes keep the paint on the same part of the letter.
+    - Find: "Where's the strawberry" kept through the font and density changes.
+    - Home: density 520 → 420 returns to the original layout. Before `windowHeight`, Trace stayed about 460 px short.
+    - Dark and light switches kept ink and progress (checked before the remap).
+  - Tablet-sized phone (density 160, sw ≈ 675 dp), rotation to landscape and back mid-round: Paint س keeps its paint on the letter, and Trace ق keeps its ink and green dots.
+  - Not walked: the `huroofi_tablet_small` AVD itself, or a locale change since the remap.
