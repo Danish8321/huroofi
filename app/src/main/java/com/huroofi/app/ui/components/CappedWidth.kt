@@ -33,12 +33,13 @@ fun CappedWidth(
     content: @Composable BoxScope.() -> Unit,
 ) {
     BoxWithConstraints(modifier.fillMaxSize().background(background)) {
-        val height = max(maxHeight, minHeight)
+        val window = windowHeight
+        val height = max(window, minHeight)
         // Scrolls across the whole width, so a swipe beside the column works too.
         Box(
             Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState(), enabled = height > maxHeight)
+                .verticalScroll(rememberScrollState(), enabled = height > window)
                 .height(height),
             contentAlignment = Alignment.TopCenter,
         ) {

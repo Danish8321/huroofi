@@ -82,6 +82,7 @@ import com.huroofi.app.ui.components.StarBurst
 import com.huroofi.app.ui.components.drawWithPen
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ContrastPair
+import com.huroofi.app.ui.theme.FittedGlyph
 import com.huroofi.app.ui.theme.GlyphMask
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
@@ -89,6 +90,7 @@ import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
 import com.huroofi.app.ui.theme.withArabic
 import com.huroofi.app.ui.theme.fitGlyph
+import com.huroofi.app.ui.theme.refit
 import com.huroofi.app.ui.theme.toCanvas
 import kotlin.math.PI
 import kotlin.math.ceil
@@ -327,13 +329,26 @@ fun TraceScreen(
     val glyph = remember(letter, canvasSize) {
         if (canvasSize == IntSize.Zero) null else fitGlyph(measurer, letter, Size(canvasSize.width.toFloat(), canvasSize.height.toFloat()), TraceSpec.INK_SHARE, density)
     }
+    val inkStrokes = remember { mutableStateListOf<InkStroke>() }
+    val inkFit = remember { arrayOfNulls<FittedGlyph>(1) } // the fit the ink was drawn on
     val check = remember(glyph, strokes) {
         glyph?.let { g ->
             with(density) {
                 val spots = GlyphMask(g, canvasSize, density).grid(TraceSpec.AreaStep.toPx(), TraceSpec.AreaInset.toPx())
                 val lines = strokes.map { s -> s.points.map { toCanvas(it, g.ink) } }
                 val area = AreaCheck(spots, brushReach(spots, lines, TraceSpec.BrushSlack.toPx(), TraceSpec.BrushMin.toPx()))
-                GuideState(guideDots(strokes, g.ink, TraceSpec.DotSpacing.toPx()), TraceSpec.Tolerance.toPx(), area)
+                GuideState(guideDots(strokes, g.ink, TraceSpec.DotSpacing.toPx()), TraceSpec.Tolerance.toPx(), area).also { guide ->
+                    // A rotation or settings change refits the letter: the ink moves with it and counts
+                    // again (plan 16 slice 3). Ink is only read while drawing, so this is safe here.
+                    val old = inkFit[0]
+                    if (old != null && old !== g) for (s in inkStrokes) for (i in s.points.indices) s.points[i] = refit(s.points[i], old.ink, g.ink)
+                    val stepPx = TraceSpec.Tolerance.toPx() / 2f
+                    for (s in inkStrokes) {
+                        guide.addInk(s.points.first())
+                        s.points.zipWithNext { a, b -> guide.addSegment(a, b, stepPx) }
+                    }
+                    inkFit[0] = g
+                }
             }
         }
     }
@@ -344,7 +359,6 @@ fun TraceScreen(
             coinSpots(check.dots, glyph.ink.center, TraceSpec.CoinRadius.toPx(), TraceSpec.DotStrokeRadius.toPx(), canvas)
         }
     }
-    val inkStrokes = remember { mutableStateListOf<InkStroke>() }
     val coinNumbers = remember(strokes.size) {
         List(strokes.size) { measurer.measure((it + 1).toString(), HuroofiText.body.copy(color = TraceSpec.CoinNumber, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)) }
     }
@@ -497,7 +511,6 @@ fun TraceScreen(
                     .onSizeChanged { canvasSize = it }
                     .semantics { contentDescription = if (finished) "You traced the letter $letter" else "Tracing area for the letter $letter" }
                     .pointerInput(Unit) {
-                        val stepPx = TraceSpec.Tolerance.toPx() / 2f
                         drawWithPen(
                             onTouch = { send(DemoEvent.Touch) },
                             ink = object : Ink {
@@ -512,7 +525,7 @@ fun TraceScreen(
                                 override fun move(to: Offset) {
                                     val s = stroke ?: return
                                     val before = currentCheck?.finishedStrokes
-                                    currentCheck?.addSegment(s.points.last(), to, stepPx)
+                                    currentCheck?.addSegment(s.points.last(), to, TraceSpec.Tolerance.toPx() / 2f)
                                     // A light tick for each finished stroke; the last one gets finish()'s buzz instead.
                                     currentCheck?.let { if (!it.done && before != null && it.finishedStrokes > before) buzz.tick() }
                                     send(DemoEvent.Ink)

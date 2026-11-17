@@ -17,10 +17,15 @@ Source: second-pass design and accessibility review, run on `huroofi_phone` and 
      - A still finger that lifts leaves a dot (a tap), unless ink was made while it was down; that is what a resting thumb looks like. So a dot stroke can be tapped while a thumb rests.
      - A pen that has not moved for 300 ms hands over to the next finger that moves, so a thumb that drifted and stopped does not keep the pen. A pen that is still moving keeps it.
 
-3. **Rotation and dark-theme switches keep the round** (outline).
+3. **Rotation and settings changes keep the round.** Branch `feat/a11y-config`.
    - Finding: rotating the tablet mid-paint swapped the letter and dropped the paint. A dark-theme switch wiped a half-traced letter.
-   - Fix: add `android:configChanges` for orientation, screenSize, screenLayout, smallestScreenSize and uiMode. Put the letter index in `rememberSaveable` (`PaintScreen.kt:178`, `TraceScreen.kt:347`, `FindScreen.kt:201–203`).
-   - Decided (maintainer, 2026-11-16): also add `fontScale|density|locale`, so settings changes mid-round keep it too.
+   - Decided (maintainer, 2026-11-16): also cover `fontScale|density|locale`, so settings changes mid-round keep it too.
+   - Fix:
+     - `android:configChanges` covers orientation, screen size and layout, uiMode, fontScale, density, locale, layoutDirection, keyboard and navigation. The activity is no longer recreated, so every round keeps its state.
+     - A resize refits the letter, so the ink moves with it. Trace remaps its ink with `refit` and replays it into the new check, so dots ticked by on-path ink stay ticked. Ink drawn on a small fit and enlarged a lot (tablet landscape to portrait) scales its wobble past the fixed tolerance and may untick; that is a known limit. Paint remaps its strokes in dp (`Painting.moved`); the painted distance stays.
+     - Paint's gesture loop reads its callbacks through `rememberUpdatedState`. Before, it kept the first page's callbacks, so a resize, and every page after the first, checked paint against a stale letter mask.
+     - `BoxWithConstraints`' `maxWidth`/`maxHeight` keep the old density after a Display size change, because the px constraints are unchanged and it is not re-measured. All six users now read `windowWidth`/`windowHeight` (`LiveConstraints.kt`).
+   - Dropped: the letter index in `rememberSaveable`. The round state is a whole object, so process death still restarts the round.
 
 4. **The countdown keeps its time with animations removed** (outline).
    - Finding: with "Remove animations" on, Find moved on 0.5 s after the right tap instead of after 5 s, and Paint jumped mid-stroke (`CountdownNext.kt:73–81`).
@@ -29,7 +34,7 @@ Source: second-pass design and accessibility review, run on `huroofi_phone` and 
 ## Later (needs the prototype first, then `design.sh`)
 
 - Short windows: Lesson, Quiz and Trace minimum heights push the main button off-screen on a 600 dp-tall tablet and a 320 dp phone.
-- Toddler layouts at 360 and 320 dp, and on the tablet in landscape: wrapping prompt, play circle over the labels, crayon and eraser row too wide.
+- Toddler layouts at 360 and 320 dp, and on the tablet in landscape: wrapping prompt, play circle over the labels, crayon and eraser row too wide. The same happens at a larger Display size (520 dpi on the phone): Paint's eraser and Trace's pink crayon are clipped at the right edge.
 - Fix next, items 7–14: live regions, the gate's long-click action, missing labels, auto-advance under TalkBack and Arabic `localeList`, text at 150 % and above, the alif target, sub-16 sp text, and Paint's gate "Back to play".
 
 ## Needs the maintainer's decision
@@ -55,7 +60,7 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - A lone tap on dot stroke 2 still turned it green.
   - `a11y.sh` PASS on Trace (8 targets, min 64 dp).
   - Paint uses the same `Pen` but was not walked on the emulator.
-- Slice 2 follow-up, `feat/a11y-pen-handover`. Two gaps in the first `Pen`: a tap while a thumb rested left no dot, and a thumb that drifted past slop kept the pen. `check.sh` and `test-fast.sh` PASS, and `PenTest` now has 7 cases.
+- Slice 2 follow-up, `feat/a11y-pen-handover`, merged to `main`. Two gaps in the first `Pen`: a tap while a thumb rested left no dot, and a thumb that drifted past slop kept the pen. `check.sh` and `test-fast.sh` PASS, and `PenTest` now has 7 cases.
   - Emulator `huroofi_phone`, Trace ق:
     - One finger: 76,980 px.
     - Thumb resting on the card: 75,925 px.
@@ -65,3 +70,16 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - A thumb resting on the card while a finger painted the body: 62,658 px, and the thumb's spot stayed white.
     - A tap on the dot while the thumb rested: the dot painted.
   - `a11y.sh` PASS on Paint.
+- Slice 3, `feat/a11y-config`, merged to `main`. `check.sh` and `test-fast.sh` PASS. New tests:
+  - `refitKeepsAPointOnTheSameSpotOfTheLetter`.
+  - `inkRefittedToAnotherSizeKeepsItsFinishedStrokes`, over all 28 letters at a larger and a smaller fit. A smaller fit can finish one more stroke (ث's dots at 160 px), as fresh tracing there would.
+  - Emulator `huroofi_phone`, same pid throughout (no recreation):
+    - Trace ق: font 1.3 → 1.0 and density 520 → 420 keep the ink and the green dots. Before the remap, the dots reset after a font change.
+    - Paint ب: font and density changes keep the paint on the same part of the letter.
+    - Find: "Where's the strawberry" kept through the font and density changes.
+    - Home: density 520 → 420 returns to the original layout. Before `windowHeight`, Trace stayed about 460 px short.
+    - Dark and light switches kept ink and progress (checked before the remap).
+  - Tablet-sized phone (density 160, sw ≈ 675 dp), rotation to landscape and back mid-round: Paint س keeps its paint on the letter, and Trace ق keeps its ink and green dots.
+  - Input after a change, at 520 dpi: Trace stroke 1 inks under the finger and ticks its dots. Find's right tap advances (hen to tree). Paint lands under the finger, ط finishes, and the next page ك finishes too.
+  - `a11y.sh` PASS: Home (6), Trace (8), Toddler home (5), Paint (7), Find (5), Look & listen (7), all min 64 dp; parent gate (1, min 48 dp with `--parent`).
+  - Not walked: the `huroofi_tablet_small` AVD itself, a locale change since the remap, or the reward screen's `StarBurst`.

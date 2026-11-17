@@ -63,6 +63,8 @@ import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.components.rememberWiggle
 import com.huroofi.app.ui.components.wiggle
+import com.huroofi.app.ui.components.windowWidth
+import com.huroofi.app.ui.components.windowHeight
 import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiDimens
@@ -212,8 +214,8 @@ private fun PathCard(today: Letter, stage: Stage, chips: List<StageChip>, sticke
             .border(HomeSpec.CardRing, colors.border, shape)
             .padding(HomeSpec.CardRing),
     ) {
-        val w = maxWidth
-        val h = maxHeight
+        val w = windowWidth
+        val h = windowHeight
         WindingPath(colors.border, Modifier.fillMaxSize())
         val letterWiggle = rememberWiggle()
         val pictureWiggle = rememberWiggle()

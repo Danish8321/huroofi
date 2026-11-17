@@ -57,6 +57,7 @@ import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.components.rememberWiggle
 import com.huroofi.app.ui.components.wiggle
+import com.huroofi.app.ui.components.windowHeight
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
@@ -217,7 +218,7 @@ private fun LetterCard(
         // The chip and the sound button sit in opposite corners; the centred middle keeps clear of both.
         val corners = (spec.ChipInset + spec.Chip) * 2
         val word = (spec.WORD_SP * 1.3f).dp
-        val picture = (maxHeight - corners - word).coerceIn(spec.PictureMin, spec.PictureMax)
+        val picture = (windowHeight - corners - word).coerceIn(spec.PictureMin, spec.PictureMax)
         Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 Modifier

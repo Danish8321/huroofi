@@ -44,6 +44,9 @@ data class Painting(
         return copy(strokes = strokes.dropLast(1) + moved, totalDp = if (onLetter) totalDp + hypot(p.x - from.x, p.y - from.y) else totalDp)
     }
 
+    /** Every point moved by [to], when the letter is refitted (plan 16 slice 3). The distance stays. */
+    fun moved(to: (PaintPoint) -> PaintPoint): Painting = copy(strokes = strokes.map { s -> s.copy(points = s.points.map(to)) })
+
     /** Clears the canvas and the distance, also for "Paint it again". The chosen crayon stays. */
     fun wipe(): Painting = Painting(crayon = crayon)
 

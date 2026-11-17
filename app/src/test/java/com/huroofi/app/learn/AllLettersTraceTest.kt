@@ -1,8 +1,10 @@
 package com.huroofi.app.learn
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import com.huroofi.app.data.content.ContentJson
 import com.huroofi.app.data.content.LetterStrokes
+import com.huroofi.app.ui.theme.refit
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -67,6 +69,32 @@ class AllLettersTraceTest {
             val c = check(l)
             l.strokes.filter { !it.dot }.forEach { s -> ink(c, s.points.map(::toBox)) }
             assertFalse("letter ${l.index}", c.done)
+        }
+    }
+
+    /**
+     * Plan 16 slice 3: ink carried to a refitted letter (rotation, Display size) loses no finished
+     * stroke. On a smaller letter the dp tolerance reaches further, so it can finish one more, as
+     * fresh tracing at that size would (ث's dots, at 160 px).
+     */
+    @Test
+    fun inkRefittedToAnotherSizeKeepsItsFinishedStrokes() {
+        val from = Rect(0f, 0f, BOX, BOX)
+        listOf(Rect(300f, 40f, 300f + 400f, 440f), Rect(20f, 500f, 180f, 660f)).forEach { to ->
+            letters.forEach { l ->
+                val before = check(l)
+                val traced = l.strokes.sortedBy { it.order }.let { it.take((it.size + 1) / 2) }.map { s -> s.points.map(::toBox) }
+                traced.forEach { ink(before, it) }
+                val scale = to.width / BOX
+                val after = StrokeCheck(
+                    l.strokes.sortedBy { it.order }.map { s -> strokeDots(s.points.map { refit(toBox(it), from, to) }, SPACING * scale) },
+                    TOLERANCE,
+                )
+                traced.forEach { path -> ink(after, path.map { refit(it, from, to) }) }
+                val finished = { c: StrokeCheck -> l.strokes.indices.count(c::finished) }
+                assertTrue("letter ${l.index} at ${to.width}", finished(after) >= finished(before))
+                if (to.width >= BOX) assertEquals("letter ${l.index} at ${to.width}", finished(before), finished(after))
+            }
         }
     }
 

@@ -60,8 +60,8 @@ private val BurstEasing = CubicBezierEasing(0.2f, 0.9f, 0.3f, 1.2f)
 fun StarBurst(modifier: Modifier = Modifier, scale: Float = 1f, topFraction: Float = 0.44f) {
     val stars = remember(scale) { StarBurstSpec.stars(scale) }
     BoxWithConstraints(modifier.fillMaxSize()) {
-        val cx = maxWidth / 2
-        val cy = maxHeight * topFraction
+        val cx = windowWidth / 2
+        val cy = windowHeight * topFraction
         for (star in stars) {
             val t = remember { Animatable(0f) }
             LaunchedEffect(Unit) { t.animateTo(1f, tween(StarBurstSpec.FLY_MS, delayMillis = star.delayMs, easing = BurstEasing)) }
