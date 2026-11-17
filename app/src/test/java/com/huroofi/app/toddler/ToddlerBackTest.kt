@@ -14,10 +14,15 @@ class ToddlerBackTest {
     }
 
     @Test
-    fun activitiesAndGateGoBackToHome() {
-        for (route in listOf(Routes.ToddlerCards, Routes.ToddlerFind, Routes.ToddlerPaint, Routes.Gate)) {
+    fun activitiesGoBackToHome() {
+        for (route in listOf(Routes.ToddlerCards, Routes.ToddlerFind, Routes.ToddlerPaint)) {
             assertEquals(route, BackAction.PopToToddlerHome, back(route))
         }
+    }
+
+    @Test
+    fun gateGoesBackToTheScreenItWasOpenedOn() {
+        assertEquals(BackAction.Default, back(Routes.Gate))
     }
 
     @Test
