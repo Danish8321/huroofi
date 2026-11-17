@@ -59,6 +59,7 @@ import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.contrastPairs
+import com.huroofi.app.ui.components.windowHeight
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
@@ -137,7 +138,7 @@ fun ParentGateScreen(
             Column(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
-                    .heightIn(min = maxHeight)
+                    .heightIn(min = windowHeight)
                     .fillMaxWidth()
                     .padding(start = 24.dp, end = 24.dp, top = 18.dp, bottom = 30.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,

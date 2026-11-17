@@ -67,6 +67,8 @@ import com.huroofi.app.ui.components.ToddlerHomeButton
 import com.huroofi.app.ui.components.ToddlerHomeButtonSpec
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.components.parentLockPairs
+import com.huroofi.app.ui.components.windowWidth
+import com.huroofi.app.ui.components.windowHeight
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
@@ -215,8 +217,8 @@ fun FindScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     }
     val next = { if (round.solved) round = game.next(round) }
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        if (useTabletFind(maxWidth.value, maxHeight.value)) {
-            FindTablet(round, tabletFindScale(maxWidth.value, maxHeight.value), onHome, onRequestParentZone, ask, pick, next)
+        if (useTabletFind(windowWidth.value, windowHeight.value)) {
+            FindTablet(round, tabletFindScale(windowWidth.value, windowHeight.value), onHome, onRequestParentZone, ask, pick, next)
         } else {
             FindPhone(round, onHome, onRequestParentZone, ask, pick, next)
         }
