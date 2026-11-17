@@ -62,9 +62,10 @@ import com.huroofi.app.data.progress.AgeMode
 import com.huroofi.app.data.progress.LIMIT_STEP_MINUTES
 import com.huroofi.app.data.progress.MAX_LIMIT_MINUTES
 import com.huroofi.app.data.progress.MIN_LIMIT_MINUTES
-import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.ButtonIcons
+import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.LineIcon
+import com.huroofi.app.ui.theme.ArabicLocale
 import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
@@ -387,7 +388,7 @@ private fun SettingsCard(
 /** "بَ بِ بُ" in Naskh inside the English subtitle (plan 06 decision 4). */
 private val harakatSubtitle = buildAnnotatedString {
     append("Adds vowel marks like ")
-    withStyle(SpanStyle(fontFamily = NotoNaskhArabic, fontWeight = FontWeight.Bold)) { append("بَ بِ بُ") }
+    withStyle(SpanStyle(fontFamily = NotoNaskhArabic, fontWeight = FontWeight.Bold, localeList = ArabicLocale)) { append("بَ بِ بُ") }
     append(" in lessons")
 }
 

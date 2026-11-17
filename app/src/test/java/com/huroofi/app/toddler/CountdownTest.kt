@@ -23,4 +23,10 @@ class CountdownTest {
         assertEquals(5_000, CountdownSpec.TOTAL_MS)
         assert(countdownProgress(CountdownSpec.TOTAL_MS - 1L) < 1f)
     }
+
+    @Test
+    fun aLongerTimeToTakeActionStretchesTheFill() {
+        assertEquals(0.5f, countdownProgress(CountdownSpec.PAUSE_MS + 4_500L, totalMs = 10_000L), 1e-6f)
+        assert(countdownProgress(9_999L, totalMs = 10_000L) < 1f)
+    }
 }

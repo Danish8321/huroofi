@@ -64,6 +64,7 @@ import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarIcon
 import com.huroofi.app.ui.components.contrastPairs
 import com.huroofi.app.ui.components.letterPicture
+import com.huroofi.app.ui.theme.ArabicLocale
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
@@ -411,7 +412,7 @@ private fun WrongPanel(pick: Letter) {
     ) {
         Text("Almost! Try again", style = HuroofiText.buttonPrimary.copy(fontSize = 20.sp), color = QuizSpec.WrongText)
         // "Fox (ثعلب) starts with ث" as in Quiz.html: the Arabic word, not the English one, has the letter.
-        val arabic = SpanStyle(fontFamily = NotoNaskhArabic, fontWeight = FontWeight.Bold, fontSize = QuizSpec.INLINE_SP.sp)
+        val arabic = SpanStyle(fontFamily = NotoNaskhArabic, fontWeight = FontWeight.Bold, fontSize = QuizSpec.INLINE_SP.sp, localeList = ArabicLocale)
         Text(
             buildAnnotatedString {
                 append("${pick.meaningEn.replaceFirstChar { it.uppercase() }} (")
