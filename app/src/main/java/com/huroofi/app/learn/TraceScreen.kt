@@ -54,8 +54,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.drawText
@@ -72,15 +74,15 @@ import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.DemoHand
-import com.huroofi.app.ui.components.Ink
 import com.huroofi.app.ui.components.DemoHandSpec
 import com.huroofi.app.ui.components.DemoRun
+import com.huroofi.app.ui.components.Ink
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.PrimaryButton
+import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarBurst
 import com.huroofi.app.ui.components.drawWithPen
-import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.FittedGlyph
 import com.huroofi.app.ui.theme.GlyphMask
@@ -88,10 +90,10 @@ import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
-import com.huroofi.app.ui.theme.withArabic
 import com.huroofi.app.ui.theme.fitGlyph
 import com.huroofi.app.ui.theme.refit
 import com.huroofi.app.ui.theme.toCanvas
+import com.huroofi.app.ui.theme.withArabic
 import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.cos
@@ -494,7 +496,8 @@ fun TraceScreen(
                         TracePhase.Fill -> "Now colour in the yellow spots!"
                         TracePhase.Done -> if (practice) "Well done! Tap Next for another letter" else "Well done! Tap Play for the picture game"
                     },
-                    Modifier.weight(1f),
+                    // A live region, so TalkBack hears each new step and "Well done!" (plan 16 slice 7).
+                    Modifier.weight(1f).semantics { liveRegion = LiveRegionMode.Polite },
                     style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
                     color = HuroofiTokens.Navy,
                 )

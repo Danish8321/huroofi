@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -36,9 +36,11 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -204,7 +206,8 @@ fun QuizScreen(
             }
             Question(target, onHear)
             OptionGrid(game, colors, Modifier.weight(1f), onPick)
-            Box(Modifier.fillMaxWidth().heightIn(min = QuizSpec.Foot), contentAlignment = Alignment.Center) {
+            // A live region, so TalkBack says "Almost! Try again" or Next as they appear (plan 16 slice 7).
+            Box(Modifier.fillMaxWidth().heightIn(min = QuizSpec.Foot).semantics { liveRegion = LiveRegionMode.Polite }, contentAlignment = Alignment.Center) {
                 val wrong = game.wrongPick
                 when {
                     game.solved -> PrimaryButton(nextLabel, onClick = onContinue, kind = ButtonKind.Success, enabled = canContinue, icon = ButtonIcons.Next)
