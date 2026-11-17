@@ -53,8 +53,10 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.drawText
@@ -292,6 +294,7 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                         modifier = Modifier
                             .matchParentSize()
                             .semantics {
+                                liveRegion = LiveRegionMode.Polite // "You painted …!" is spoken (plan 16 slice 7)
                                 contentDescription = if (done) {
                                     "You painted ${page.letter.nameLatin}!"
                                 } else {

@@ -39,6 +39,8 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -51,8 +53,10 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -169,26 +173,32 @@ fun ParentGateScreen(
                     style = HuroofiText.body.copy(fontSize = GateSpec.CHIP_SP.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.9.sp),
                     color = GateSpec.ChipText,
                 )
-                Text(
-                    if (unlocked) "Unlocked" else "Hold to open settings",
-                    Modifier.padding(top = 16.dp),
-                    style = HuroofiText.screenTitle.copy(fontSize = GateSpec.TITLE_SP.sp),
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    if (unlocked) "Choose where to go." else "Keep your finger on the circle for 2 seconds.",
-                    Modifier.padding(top = 10.dp).widthIn(max = 290.dp),
-                    style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
-                    color = GateSpec.Body,
-                    textAlign = TextAlign.Center,
-                )
+                // A live region, so TalkBack says "Unlocked. Choose where to go." (plan 16 slice 7).
+                Column(Modifier.semantics { liveRegion = LiveRegionMode.Polite }, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        if (unlocked) "Unlocked" else "Hold to open settings",
+                        Modifier.padding(top = 16.dp),
+                        style = HuroofiText.screenTitle.copy(fontSize = GateSpec.TITLE_SP.sp),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        if (unlocked) "Choose where to go." else "Keep your finger on the circle for 2 seconds.",
+                        Modifier.padding(top = 10.dp).widthIn(max = 290.dp),
+                        style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold),
+                        color = GateSpec.Body,
+                        textAlign = TextAlign.Center,
+                    )
+                }
                 if (unlocked) {
+                    // Focus goes to the way on, not back to "Back to play", which would undo the unlock.
+                    val openFirst = remember { FocusRequester() }
+                    LaunchedEffect(Unit) { openFirst.requestFocus() }
                     Column(Modifier.padding(top = 40.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         for (action in gateActions(state)) {
                             when (action) {
                                 GateAction.OpenParentZone ->
-                                    PrimaryButton("Open Parent zone", onClick = onOpenParentZone, kind = ButtonKind.Sun, icon = ButtonIcons.Next)
+                                    PrimaryButton("Open Parent zone", onClick = onOpenParentZone, Modifier.focusRequester(openFirst), kind = ButtonKind.Sun, icon = ButtonIcons.Next)
                                 GateAction.CloseApp -> CloseButton(onCloseApp)
                             }
                         }

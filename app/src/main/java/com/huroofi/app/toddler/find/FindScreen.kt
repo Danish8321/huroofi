@@ -36,8 +36,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -67,8 +69,8 @@ import com.huroofi.app.ui.components.ToddlerHomeButton
 import com.huroofi.app.ui.components.ToddlerHomeButtonSpec
 import com.huroofi.app.ui.components.letterPicture
 import com.huroofi.app.ui.components.parentLockPairs
-import com.huroofi.app.ui.components.windowWidth
 import com.huroofi.app.ui.components.windowHeight
+import com.huroofi.app.ui.components.windowWidth
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiText
@@ -271,7 +273,8 @@ private fun FindPhone(
                 modifier = Modifier.weight(1f).heightIn(max = FindSpec.TileHeight),
             )
         }
-        Box(Modifier.fillMaxWidth().height(CountdownSpec.BarHeight + CountdownSpec.BarShadow), contentAlignment = Alignment.Center) {
+        // A live region, so TalkBack says when the picture is found (plan 16 slice 7).
+        Box(Modifier.fillMaxWidth().height(CountdownSpec.BarHeight + CountdownSpec.BarShadow).semantics { liveRegion = LiveRegionMode.Polite }, contentAlignment = Alignment.Center) {
             if (round.solved) FillNextButton(round, onNext) else TapHint()
         }
     }
@@ -360,7 +363,7 @@ private fun FindTablet(
                     }
                 }
             }
-            Box(Modifier.fillMaxWidth().height(spec.NextRing * s), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxWidth().height(spec.NextRing * s).semantics { liveRegion = LiveRegionMode.Polite }, contentAlignment = Alignment.Center) {
                 if (round.solved) RingNextButton(round, onNext, size = minTouch(spec.NextRing.value, s).dp)
             }
         }

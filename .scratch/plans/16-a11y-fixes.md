@@ -42,7 +42,9 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
    - Fix: the gate opens on top of the screen, and "Back to play" and system Back pop to it. Paint keeps its round in a back-stack `ViewModel`. This changes plan 05 decision 6 for the gate only: Back on an activity still goes to Toddler home. In Preschool mode "Back to play" also returns to the tab it was opened from (Map, Stickers), not always Home.
    - Find and Look & listen return to themselves but start a new round; only Paint keeps its round, as the review asked.
 
-7. **Results are announced.** Review item 7. Live regions for the gate unlock, quiz feedback and finished rounds; focus moves to the result.
+7. **Results are announced.** Branch `feat/a11y-announce`. Review item 7.
+   - Polite live regions on what changes when a result comes: the gate's title and line ("Unlocked. Choose where to go."), the quiz's foot ("Almost! Try again", then Next), Find's foot (phone and tablet: Next appears), Trace's hint bubble (each step and "Well done!"), and Paint's canvas description ("You painted …!").
+   - On unlock, focus moves to "Open Parent zone", so the next press does not land on "Back to play".
 
 8. **Dropped labels come back.** Review item 9. Map chips ("alif, learned"); the Trace canvas uses the Latin letter name.
 
@@ -115,3 +117,7 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
   - From Paint, gate, Parent zone, Back: Toddler home, and Back there stays home.
   - Find: gate and "Back to play" return to Find. Preschool Map tab: Parents, then "Back to play", returns to Map.
   - Not walked: the gate from the Rest screen (its route is unchanged), and a rotation while the gate is over Paint.
+- Slice 7, `feat/a11y-announce`, merged to `main`. `check.sh` and `test-fast.sh` PASS. No unit test: semantics only.
+  - Emulator `huroofi_phone`: after Enter held 2.6 s on the gate, the focused node is "Open Parent zone" (it was "Back to play" in slice 5's walk). The gate's layout is unchanged: "Open Parent zone" stays at y 1080 px. `a11y.sh --parent` PASS (2 targets).
+  - Not verified on a device: the spoken announcements. With TalkBack bound, `uiautomator events` showed no Compose node events at all, so neither the announcement nor its absence could be seen (three attempts). The regions use Compose's `LiveRegionMode.Polite`, the platform's mechanism for this. Check with TalkBack on a real phone.
+  - Not walked: Quiz, Find, Trace and Paint after the change (a modifier only, no layout change).
