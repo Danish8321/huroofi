@@ -31,11 +31,27 @@ Source: second-pass design and accessibility review, run on `huroofi_phone` and 
    - Finding: with "Remove animations" on, Find moved on 0.5 s after the right tap instead of after 5 s, and Paint jumped mid-stroke (`CountdownNext.kt:73–81`).
    - Fix: time the wait on the frame clock, as the parent gate's hold does. The prototype's calm-motion rule drops only confetti, wiggles and pulses.
 
+Slices 5–9 are the review's "Fix next" items that need no design change. Started on the maintainer's "Go ahead" (2026-11-17), in this order.
+
+5. **The gate opens without a finger.** Branch `feat/a11y-gate-actions`. Review item 8.
+   - Finding: the hold circle reacts only to touch, so Switch Access and a keyboard cannot open it (`ParentGateScreen.kt:235–246`).
+   - Fix: the circle has a long-click semantics action ("open settings") and takes focus. Enter, Space or D-pad centre held for 2 s unlocks; key repeats do not restart the hold. The accessibility long press runs the same 2 s hold. A focused circle shows a white ring.
+
+6. **"Back to play" returns where the gate was opened.** Branch `feat/a11y-gate-return`. Review item 14.
+   - Finding: from Paint, the gate replaced the screen, so "Back to play" landed on Toddler home and the painting was gone.
+   - Fix: the gate opens on top of the screen, and "Back to play" and system Back pop to it. Paint keeps its round in a back-stack `ViewModel`. This changes plan 05 decision 6 for the gate only: Back on an activity still goes to Toddler home.
+
+7. **Results are announced.** Review item 7. Live regions for the gate unlock, quiz feedback and finished rounds; focus moves to the result.
+
+8. **Dropped labels come back.** Review item 9. Map chips ("alif, learned"); the Trace canvas uses the Latin letter name.
+
+9. **TalkBack stops the countdown, and Arabic is tagged.** Review item 10. Under TalkBack the self-pressing Next waits for a tap; Arabic text carries an Arabic `localeList` for the speech engine.
+
 ## Later (needs the prototype first, then `design.sh`)
 
 - Short windows: Lesson, Quiz and Trace minimum heights push the main button off-screen on a 600 dp-tall tablet and a 320 dp phone.
 - Toddler layouts at 360 and 320 dp, and on the tablet in landscape: wrapping prompt, play circle over the labels, crayon and eraser row too wide. The same happens at a larger Display size (520 dpi on the phone): Paint's eraser and Trace's pink crayon are clipped at the right edge.
-- Fix next, items 7–14: live regions, the gate's long-click action, missing labels, auto-advance under TalkBack and Arabic `localeList`, text at 150 % and above, the alif target, sub-16 sp text, and Paint's gate "Back to play".
+- Fix next, items 11–13: text at 150 % and above, the alif target, and sub-16 sp text. Items 7–10 and 14 are slices 5–9.
 
 ## Needs the maintainer's decision
 
@@ -87,3 +103,9 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
   - Emulator `huroofi_phone`, all three animation scales at 0: Find moved on between 3.6 s and 6.4 s after the right tap (fox, then duck). It was 0.5 s before. Scales restored to 1.
   - `a11y.sh` PASS on Find with the countdown showing (6 targets, min 64 dp).
   - Paint's countdown is the same component and was not walked separately.
+- Slice 5, `feat/a11y-gate-actions`, merged to `main`. `check.sh` and `test-fast.sh` PASS. No unit test: the change is key and semantics wiring, and `HoldGate` is unchanged.
+  - Emulator `huroofi_phone`, gate from the Parents tab. The node dump shows the circle as `long-clickable,focusable`, and the second Tab focuses it.
+  - Enter tapped, Space tapped, and Enter held 1.2 s each leave it locked. Enter held 2.6 s unlocks it. The first build unlocked on a tapped Enter: the key-up came before the frame that starts the hold. The hold now starts only if the key is still down.
+  - The focus ring shows white round the circle (screenshot).
+  - `a11y.sh --parent` PASS (2 targets, min 48 dp).
+  - Not walked: the long-click action itself. TalkBack was bound, but it ignores gestures injected over adb. The action calls the same hold as the key.

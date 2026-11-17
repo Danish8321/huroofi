@@ -5,7 +5,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -41,10 +44,16 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -121,6 +130,16 @@ fun ParentGateScreen(
     val gate = remember { HoldGate() }
     var state by remember { mutableStateOf<HoldState>(HoldState.Idle) }
     var pressed by remember { mutableStateOf(false) }
+    // A hold begun without a touch: a held key, or a long press from Switch Access or TalkBack (plan 16 slice 5).
+    var heldNoTouch by remember { mutableStateOf(false) }
+    LaunchedEffect(heldNoTouch) {
+        val at = withFrameMillis { it }
+        // A quick key tap can be up again before this frame: then nothing was held.
+        if (heldNoTouch) {
+            gate.press(at)
+            pressed = true
+        }
+    }
 
     LaunchedEffect(pressed) {
         while (pressed && state != HoldState.Unlocked) {
@@ -181,7 +200,9 @@ fun ParentGateScreen(
                             gate.press(it)
                             pressed = true
                         },
+                        onHold = { heldNoTouch = true },
                         onRelease = {
+                            heldNoTouch = false
                             pressed = false
                             gate.release()
                             state = gate.state
@@ -226,18 +247,35 @@ private fun BackToPlay(onClick: () -> Unit) {
 }
 
 @Composable
-private fun HoldCircle(state: HoldState, onPress: (Long) -> Unit, onRelease: () -> Unit) {
+private fun HoldCircle(state: HoldState, onPress: (Long) -> Unit, onHold: () -> Unit, onRelease: () -> Unit) {
     val progress = when (state) {
         HoldState.Idle -> 0f
         is HoldState.Holding -> state.progress
         HoldState.Unlocked -> 1f
     }
     val held = state is HoldState.Holding
+    val focus = remember { MutableInteractionSource() }
+    val focused by focus.collectIsFocusedAsState()
     Box(
         Modifier
             .padding(top = 40.dp)
             .size(GateSpec.Hold)
-            .semantics { contentDescription = "Press and hold for 2 seconds" }
+            .semantics {
+                contentDescription = "Press and hold for 2 seconds"
+                // Switch Access and TalkBack have no finger to hold: their long press runs the 2 s hold.
+                onLongClick("open settings") { onHold(); true }
+            }
+            // A keyboard holds Enter or Space instead; key repeats must not restart the hold.
+            .onKeyEvent { e ->
+                if (e.key !in HoldKeys) return@onKeyEvent false
+                when (e.type) {
+                    KeyEventType.KeyDown -> if (e.nativeKeyEvent.repeatCount == 0) onHold()
+                    KeyEventType.KeyUp -> onRelease()
+                }
+                true
+            }
+            .focusable(interactionSource = focus)
+            .then(if (focused) Modifier.border(3.dp, Color.White, CircleShape) else Modifier)
             .pointerInput(Unit) {
                 detectTapGestures(onPress = {
                     onPress(withFrameMillis { it })
@@ -274,6 +312,8 @@ private fun HoldCircle(state: HoldState, onPress: (Long) -> Unit, onRelease: () 
         }
     }
 }
+
+private val HoldKeys = setOf(Key.Enter, Key.NumPadEnter, Key.DirectionCenter, Key.Spacebar)
 
 /** Outlined, so the sun "Open Parent zone" stays the main way on. */
 @Composable
