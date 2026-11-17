@@ -46,7 +46,7 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
    - Polite live regions on what changes when a result comes: the gate's title and line ("Unlocked. Choose where to go."), the quiz's foot ("Almost! Try again", then Next), Find's foot (phone and tablet: Next appears), Trace's hint bubble (each step and "Well done!"), and Paint's canvas description ("You painted …!").
    - On unlock, focus moves to "Open Parent zone", so the next press does not land on "Back to play".
 
-8. **Dropped labels come back.** Review item 9. Map chips ("alif, learned"); the Trace canvas uses the Latin letter name.
+8. **Dropped labels come back.** Branch `feat/a11y-labels`. Review item 9. Map chips read "alif, learned", "…, today" or "…, coming up" (learn.js:63). The Trace canvas reads "Trace the letter alif" and "You traced alif" (learn.js:217), so `TraceScreen` takes the Latin name.
 
 9. **TalkBack stops the countdown, and Arabic is tagged.** Review item 10. Under TalkBack the self-pressing Next waits for a tap; Arabic text carries an Arabic `localeList` for the speech engine.
 
@@ -121,3 +121,6 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
   - Emulator `huroofi_phone`: after Enter held 2.6 s on the gate, the focused node is "Open Parent zone" (it was "Back to play" in slice 5's walk). The gate's layout is unchanged: "Open Parent zone" stays at y 1080 px. `a11y.sh --parent` PASS (2 targets).
   - Not verified on a device: the spoken announcements. With TalkBack bound, `uiautomator events` showed no Compose node events at all, so neither the announcement nor its absence could be seen (three attempts). The regions use Compose's `LiveRegionMode.Polite`, the platform's mechanism for this. Check with TalkBack on a real phone.
   - Not walked: Quiz, Find, Trace and Paint after the change (a modifier only, no layout change).
+- Slice 8, `feat/a11y-labels`, merged to `main`. `check.sh` and `test-fast.sh` PASS. No unit test: labels only.
+  - Emulator `huroofi_phone`, Preschool: the Map's stage 6 chips read "qaaf, today", "kaaf, coming up", "laam, coming up" and "miim, coming up"; the Trace canvas reads "Trace the letter qaaf". `a11y.sh` PASS on Trace (8 targets) and Map (9 targets).
+  - Not walked: the "You traced …" wording after a finished trace, or a learned chip (none on the current stage).

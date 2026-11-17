@@ -317,6 +317,8 @@ enum class TracePhase { Trace, Fill, Done }
 @Composable
 fun TraceScreen(
     letter: String,
+    /** The Latin name ("alif") for TalkBack, which cannot say the bare glyph well (plan 16 slice 8). */
+    name: String,
     strokes: List<TraceStroke>,
     introDone: Boolean,
     onBack: () -> Unit,
@@ -512,7 +514,7 @@ fun TraceScreen(
                     .background(HuroofiTokens.Card)
                     .border(TraceSpec.CanvasRing, if (finished) TraceSpec.DoneRing else HuroofiTokens.Card, cardShape)
                     .onSizeChanged { canvasSize = it }
-                    .semantics { contentDescription = if (finished) "You traced the letter $letter" else "Tracing area for the letter $letter" }
+                    .semantics { contentDescription = if (finished) "You traced $name" else "Trace the letter $name" }
                     .pointerInput(Unit) {
                         drawWithPen(
                             onTouch = { send(DemoEvent.Touch) },
@@ -696,5 +698,5 @@ private fun DoneBadge(letter: String, modifier: Modifier = Modifier) {
 @Preview(widthDp = 390, heightDp = 844)
 @Composable
 private fun TracePreview() {
-    HuroofiTheme { TraceScreen("ب", strokes = emptyList(), introDone = false, onBack = {}, onTraced = {}, onNext = {}) }
+    HuroofiTheme { TraceScreen("ب", "baa", strokes = emptyList(), introDone = false, onBack = {}, onTraced = {}, onNext = {}) }
 }

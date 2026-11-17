@@ -362,7 +362,15 @@ private fun MapChip(chip: StageChip, modifier: Modifier) {
         modifier
             .height(MapSpec.Chip)
             .background(fill, shape)
-            .then(if (chip.state == LetterState.LEARNING) Modifier.border(MapSpec.ChipRing, HuroofiTokens.Primary, shape) else Modifier),
+            .then(if (chip.state == LetterState.LEARNING) Modifier.border(MapSpec.ChipRing, HuroofiTokens.Primary, shape) else Modifier)
+            // The prototype's label (learn.js:63): the Latin name and where the child is with it (plan 16 slice 8).
+            .clearAndSetSemantics {
+                contentDescription = "${chip.letter.nameLatin}, " + when (chip.state) {
+                    LetterState.LEARNED -> "learned"
+                    LetterState.LEARNING -> "today"
+                    else -> "coming up"
+                }
+            },
         contentAlignment = Alignment.Center,
     ) {
         CenteredLetter(chip.letter.letter, size = MapSpec.CHIP_SP.sp, color = text, style = HuroofiText.arabicChip)
