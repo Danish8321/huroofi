@@ -1,8 +1,5 @@
 package com.huroofi.app.toddler
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,9 +17,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,13 +68,21 @@ object CountdownSpec {
     const val LABEL = "Next. It starts by itself in a moment"
 }
 
-/** 0..1 over the countdown; calls [onDone] when it reaches 1. Restarts when [key] changes. */
+/** How full the countdown is [elapsedMs] after it started: empty through the pause, then linear. */
+fun countdownProgress(elapsedMs: Long): Float =
+    ((elapsedMs - CountdownSpec.PAUSE_MS).toFloat() / CountdownSpec.FILL_MS).coerceIn(0f, 1f)
+
+/**
+ * 0..1 over the countdown; calls [onDone] when it reaches 1. Restarts when [key] changes. Timed on the
+ * frame clock, not an animation, so "Remove animations" keeps the full wait (plan 16 slice 4).
+ */
 @Composable
-private fun countdown(key: Any, onDone: () -> Unit): Animatable<Float, *> {
+private fun countdown(key: Any, onDone: () -> Unit): State<Float> {
     val done by rememberUpdatedState(onDone)
-    val progress = remember(key) { Animatable(0f) }
+    val progress = remember(key) { mutableFloatStateOf(0f) }
     LaunchedEffect(progress) {
-        progress.animateTo(1f, tween(CountdownSpec.FILL_MS, delayMillis = CountdownSpec.PAUSE_MS, easing = LinearEasing))
+        val start = withFrameMillis { it }
+        while (progress.floatValue < 1f) progress.floatValue = countdownProgress(withFrameMillis { it } - start)
         done()
     }
     return progress
