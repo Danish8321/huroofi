@@ -14,8 +14,8 @@ Source: second-pass design and accessibility review, run on `huroofi_phone` and 
    - Decided (maintainer, 2026-11-16): follow whichever finger moves. A finger that stays still leaves no ink and ticks no dots.
    - Fix: `Pen` (`ui/components/Pen.kt`) picks the finger that draws, and Trace and Paint both use it.
      - A finger becomes the pen once it moves past touch slop, and its stroke starts where it landed.
-     - A lone finger that lifts without moving is a tap and leaves a dot, so dot strokes still work. A still finger that shared the screen leaves nothing.
-     - While the pen is down, other fingers are ignored. Once it lifts, the next finger to move draws, within the same multi-finger gesture.
+     - A still finger that lifts leaves a dot (a tap), unless ink was made while it was down; that is what a resting thumb looks like. So a dot stroke can be tapped while a thumb rests.
+     - A pen that has not moved for 300 ms hands over to the next finger that moves, so a thumb that drifted and stopped does not keep the pen. A pen that is still moving keeps it.
 
 3. **Rotation and dark-theme switches keep the round** (outline).
    - Finding: rotating the tablet mid-paint swapped the letter and dropped the paint. A dark-theme switch wiped a half-traced letter.
@@ -55,3 +55,13 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - A lone tap on dot stroke 2 still turned it green.
   - `a11y.sh` PASS on Trace (8 targets, min 64 dp).
   - Paint uses the same `Pen` but was not walked on the emulator.
+- Slice 2 follow-up, `feat/a11y-pen-handover`. Two gaps in the first `Pen`: a tap while a thumb rested left no dot, and a thumb that drifted past slop kept the pen. `check.sh` and `test-fast.sh` PASS, and `PenTest` now has 7 cases.
+  - Emulator `huroofi_phone`, Trace ق:
+    - One finger: 76,980 px.
+    - Thumb resting on the card: 75,925 px.
+    - A tap on dot stroke 2 while a thumb rests: the dot turned green.
+    - A thumb that drifted 48 px, then rested: the moving finger painted 76,862 px.
+  - Paint ز in toddler mode:
+    - A thumb resting on the card while a finger painted the body: 62,658 px, and the thumb's spot stayed white.
+    - A tap on the dot while the thumb rested: the dot painted.
+  - `a11y.sh` PASS on Paint.
