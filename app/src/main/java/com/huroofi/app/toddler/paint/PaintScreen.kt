@@ -365,7 +365,7 @@ private fun DoneRow(letter: Letter, onAgain: () -> Unit, onNext: () -> Unit) {
             containerColor = colors.card,
             shadowColor = PaintSpec.RingTrack,
         ) { LineIcon(ButtonIcons.Again, PaintSpec.AgainColor, size = PaintSpec.AgainIcon, strokeWidth = 2.6f) }
-        RingNextButton(letter, onNext, track = PaintSpec.RingTrack, label = "Next letter. It starts by itself in a moment")
+        RingNextButton(letter, onNext, track = PaintSpec.RingTrack, label = "Next letter. It starts by itself in a moment", waitingLabel = "Next letter")
     }
 }
 

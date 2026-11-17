@@ -48,7 +48,7 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
 
 8. **Dropped labels come back.** Branch `feat/a11y-labels`. Review item 9. Map chips read "alif, learned", "…, today" or "…, coming up" (learn.js:63). The Trace canvas reads "Trace the letter alif" and "You traced alif" (learn.js:217), so `TraceScreen` takes the Latin name.
 
-9. **TalkBack stops the countdown, and Arabic is tagged.** Review item 10. Under TalkBack the self-pressing Next waits for a tap; Arabic text carries an Arabic `localeList` for the speech engine.
+9. **TalkBack stops the countdown, and Arabic is tagged.** Review item 10. Under TalkBack the self-pressing Next waits for a tap; Arabic text carries an Arabic `localeList` for the speech engine. The countdown also stretches to the phone's "Time to take action" setting (`calculateRecommendedTimeoutMillis`), and under TalkBack the label drops "starts by itself".
 
 ## Later (needs the prototype first, then `design.sh`)
 
@@ -124,3 +124,7 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
 - Slice 8, `feat/a11y-labels`, merged to `main`. `check.sh` and `test-fast.sh` PASS. No unit test: labels only.
   - Emulator `huroofi_phone`, Preschool: the Map's stage 6 chips read "qaaf, today", "kaaf, coming up", "laam, coming up" and "miim, coming up"; the Trace canvas reads "Trace the letter qaaf". `a11y.sh` PASS on Trace (8 targets) and Map (9 targets).
   - Not walked: the "You traced …" wording after a finished trace, or a learned chip (none on the current stage).
+- Slice 9, `feat/a11y-talkback-wait`, merged to `main`. `check.sh` and `test-fast.sh` PASS. New tests: `CountdownTest.aLongerTimeToTakeActionStretchesTheFill`, and `ArabicLocaleTest` (a run, `withArabic` and `highlightedWord` tag only the Arabic).
+  - Emulator `huroofi_phone`, Toddler Find, right card tapped and then screenshots only: with TalkBack on (`touchExplorationEnabled=true`), the round stayed on "frog" for 15 s with the bar empty. With TalkBack off, it moved on by itself to "duck".
+  - Walking note: `uiautomator dump` suppresses TalkBack while it runs, so a dump taken under TalkBack shows the non-TalkBack label and restarts the countdown. Check this state with screenshots, not dumps.
+  - Not verified on a device: the TalkBack label "Next", and whether the speech engine switches to Arabic on the tagged runs (neither can be heard on the emulator). Not walked: Paint's ring under TalkBack, or a longer "Time to take action".

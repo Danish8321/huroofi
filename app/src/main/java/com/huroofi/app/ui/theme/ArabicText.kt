@@ -15,14 +15,25 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
+
+/**
+ * Arabic text carries this locale, so TalkBack's speech engine reads it as Arabic, not as English
+ * spelled out (plan 16 slice 9). Compose turns it into a LocaleSpan in the accessibility text.
+ */
+val ArabicLocale = LocaleList("ar")
+
+/** [text] tagged as Arabic for the speech engine. */
+fun arabicRun(text: String): AnnotatedString = AnnotatedString(text, SpanStyle(localeList = ArabicLocale))
 
 /**
  * One Arabic run: right-to-left paragraph direction and Naskh Bold, inside an otherwise
@@ -38,7 +49,7 @@ fun ArabicText(
     style: TextStyle = TextStyle(fontFamily = NotoNaskhArabic),
 ) {
     Text(
-        text = text,
+        text = arabicRun(text),
         modifier = modifier,
         color = color,
         textAlign = textAlign,
@@ -100,7 +111,7 @@ fun ArabicText(
     textAlign: TextAlign = TextAlign.Center,
 ) {
     Text(
-        text = text,
+        text = buildAnnotatedString { withStyle(SpanStyle(localeList = ArabicLocale)) { append(text) } },
         modifier = modifier,
         color = color,
         textAlign = textAlign,
@@ -116,7 +127,7 @@ fun ArabicText(
 /** [before], the Arabic [letter] in Naskh a little larger, then [after]: English labels that name a letter. */
 fun withArabic(before: String, letter: String, after: String = ""): AnnotatedString = buildAnnotatedString {
     append(before)
-    pushStyle(SpanStyle(fontFamily = NotoNaskhArabic, fontSize = 30.sp))
+    pushStyle(SpanStyle(fontFamily = NotoNaskhArabic, fontSize = 30.sp, localeList = ArabicLocale))
     append(letter)
     pop()
     append(after)
@@ -125,8 +136,8 @@ fun withArabic(before: String, letter: String, after: String = ""): AnnotatedStr
 /** The picture word with its first letter in [highlight] (HANDOFF section 4: word_first + word_rest). */
 fun highlightedWord(first: String, rest: String, highlight: Color): AnnotatedString =
     buildAnnotatedString {
-        pushStyle(SpanStyle(color = highlight))
-        append(first)
-        pop()
-        append(rest)
+        withStyle(SpanStyle(localeList = ArabicLocale)) {
+            withStyle(SpanStyle(color = highlight)) { append(first) }
+            append(rest)
+        }
     }
