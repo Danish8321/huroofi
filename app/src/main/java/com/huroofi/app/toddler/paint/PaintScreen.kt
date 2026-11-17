@@ -30,8 +30,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,6 +63,8 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.huroofi.app.LocalAppContainer
 import com.huroofi.app.R
 import com.huroofi.app.data.content.Letter
@@ -76,15 +78,15 @@ import com.huroofi.app.toddler.ToddlerPhrases
 import com.huroofi.app.toddler.ToddlerScaffold
 import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.DemoHand
-import com.huroofi.app.ui.components.Ink
 import com.huroofi.app.ui.components.DemoRun
+import com.huroofi.app.ui.components.Ink
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.RoundIconButton
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarBurst
-import com.huroofi.app.ui.components.drawWithPen
 import com.huroofi.app.ui.components.WipeIcon
+import com.huroofi.app.ui.components.drawWithPen
 import com.huroofi.app.ui.components.parentLockPairs
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.ContrastPair
@@ -168,6 +170,21 @@ object PaintSpec {
 }
 
 /**
+ * Paint's round, kept on Paint's back-stack entry so a trip to the parent gate and back keeps the
+ * painting (plan 16 slice 6). Cleared when Paint is left.
+ */
+class PaintRound(letters: List<Letter>) : ViewModel() {
+    val session = PaintSession(letters, Random.Default)
+    var page by mutableStateOf(session.start())
+
+    /** The letter's ink box, in dp, that the paint was last fitted to; a new letter's empty page moves harmlessly. */
+    var paintedOn: Rect? = null
+
+    /** The letter whose demo hand already ran, so coming back does not repeat it. */
+    var demoShown: Letter? = null
+}
+
+/**
  * Finger paint: a random letter to paint over (plan 05 slice 5). After 400 dp on the letter it
  * celebrates (green frame, star burst, cheering Leo), then a ring counts down to a new letter; "Paint it
  * again" keeps the letter (plan 15 decision 5).
@@ -176,9 +193,10 @@ object PaintSpec {
 fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     val container = LocalAppContainer.current
     val scope = rememberCoroutineScope()
-    val session = remember { PaintSession(container.content.letters, Random.Default) }
+    val round = viewModel { PaintRound(container.content.letters) }
+    val session = round.session
     val audio = remember { PaintAudio(PromptPlayer(container.sound, scope), Random.Default) }
-    var page by remember { mutableStateOf(session.start()) }
+    var page by round::page
     val colors = LocalHuroofiColors.current
     val done = page.painting.done
     // Demo hand: once per page over the outline, never repeated, stopped by the first touch.
@@ -191,20 +209,21 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     }
     // A rotation or settings change refits the letter: the paint moves with it (plan 16 slice 3).
     // Kept in dp, since a Display size change also changes px per dp.
-    val paintedOn = remember(page.letter) { arrayOfNulls<Rect>(1) }
     LaunchedEffect(glyph, density) {
         val g = glyph ?: return@LaunchedEffect
         val now = g.ink.let { Rect(it.left / density.density, it.top / density.density, it.right / density.density, it.bottom / density.density) }
-        val before = paintedOn[0]
+        val before = round.paintedOn
         if (before != null && before != now) {
             page = page.copy(painting = page.painting.moved { p -> refit(Offset(p.x, p.y), before, now).let { PaintPoint(it.x, it.y) } })
         }
-        paintedOn[0] = now
+        round.paintedOn = now
     }
     // Only paint on the letter shows and counts towards the star (plan 12 decision 4).
     val onLetter = remember(glyph) { glyph?.let { GlyphMask(it, canvasSize, density) } }
     val demoPaths = remember(glyph, strokes) { glyph?.let { g -> strokes.map { s -> s.points.map { toCanvas(it, g.ink) } } }.orEmpty() }
-    var demoRun by remember(page.letter) { mutableStateOf<DemoRun?>(DemoRun(demoStrokes(strokes), 0)) }
+    var demoRun by remember(page.letter) {
+        mutableStateOf(if (round.demoShown == page.letter) null else DemoRun(demoStrokes(strokes), 0).also { round.demoShown = page.letter })
+    }
 
     LaunchedEffect(page.letter) { audio.ask(page.letter) }
     val buzz = LocalBuzz.current

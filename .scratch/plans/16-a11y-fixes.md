@@ -39,7 +39,8 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
 
 6. **"Back to play" returns where the gate was opened.** Branch `feat/a11y-gate-return`. Review item 14.
    - Finding: from Paint, the gate replaced the screen, so "Back to play" landed on Toddler home and the painting was gone.
-   - Fix: the gate opens on top of the screen, and "Back to play" and system Back pop to it. Paint keeps its round in a back-stack `ViewModel`. This changes plan 05 decision 6 for the gate only: Back on an activity still goes to Toddler home.
+   - Fix: the gate opens on top of the screen, and "Back to play" and system Back pop to it. Paint keeps its round in a back-stack `ViewModel`. This changes plan 05 decision 6 for the gate only: Back on an activity still goes to Toddler home. In Preschool mode "Back to play" also returns to the tab it was opened from (Map, Stickers), not always Home.
+   - Find and Look & listen return to themselves but start a new round; only Paint keeps its round, as the review asked.
 
 7. **Results are announced.** Review item 7. Live regions for the gate unlock, quiz feedback and finished rounds; focus moves to the result.
 
@@ -109,3 +110,8 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
   - The focus ring shows white round the circle (screenshot).
   - `a11y.sh --parent` PASS (2 targets, min 48 dp).
   - Not walked: the long-click action itself. TalkBack was bound, but it ignores gestures injected over adb. The action calls the same hold as the key.
+- Slice 6, `feat/a11y-gate-return`, merged to `main`. `check.sh` and `test-fast.sh` PASS. `ToddlerBackTest.gateGoesBackToTheScreenItWasOpenedOn` replaces the gate case of the old home test.
+  - Emulator `huroofi_phone`, Toddler mode. Paint ف with 63,357 ink px; gate from the lock, then "Back to play": same letter, 63,357 px. Again with system Back on the gate: same. Back on Paint goes to Toddler home; reopening Paint gives a new letter (ح) with 0 px.
+  - From Paint, gate, Parent zone, Back: Toddler home, and Back there stays home.
+  - Find: gate and "Back to play" return to Find. Preschool Map tab: Parents, then "Back to play", returns to Map.
+  - Not walked: the gate from the Rest screen (its route is unchanged), and a rotation while the gate is over Paint.

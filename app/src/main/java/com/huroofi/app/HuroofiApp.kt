@@ -113,8 +113,8 @@ private fun HuroofiNavHost(session: AgeMode, onCloseApp: () -> Unit, onModeChang
             else if (!nav.popBackStack(startRoute, inclusive = false)) nav.navigate(startRoute)
         }
     }
-    // From a toddler screen the gate replaces it, so Back on the gate lands on Toddler Home (decision 6).
-    val toddlerToGate: () -> Unit = { nav.navigate(Routes.Gate) { popUpTo(Routes.ToddlerHome) } }
+    // The gate opens on top of the toddler screen, so "Back to play" returns to it (plan 16 slice 6).
+    val toddlerToGate: () -> Unit = { nav.navigate(Routes.Gate) }
     PlayTimeKeeper(nav, startRoute)
     ImmersiveBars(nav.currentBackStackEntryAsState().value?.destination?.route)
     NavHost(navController = nav, startDestination = startRoute) {
@@ -144,7 +144,7 @@ private fun HuroofiNavHost(session: AgeMode, onCloseApp: () -> Unit, onModeChang
             ParentGateScreen(
                 onOpenParentZone = { nav.navigate(Routes.ParentZone) { popUpTo(Routes.Gate) { inclusive = true } } },
                 onCloseApp = onCloseApp,
-                onBackToPlay = { nav.popBackStack(startRoute, inclusive = false) },
+                onBackToPlay = { nav.popBackStack() },
             )
         }
         composable(Routes.ParentZone) {

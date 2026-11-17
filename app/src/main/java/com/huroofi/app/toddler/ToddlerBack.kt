@@ -8,7 +8,8 @@ enum class BackAction { Swallow, PopToToddlerHome, Default }
 
 /**
  * What system Back does on [route] (plan 05 decision 6). Toddler Home swallows it, so a child can't
- * leave the app; activities and the gate go back to Toddler Home. Leaving is only through the gate.
+ * leave the app; activities go back to Toddler Home. The gate goes back to the screen it was opened
+ * on (plan 16 slice 6), which is always a child screen. Leaving is only through the gate.
  * The Rest screen swallows Back in every mode (plan 06 decision 6).
  */
 fun toddlerBack(route: String, startRoute: String): BackAction = when {
@@ -23,7 +24,6 @@ private val TODDLER_RETURNS_HOME = setOf(
     Routes.ToddlerCards,
     Routes.ToddlerFind,
     Routes.ToddlerPaint,
-    Routes.Gate,
 )
 
 /** Applies [toddlerBack] for [route]; place it inside that route's destination. */
