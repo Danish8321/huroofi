@@ -133,6 +133,7 @@ fun TraceRoute(index: Int, onBack: () -> Unit, onNext: () -> Unit, practice: Boo
     }
     TraceScreen(
         letter = letter.letter,
+        name = letter.nameLatin,
         strokes = strokes,
         introDone = introDone,
         onHearHint = { phase ->
