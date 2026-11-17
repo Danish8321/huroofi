@@ -22,7 +22,8 @@ Source: second-pass design and accessibility review, run on `huroofi_phone` and 
    - Decided (maintainer, 2026-11-16): also cover `fontScale|density|locale`, so settings changes mid-round keep it too.
    - Fix:
      - `android:configChanges` covers orientation, screen size and layout, uiMode, fontScale, density, locale, layoutDirection, keyboard and navigation. The activity is no longer recreated, so every round keeps its state.
-     - A resize refits the letter, so the ink moves with it. Trace remaps its ink with `refit` and replays it into the new check, so ticked dots stay ticked. Paint remaps its strokes in dp (`Painting.moved`); the painted distance stays.
+     - A resize refits the letter, so the ink moves with it. Trace remaps its ink with `refit` and replays it into the new check, so dots ticked by on-path ink stay ticked. Ink drawn on a small fit and enlarged a lot (tablet landscape to portrait) scales its wobble past the fixed tolerance and may untick; that is a known limit. Paint remaps its strokes in dp (`Painting.moved`); the painted distance stays.
+     - Paint's gesture loop reads its callbacks through `rememberUpdatedState`. Before, it kept the first page's callbacks, so a resize, and every page after the first, checked paint against a stale letter mask.
      - `BoxWithConstraints`' `maxWidth`/`maxHeight` keep the old density after a Display size change, because the px constraints are unchanged and it is not re-measured. All six users now read `windowWidth`/`windowHeight` (`LiveConstraints.kt`).
    - Dropped: the letter index in `rememberSaveable`. The round state is a whole object, so process death still restarts the round.
 
@@ -69,4 +70,6 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - Home: density 520 → 420 returns to the original layout. Before `windowHeight`, Trace stayed about 460 px short.
     - Dark and light switches kept ink and progress (checked before the remap).
   - Tablet-sized phone (density 160, sw ≈ 675 dp), rotation to landscape and back mid-round: Paint س keeps its paint on the letter, and Trace ق keeps its ink and green dots.
-  - Not walked: the `huroofi_tablet_small` AVD itself, or a locale change since the remap.
+  - Input after a change, at 520 dpi: Trace stroke 1 inks under the finger and ticks its dots. Find's right tap advances (hen to tree). Paint lands under the finger, ط finishes, and the next page ك finishes too.
+  - `a11y.sh` PASS: Home (6), Trace (8), Toddler home (5), Paint (7), Find (5), Look & listen (7), all min 64 dp; parent gate (1, min 48 dp with `--parent`).
+  - Not walked: the `huroofi_tablet_small` AVD itself, a locale change since the remap, or the reward screen's `StarBurst`.

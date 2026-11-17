@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -191,7 +192,7 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     // A rotation or settings change refits the letter: the paint moves with it (plan 16 slice 3).
     // Kept in dp, since a Display size change also changes px per dp.
     val paintedOn = remember(page.letter) { arrayOfNulls<Rect>(1) }
-    LaunchedEffect(glyph) {
+    LaunchedEffect(glyph, density) {
         val g = glyph ?: return@LaunchedEffect
         val now = g.ink.let { Rect(it.left / density.density, it.top / density.density, it.right / density.density, it.bottom / density.density) }
         val before = paintedOn[0]
@@ -382,13 +383,16 @@ private fun PaintLayer(
     onMove: (PaintPoint) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // The gesture loop outlives recomposition: a new page or a resize must reach it.
+    val currentStart by rememberUpdatedState(onStart)
+    val currentMove by rememberUpdatedState(onMove)
     Canvas(
         modifier.graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen).pointerInput(Unit) {
             fun point(p: Offset) = PaintPoint(p.x.toDp().value, p.y.toDp().value)
             drawWithPen(
                 object : Ink {
-                    override fun start(at: Offset) = onStart(point(at))
-                    override fun move(to: Offset) = onMove(point(to))
+                    override fun start(at: Offset) = currentStart(point(at))
+                    override fun move(to: Offset) = currentMove(point(to))
                     override fun end() = Unit
                 },
             )

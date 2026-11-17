@@ -511,7 +511,6 @@ fun TraceScreen(
                     .onSizeChanged { canvasSize = it }
                     .semantics { contentDescription = if (finished) "You traced the letter $letter" else "Tracing area for the letter $letter" }
                     .pointerInput(Unit) {
-                        val stepPx = TraceSpec.Tolerance.toPx() / 2f
                         drawWithPen(
                             onTouch = { send(DemoEvent.Touch) },
                             ink = object : Ink {
@@ -526,7 +525,7 @@ fun TraceScreen(
                                 override fun move(to: Offset) {
                                     val s = stroke ?: return
                                     val before = currentCheck?.finishedStrokes
-                                    currentCheck?.addSegment(s.points.last(), to, stepPx)
+                                    currentCheck?.addSegment(s.points.last(), to, TraceSpec.Tolerance.toPx() / 2f)
                                     // A light tick for each finished stroke; the last one gets finish()'s buzz instead.
                                     currentCheck?.let { if (!it.done && before != null && it.finishedStrokes > before) buzz.tick() }
                                     send(DemoEvent.Ink)
