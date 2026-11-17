@@ -27,7 +27,7 @@ Source: second-pass design and accessibility review, run on `huroofi_phone` and 
      - `BoxWithConstraints`' `maxWidth`/`maxHeight` keep the old density after a Display size change, because the px constraints are unchanged and it is not re-measured. All six users now read `windowWidth`/`windowHeight` (`LiveConstraints.kt`).
    - Dropped: the letter index in `rememberSaveable`. The round state is a whole object, so process death still restarts the round.
 
-4. **The countdown keeps its time with animations removed** (outline).
+4. **The countdown keeps its time with animations removed.** Branch `feat/a11y-countdown`.
    - Finding: with "Remove animations" on, Find moved on 0.5 s after the right tap instead of after 5 s, and Paint jumped mid-stroke (`CountdownNext.kt:73–81`).
    - Fix: time the wait on the frame clock, as the parent gate's hold does. The prototype's calm-motion rule drops only confetti, wiggles and pulses.
 
@@ -83,3 +83,7 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
   - Input after a change, at 520 dpi: Trace stroke 1 inks under the finger and ticks its dots. Find's right tap advances (hen to tree). Paint lands under the finger, ط finishes, and the next page ك finishes too.
   - `a11y.sh` PASS: Home (6), Trace (8), Toddler home (5), Paint (7), Find (5), Look & listen (7), all min 64 dp; parent gate (1, min 48 dp with `--parent`).
   - Not walked: the `huroofi_tablet_small` AVD itself, a locale change since the remap, or the reward screen's `StarBurst`.
+- Slice 4, `feat/a11y-countdown`, merged to `main`. `check.sh` and `test-fast.sh` PASS. `countdown` now runs on `withFrameMillis` through `countdownProgress`, not a `tween` that the animator scale shortens. New `CountdownTest`: empty through the 1 s pause, linear fill, full at 5 s and not before.
+  - Emulator `huroofi_phone`, all three animation scales at 0: Find moved on between 3.6 s and 6.4 s after the right tap (fox, then duck). It was 0.5 s before. Scales restored to 1.
+  - `a11y.sh` PASS on Find with the countdown showing (6 targets, min 64 dp).
+  - Paint's countdown is the same component and was not walked separately.
