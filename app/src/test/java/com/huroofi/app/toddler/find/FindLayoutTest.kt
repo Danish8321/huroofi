@@ -17,6 +17,9 @@ class FindLayoutTest {
         assertTrue(useTabletFind(960f, 600f))
         assertEquals(0.732f, tabletFindScale(960f, 600f), 0.001f)
         assertEquals(64f, minTouch(84f, tabletFindScale(960f, 600f)), 0f)
+        // The 20 sp English line would be 14.6 sp here.
+        assertEquals(16f, minText(FindTabletSpec.ENGLISH_SP, tabletFindScale(960f, 600f)), 0f)
+        assertEquals(20f, minText(FindTabletSpec.ENGLISH_SP, 1f), 0f)
     }
 
     @Test

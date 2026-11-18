@@ -1,6 +1,7 @@
 package com.huroofi.app.parent
 
 import androidx.compose.ui.unit.dp
+import com.huroofi.app.gate.GateSpec
 import com.huroofi.app.ui.theme.TypeScale
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -15,5 +16,10 @@ class ZoneSpecTest {
     @Test
     fun textIsAtLeast16sp() {
         for (size in ZoneSpec.textSizes) assertTrue("$size", size.value >= TypeScale.FLOOR_SP)
+    }
+
+    @Test
+    fun gateTextIsAtLeast16sp() {
+        for (sp in GateSpec.textSizes) assertTrue("$sp sp", sp >= TypeScale.FLOOR_SP)
     }
 }

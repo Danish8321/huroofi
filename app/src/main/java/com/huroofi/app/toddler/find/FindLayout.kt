@@ -1,5 +1,6 @@
 package com.huroofi.app.toddler.find
 
+import com.huroofi.app.ui.theme.TypeScale
 import kotlin.math.max
 import kotlin.math.min
 
@@ -16,3 +17,6 @@ fun tabletFindScale(widthDp: Float, heightDp: Float): Float =
 
 /** A control's size after scaling, never below the 64 dp toddler minimum. */
 fun minTouch(designDp: Float, scale: Float): Float = max(designDp * scale, 64f)
+
+/** A text size after scaling, never below the 16 sp type floor. */
+fun minText(designSp: Float, scale: Float): Float = max(designSp * scale, TypeScale.FLOOR_SP)
