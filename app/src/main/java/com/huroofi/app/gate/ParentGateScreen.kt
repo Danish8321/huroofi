@@ -94,7 +94,7 @@ object GateSpec {
     val HoldTrack = Color(0xFF1F3C68)
     val HoldRingTrack = Color(0xFF2B4F86)
     val GhostBorder = Color(0xFF3A5A8C)
-    const val CHIP_SP = 15f
+    const val CHIP_SP = 16f
     const val TITLE_SP = 28f
     val textSizes = listOf(CHIP_SP, TITLE_SP)
 

@@ -340,7 +340,7 @@ private fun FindTablet(
                 ArabicText(ToddlerPhrases.whereIsAr(round.target), size = (spec.SENTENCE_SP * s).sp, color = colors.navy)
                 Text(
                     ToddlerPhrases.whereIsEn(round.target),
-                    style = HuroofiText.body.copy(fontWeight = FontWeight.Bold, fontSize = (spec.ENGLISH_SP * s).sp),
+                    style = HuroofiText.body.copy(fontWeight = FontWeight.Bold, fontSize = minText(spec.ENGLISH_SP, s).sp),
                     color = colors.muted,
                 )
             }

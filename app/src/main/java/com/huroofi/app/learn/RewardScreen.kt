@@ -98,7 +98,6 @@ object RewardSpec {
     const val CARD_ARABIC_SP = 24f
     const val CHIP_SP = 16f
     const val SUB_SP = 16f
-    /** The prototype has 14; the type floor is 16. */
     const val TAG_SP = 16f
     val textSizes = listOf(TITLE_SP, TILE_SP, CARD_TITLE_SP, CARD_ARABIC_SP, CHIP_SP, SUB_SP, TAG_SP)
 

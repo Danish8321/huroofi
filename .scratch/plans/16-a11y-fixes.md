@@ -54,11 +54,14 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
    - Finding: the Lesson's big letter was only as wide as its glyph; alif measured 48 × 226 dp against the 64 dp bar (`LessonScreen.kt:200–217`).
    - Fix: the tap target fills the letter card, under the sound button, which keeps its own action. Only the glyph wiggles. The prototype does the same (`.big-letter` fills `.letter-card`).
 
+11. **No text under 16 sp.** Branch `feat/a11y-text-floor`. Review item 13.
+   - The gate chip goes from 15 to 16 sp. On the tablet, Find's English line scales through `minText`, so on the 960 × 600 tablet it stays at 16 sp, not 14.6. In the prototype, the gate chip goes from 15 to 16 px and Reward's unlock tag from 14 to 16 px; the app already used 16 for the tag.
+
 ## Later (needs the prototype first, then `design.sh`)
 
 - Short windows: Lesson, Quiz and Trace minimum heights push the main button off-screen on a 600 dp-tall tablet and a 320 dp phone.
 - Toddler layouts at 360 and 320 dp, and on the tablet in landscape: wrapping prompt, play circle over the labels, crayon and eraser row too wide. The same happens at a larger Display size (520 dpi on the phone): Paint's eraser and Trace's pink crayon are clipped at the right edge.
-- Fix next, items 11 and 13: text at 150 % and above, and sub-16 sp text. Items 7–10 and 14 are slices 5–9; item 12 is slice 10.
+- Fix next, item 11: text at 150 % and above. Items 7–10 and 14 are slices 5–9; items 12 and 13 are slices 10 and 11.
 
 ## Needs the maintainer's decision
 
@@ -135,3 +138,5 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
 - Slice 10, `feat/a11y-letter-card`, merged to `main`. `design.sh`, `check.sh` and `test-fast.sh` PASS. No unit test: a modifier move only.
   - Prototype: the Lesson reference screen looks unchanged (screenshot).
   - Not walked: no emulator check or `a11y.sh` on the Lesson (the maintainer stopped the emulator walk on 2026-11-18). Check on a device: a tap beside alif plays it, the sound button still plays name and word, and TalkBack reads "Letter alif. Tap to hear" as one node.
+- Slice 11, `feat/a11y-text-floor`, merged to `main`. `design.sh`, `check.sh` and `test-fast.sh` PASS. New tests: `ZoneSpecTest.gateTextIsAtLeast16sp` (the gate's `textSizes` was never checked, which is how 15 sp got through), and `minText` cases in `FindLayoutTest`.
+  - Not walked: no emulator (the maintainer stopped emulator use on 2026-11-18). Check on a device: the gate chip still fits on one line, and Find's English line on the small tablet in landscape.
