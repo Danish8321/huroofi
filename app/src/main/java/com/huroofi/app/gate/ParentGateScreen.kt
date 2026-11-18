@@ -239,7 +239,7 @@ private fun BackToPlay(onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .height(GateSpec.BackCard)
+            .heightIn(min = GateSpec.BackCard)
             .dropEdge(GateSpec.BackShadow, 6.dp, shape)
             .clip(shape)
             .background(HuroofiTokens.Card)

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -213,12 +214,18 @@ fun ParentZoneScreen(
 
 @Composable
 private fun ZoneHeader(onBack: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    // Large text: the button wraps under the title rather than squeezing it.
+    FlowRow(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(
             "Parent zone",
             style = HuroofiText.screenTitle.copy(fontSize = ZoneSpec.Title),
             color = HuroofiTokens.Navy,
-            modifier = Modifier.weight(1f).semantics { heading() },
+            modifier = Modifier.padding(end = 10.dp).semantics { heading() },
         )
         SmallButton("Back to kid mode", SmallKind.Primary, icon = ButtonIcons.Home, onClick = onBack)
     }
@@ -263,7 +270,8 @@ private fun ChildCard(progress: ParentProgress, mode: AgeMode, letters: List<Gri
             }
         }
         ProgressBar(progress)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        // Wraps like the prototype's legend, so large text moves an item down instead of splitting it.
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             LegendItem(ZoneSpec.Learned, "${progress.learned} learned")
             LegendItem(Color.White, "${progress.learning} learning", ring = ZoneSpec.Learning)
             LegendItem(ZoneSpec.BarTrack, "${progress.toGo} to go", ring = ZoneSpec.ToGoOutline)

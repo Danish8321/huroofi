@@ -15,7 +15,7 @@ SCREENS.home = {
       if (l === today) {
         const picLeft = x > 170 ? x - 150 : x + 62;
         return `<button type="button" class="node today" style="left:${x - 56}px;top:${y - 56}px" aria-label="Today's letter ${l.name_latin}. Tap to hear">${AR(l.letter)}</button>
-          <span class="today-chip" style="left:${x - 30}px;top:${y + 60}px">Today</span>
+          <span class="today-chip" style="left:${x}px;top:${y + 60}px">Today</span>
           <button type="button" class="node-pic" style="left:${picLeft}px;top:${y - 44}px" aria-label="${cap(l.meaning_en)}. Tap to hear"><img src="${img(l.picture)}" alt=""></button>`;
       }
       const learned = isLearned(l.index);
