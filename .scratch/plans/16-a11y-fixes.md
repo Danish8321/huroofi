@@ -50,11 +50,15 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
 
 9. **TalkBack stops the countdown, and Arabic is tagged.** Review item 10. Under TalkBack the self-pressing Next waits for a tap; Arabic text carries an Arabic `localeList` for the speech engine. The countdown also stretches to the phone's "Time to take action" setting (`calculateRecommendedTimeoutMillis`), and under TalkBack the label drops "starts by itself".
 
+10. **The whole letter card is the letter's button.** Branch `feat/a11y-letter-card`. Review item 12.
+   - Finding: the Lesson's big letter was only as wide as its glyph; alif measured 48 × 226 dp against the 64 dp bar (`LessonScreen.kt:200–217`).
+   - Fix: the tap target fills the letter card, under the sound button, which keeps its own action. Only the glyph wiggles. The prototype does the same (`.big-letter` fills `.letter-card`).
+
 ## Later (needs the prototype first, then `design.sh`)
 
 - Short windows: Lesson, Quiz and Trace minimum heights push the main button off-screen on a 600 dp-tall tablet and a 320 dp phone.
 - Toddler layouts at 360 and 320 dp, and on the tablet in landscape: wrapping prompt, play circle over the labels, crayon and eraser row too wide. The same happens at a larger Display size (520 dpi on the phone): Paint's eraser and Trace's pink crayon are clipped at the right edge.
-- Fix next, items 11–13: text at 150 % and above, the alif target, and sub-16 sp text. Items 7–10 and 14 are slices 5–9.
+- Fix next, items 11 and 13: text at 150 % and above, and sub-16 sp text. Items 7–10 and 14 are slices 5–9; item 12 is slice 10.
 
 ## Needs the maintainer's decision
 
@@ -128,3 +132,6 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
   - Emulator `huroofi_phone`, Toddler Find, right card tapped and then screenshots only: with TalkBack on (`touchExplorationEnabled=true`), the round stayed on "frog" for 15 s with the bar empty. With TalkBack off, it moved on by itself to "duck".
   - Walking note: `uiautomator dump` suppresses TalkBack while it runs, so a dump taken under TalkBack shows the non-TalkBack label and restarts the countdown. Check this state with screenshots, not dumps.
   - Not verified on a device: the TalkBack label "Next", and whether the speech engine switches to Arabic on the tagged runs (neither can be heard on the emulator). Not walked: Paint's ring under TalkBack, or a longer "Time to take action".
+- Slice 10, `feat/a11y-letter-card`, merged to `main`. `design.sh`, `check.sh` and `test-fast.sh` PASS. No unit test: a modifier move only.
+  - Prototype: the Lesson reference screen looks unchanged (screenshot).
+  - Not walked: no emulator check or `a11y.sh` on the Lesson (the maintainer stopped the emulator walk on 2026-11-18). Check on a device: a tap beside alif plays it, the sound button still plays name and word, and TalkBack reads "Letter alif. Tap to hear" as one node.

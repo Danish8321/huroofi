@@ -187,20 +187,11 @@ private fun LetterCard(letter: Letter, colors: StageColors, showShapes: Boolean,
             Text(letter.nameLatin, style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold), color = HuroofiTokens.Navy)
             ArabicText(letter.nameAr, size = LessonSpec.NAME_SP.sp, color = HuroofiTokens.Muted)
         }
-        RoundIconButton(
-            contentDescription = "Hear ${letter.nameLatin} and ${letter.meaningEn}",
-            onClick = onHear,
-            modifier = Modifier.align(Alignment.TopEnd).padding(top = 16.dp + LessonSpec.CardRing, end = 16.dp + LessonSpec.CardRing),
-            toddler = true,
-            size = LessonSpec.Sound,
-            containerColor = HuroofiTokens.Sun,
-            shadowColor = HuroofiTokens.SunShadow,
-        ) { SoundIcon(HuroofiTokens.Navy, size = 30.dp) }
+        // The whole card is the letter's button, so a thin letter like alif is still easy to tap.
         // No clip and no ripple: the glyph's line box overflows, and the wiggle is the answer.
         Box(
             Modifier
-                .align(Alignment.Center)
-                .wiggle(letterWiggle)
+                .matchParentSize()
                 .clickable(interactionSource = null, indication = null, role = Role.Button) {
                     letterWiggle.play()
                     onHearLetter()
@@ -219,12 +210,21 @@ private fun LetterCard(letter: Letter, colors: StageColors, showShapes: Boolean,
             IgnoreFontScale {
                 ArabicText(
                     letter.letter,
-                    Modifier.wrapContentHeight(unbounded = true),
+                    Modifier.wrapContentHeight(unbounded = true).wiggle(letterWiggle),
                     size = (if (showShapes) LessonSpec.LETTER_WITH_SHAPES_SP else LessonSpec.LETTER_SP).sp,
                     color = HuroofiTokens.Navy,
                 )
             }
         }
+        RoundIconButton(
+            contentDescription = "Hear ${letter.nameLatin} and ${letter.meaningEn}",
+            onClick = onHear,
+            modifier = Modifier.align(Alignment.TopEnd).padding(top = 16.dp + LessonSpec.CardRing, end = 16.dp + LessonSpec.CardRing),
+            toddler = true,
+            size = LessonSpec.Sound,
+            containerColor = HuroofiTokens.Sun,
+            shadowColor = HuroofiTokens.SunShadow,
+        ) { SoundIcon(HuroofiTokens.Navy, size = 30.dp) }
     }
 }
 
