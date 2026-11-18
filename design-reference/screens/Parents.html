@@ -273,7 +273,7 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .node.togo { background: #FFFFFF; border: 3px solid }
 .node.today { width: 112px !important; height: 112px !important; background: var(--primary) !important; color: #FFFFFF; box-shadow: 0 7px 0 var(--primary-d); font-size: 58px; animation: pulse 2.4s ease-in-out infinite }
 @keyframes pulse { 0%, 100% { box-shadow: 0 7px 0 var(--primary-d), 0 0 0 0 rgba(31, 111, 224, 0.35) } 50% { box-shadow: 0 7px 0 var(--primary-d), 0 0 0 16px rgba(31, 111, 224, 0) } }
-.today-chip { position: absolute; padding: 2px 12px; border-radius: 999px; background: #FFFFFF; font-size: 16px; font-weight: 800; color: var(--primary-d) }
+.today-chip { position: absolute; transform: translateX(-50%); padding: 2px 12px; border-radius: 999px; background: #FFFFFF; font-size: 16px; font-weight: 800; color: var(--primary-d) }
 .node-pic { position: absolute !important; width: 88px; height: 88px }
 .node-pic img { width: 88px; height: 88px; object-fit: contain }
 .prize { position: absolute; right: 18px; top: 18px }
@@ -430,7 +430,7 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 @keyframes fall { 0% { transform: translateY(0) rotate(0) } 100% { transform: translateY(900px) rotate(540deg) } }
 /* gate */
 .gate-wrap { height: 100%; background: #13294B; color: #FFFFFF; display: flex; flex-direction: column; padding: 18px 24px 30px }
-.back-to-play { display: flex; align-items: center; gap: 16px; height: 84px; padding: 0 14px !important; border-radius: 28px; background: #FFFFFF !important; color: var(--navy) !important; box-shadow: 0 6px 0 #0A1A33; font-size: 22px }
+.back-to-play { display: flex; align-items: center; gap: 16px; min-height: 84px; padding: 0 14px !important; border-radius: 28px; background: #FFFFFF !important; color: var(--navy) !important; box-shadow: 0 6px 0 #0A1A33; font-size: 22px }
 .back-to-play b { flex: 1; text-align: left; font-weight: 800 }
 .btp-ico { width: 56px; height: 56px; border-radius: 50%; background: var(--sky); color: var(--primary); display: flex; align-items: center; justify-content: center }
 .btp-ico svg { width: 30px; height: 30px }
@@ -452,8 +452,9 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .gate-foot { margin: 0; text-align: center; font-size: 16px; font-weight: 600; color: #8FA9CC; min-height: 22px }
 /* zone */
 .zone-wrap { height: 100%; overflow-y: auto; background: var(--parent-bg); padding: 18px 18px 30px; display: flex; flex-direction: column; gap: 14px }
-.zone-head { display: flex; align-items: center; gap: 10px }
-.zone-head h1 { margin: 0; flex: 1; font-size: 26px; font-weight: 800 }
+/* Large text: the button wraps under the title rather than squeezing it. */
+.zone-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px }
+.zone-head h1 { margin: 0; font-size: 26px; font-weight: 800 }
 .zone-head .round-btn { display: none }
 .btn-small { height: 48px; padding: 0 14px !important; border-radius: 14px; background: var(--primary) !important; color: #FFFFFF !important; display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 800; flex-shrink: 0 }
 .btn-small svg { width: 20px; height: 20px }

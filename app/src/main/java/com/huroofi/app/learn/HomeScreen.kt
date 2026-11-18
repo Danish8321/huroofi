@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -65,6 +66,7 @@ import com.huroofi.app.ui.components.rememberWiggle
 import com.huroofi.app.ui.components.wiggle
 import com.huroofi.app.ui.components.windowWidth
 import com.huroofi.app.ui.components.windowHeight
+import com.huroofi.app.ui.theme.CapFontScale
 import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiDimens
@@ -91,8 +93,6 @@ object HomeSpec {
     val Picture = 88.dp
     val Prize = 70.dp
     val PrizeInset = 18.dp
-    /** Height of the "Today" chip: 16 sp text plus its padding. */
-    val Chip = 28.dp
     val PathWidth = 30.dp
     val DotWidth = 4.dp
     const val PULSE_MS = 2_400
@@ -233,17 +233,26 @@ private fun PathCard(today: Letter, stage: Stage, chips: List<StageChip>, sticke
                         }
                         .clearAndSetSemantics { contentDescription = "Today's letter ${today.nameLatin}. Tap to hear" },
                 )
-                Text(
-                    "Today",
-                    Modifier
-                        // Under the letter, but never past the card's bottom edge (first letter of a stage).
-                        .offset(at.x - 30.dp, minOf(at.y + 60.dp, h - HomeSpec.Chip - 6.dp))
-                        .background(HuroofiTokens.Card, CircleShape)
-                        .padding(horizontal = 12.dp, vertical = 2.dp)
-                        .clearAndSetSemantics {},
-                    style = HuroofiText.caption.copy(fontSize = 16.sp, fontWeight = FontWeight.ExtraBold),
-                    color = HuroofiTokens.PrimaryShadow,
-                )
+                // Capped at 130 %: larger, the chip would cover the letter it labels (TalkBack reads the letter).
+                CapFontScale(1.3f) {
+                    Text(
+                        "Today",
+                        Modifier
+                            // Centred under the letter, but never past the card's bottom edge (first letter of a stage),
+                            // at its measured size, which grows with the text size.
+                            .layout { measurable, constraints ->
+                                val chip = measurable.measure(constraints)
+                                layout(chip.width, chip.height) {
+                                    chip.place(at.x.roundToPx() - chip.width / 2, minOf((at.y + 60.dp).roundToPx(), (h - 6.dp).roundToPx() - chip.height))
+                                }
+                            }
+                            .background(HuroofiTokens.Card, CircleShape)
+                            .padding(horizontal = 12.dp, vertical = 2.dp)
+                            .clearAndSetSemantics {},
+                        style = HuroofiText.caption.copy(fontSize = 16.sp, fontWeight = FontWeight.ExtraBold),
+                        color = HuroofiTokens.PrimaryShadow,
+                    )
+                }
                 val left = if (HomeSpec.pictureOnLeft(k)) at.x - 150.dp else at.x + 62.dp
                 Image(
                     letterPicture(today),

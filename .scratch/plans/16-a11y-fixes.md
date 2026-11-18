@@ -57,11 +57,18 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
 11. **No text under 16 sp.** Branch `feat/a11y-text-floor`. Review item 13.
    - The gate chip goes from 15 to 16 sp. On the tablet, Find's English line scales through `minText`, so on the 960 × 600 tablet it stays at 16 sp, not 14.6. In the prototype, the gate chip goes from 15 to 16 px and Reward's unlock tag from 14 to 16 px; the app already used 16 for the tag.
 
+12. **Large text above 130 % does not clip.** Branch `feat/a11y-large-text`. Review item 11.
+   - The Parent zone title and its "Back to kid mode" button share a wrapping row: the button drops under the title instead of squeezing it to "Pare / nt / zone". The prototype's `.zone-head` wraps too.
+   - The progress legend wraps (the prototype's already did). At 200 % "7 to go" was squeezed to 9 px, one letter per line; the review had not listed it.
+   - The gate's "Back to play" card is at least 84 dp tall, not exactly 84, so the label fits at 200 %. Same in the prototype.
+   - Home's "Today" chip is placed by its measured size, centred under the letter, and its text stops growing at 130 % (`CapFontScale`). Larger, it covered half the letter. The letter itself is what TalkBack reads. The prototype centres the chip too (it sat 30 px left of the centre point).
+   - Left as is: at 200 % the "Daily play time" row is narrow (a word or two per line) but readable and unclipped.
+
 ## Later (needs the prototype first, then `design.sh`)
 
 - Short windows: Lesson, Quiz and Trace minimum heights push the main button off-screen on a 600 dp-tall tablet and a 320 dp phone.
 - Toddler layouts at 360 and 320 dp, and on the tablet in landscape: wrapping prompt, play circle over the labels, crayon and eraser row too wide. The same happens at a larger Display size (520 dpi on the phone): Paint's eraser and Trace's pink crayon are clipped at the right edge.
-- Fix next, item 11: text at 150 % and above. Items 7–10 and 14 are slices 5–9; items 12 and 13 are slices 10 and 11.
+- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12.
 
 ## Needs the maintainer's decision
 
@@ -140,3 +147,11 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
   - Not walked: no emulator check or `a11y.sh` on the Lesson (the maintainer stopped the emulator walk on 2026-11-18). Check on a device: a tap beside alif plays it, the sound button still plays name and word, and TalkBack reads "Letter alif. Tap to hear" as one node.
 - Slice 11, `feat/a11y-text-floor`, merged to `main`. `design.sh`, `check.sh` and `test-fast.sh` PASS. New tests: `ZoneSpecTest.gateTextIsAtLeast16sp` (the gate's `textSizes` was never checked, which is how 15 sp got through), and `minText` cases in `FindLayoutTest`.
   - Not walked: no emulator (the maintainer stopped emulator use on 2026-11-18). Check on a device: the gate chip still fits on one line, and Find's English line on the small tablet in landscape.
+- Slice 12, `feat/a11y-large-text`, merged to `main`. `design.sh`, `check.sh` and `test-fast.sh` PASS. No unit test: layout only.
+  - Emulator `huroofi_phone`, before and after at 100, 150 and 200 %:
+    - Parent zone header: one line at 100 %; the button under the title at 150 and 200 % (before: "Parent / zone", "Pare / nt / zone").
+    - Legend at 200 %: "7 to go" on its own line. The whole zone was scrolled at 200 % with nothing clipped.
+    - Gate at 200 %: "Back to play" on two lines inside a taller card (before: "play" cut off).
+    - Preschool Home, stage 6, ق today: the chip is whole at 100, 130 and 200 %. At 200 % it touches the bottom of ق, because the larger header makes the path card shorter.
+  - `a11y.sh` PASS: Home at 100 % and 200 % (6 targets, min 64 dp); Parent zone at 200 % with `--parent`.
+  - The emulator is left in Preschool mode at 100 % text.

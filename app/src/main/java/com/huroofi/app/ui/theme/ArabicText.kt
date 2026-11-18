@@ -63,9 +63,13 @@ fun ArabicText(
  * decision 10).
  */
 @Composable
-fun IgnoreFontScale(content: @Composable () -> Unit) {
+fun IgnoreFontScale(content: @Composable () -> Unit) = CapFontScale(1f, content)
+
+/** Follows the system text size up to [max] (1.3 is the 130 % HANDOFF commits to), for a label in a fixed spot. */
+@Composable
+fun CapFontScale(max: Float, content: @Composable () -> Unit) {
     val density = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f), content = content)
+    CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = minOf(density.fontScale, max)), content = content)
 }
 
 /** The style a plain [ArabicText] run is drawn with. */
