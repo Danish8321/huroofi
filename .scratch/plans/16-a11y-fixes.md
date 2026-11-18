@@ -144,9 +144,11 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
   - Not verified on a device: the TalkBack label "Next", and whether the speech engine switches to Arabic on the tagged runs (neither can be heard on the emulator). Not walked: Paint's ring under TalkBack, or a longer "Time to take action".
 - Slice 10, `feat/a11y-letter-card`, merged to `main`. `design.sh`, `check.sh` and `test-fast.sh` PASS. No unit test: a modifier move only.
   - Prototype: the Lesson reference screen looks unchanged (screenshot).
-  - Not walked: no emulator check or `a11y.sh` on the Lesson (the maintainer stopped the emulator walk on 2026-11-18). Check on a device: a tap beside alif plays it, the sound button still plays name and word, and TalkBack reads "Letter alif. Tap to hear" as one node.
+  - Walked later the same day, on `huroofi_phone`, Lesson ق: "Letter qaaf. Tap to hear" is one node covering the whole card ([53,396][1027,1716] px), and "Hear qaaf and pencil" stays its own node on top. A tap at the card's lower left, away from the glyph, wiggled the letter (4,812 px of the glyph area changed). `a11y.sh` PASS (5 targets, min 64 dp).
+  - Not walked: alif itself (the emulator's progress is on stage 6), or the sound button's audio (silent placeholders).
 - Slice 11, `feat/a11y-text-floor`, merged to `main`. `design.sh`, `check.sh` and `test-fast.sh` PASS. New tests: `ZoneSpecTest.gateTextIsAtLeast16sp` (the gate's `textSizes` was never checked, which is how 15 sp got through), and `minText` cases in `FindLayoutTest`.
-  - Not walked: no emulator (the maintainer stopped emulator use on 2026-11-18). Check on a device: the gate chip still fits on one line, and Find's English line on the small tablet in landscape.
+  - Walked in slice 12 on `huroofi_phone`: the 16 sp gate chip fits on one line at 100 % and 150 %.
+  - Not walked: Find's English line on the small tablet in landscape.
 - Slice 12, `feat/a11y-large-text`, merged to `main`. `design.sh`, `check.sh` and `test-fast.sh` PASS. No unit test: layout only.
   - Emulator `huroofi_phone`, before and after at 100, 150 and 200 %:
     - Parent zone header: one line at 100 %; the button under the title at 150 and 200 % (before: "Parent / zone", "Pare / nt / zone").
@@ -154,4 +156,4 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - Gate at 200 %: "Back to play" on two lines inside a taller card (before: "play" cut off).
     - Preschool Home, stage 6, ق today: the chip is whole at 100, 130 and 200 %. At 200 % it touches the bottom of ق, because the larger header makes the path card shorter.
   - `a11y.sh` PASS: Home at 100 % and 200 % (6 targets, min 64 dp); Parent zone at 200 % with `--parent`.
-  - The emulator is left in Preschool mode at 100 % text.
+  - The emulator is left in Preschool mode at 100 % text. Its daily limit was used up, so its clock was moved a day on to keep walking, then set back to automatic.
