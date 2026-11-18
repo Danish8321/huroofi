@@ -320,8 +320,10 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .letter-name { position: absolute; left: 20px; top: 16px; font-size: 18px; display: flex; gap: 6px; align-items: baseline }
 .letter-name b { font-weight: 800 }
 .letter-name .ar { font-size: 22px; color: var(--muted) }
-.lesson-sound { position: absolute !important; right: 16px; top: 16px; width: 64px !important; height: 64px !important }
-.big-letter { font-size: 170px; line-height: 1.2; color: var(--navy) }
+.lesson-sound { position: absolute !important; right: 16px; top: 16px; z-index: 1; width: 64px !important; height: 64px !important }
+/* The whole card is the letter's button, so a thin letter like alif is still easy to tap. */
+.big-letter { position: absolute; inset: 0; border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 170px; line-height: 1.2; color: var(--navy) }
+.big-letter .ar { display: inline-block }
 .reader .big-letter { font-size: 140px }
 .word-card { display: flex; align-items: center; gap: 14px; padding: 10px 18px 10px 10px !important; border-radius: 28px; background: #FFFFFF !important; box-shadow: 0 5px 0 #CFE2F7; text-align: right }
 .word-pic { width: 104px; height: 104px; border-radius: 22px; background: var(--sky); display: flex; align-items: center; justify-content: center; flex-shrink: 0 }

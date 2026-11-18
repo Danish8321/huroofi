@@ -154,7 +154,7 @@ SCREENS.lesson = {
     say(clipAr(l.name_ar), clipAr(l.word_ar));
     root.querySelector('.lesson-sound').addEventListener('click', () => say(clipAr(l.name_ar), clipAr(l.word_ar)));
     const big = root.querySelector('.big-letter');
-    big.addEventListener('click', () => { wiggle(big); say(clipAr(l.name_ar)); });
+    big.addEventListener('click', () => { wiggle(big.firstElementChild); say(clipAr(l.name_ar)); });
     const wc = root.querySelector('.word-card');
     wc.addEventListener('click', () => { wiggle(wc.querySelector('.word-pic')); say(clipAr(l.word_ar)); });
   }
