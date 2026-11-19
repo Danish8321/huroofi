@@ -376,6 +376,12 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .paint.on { border-color: var(--navy) !important }
 .trace-foot { display: flex; gap: 12px; padding-bottom: 26px }
 .trace-foot .primary-btn { flex: 1 }
+/* Wide landscape tablet: canvas on the left at full height; hint, paints, Again and Next stacked on the right. */
+.learn-wrap.wide { padding: 24px 28px 0 }
+.trace-wide { flex: 1; display: flex; gap: 24px; min-height: 0; padding-bottom: 28px }
+.trace-wide .trace-card { flex: 1 }
+.trace-side { width: 380px; display: flex; flex-direction: column; gap: 20px }
+.trace-side .trace-foot { margin-top: auto; padding-bottom: 0 }
 /* quiz */
 .quiz-head { display: flex; align-items: center; justify-content: space-between }
 .qdots { display: flex; gap: 8px; align-items: center }
@@ -535,7 +541,7 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
     <div id="stage-screens" class="stage-screens">
       <div class="feedback" aria-live="polite"><div id="caption"><span class="cap-label">Sound</span><span class="then">Spoken clips show here (audio comes from the app’s recordings).</span></div><span id="buzz">Buzz</span></div>
       <div id="stage"><div id="device-holder"><div id="device"><div id="screen" class="screen"></div></div></div></div>
-      <p id="device-note" hidden>Only Toddler Find has a tablet layout. Other screens use the phone layout, centred.</p>
+      <p id="device-note" hidden>Toddler Find and Trace have a tablet layout. Other screens use the phone layout, centred.</p>
     </div>
     <div id="ds" hidden></div>
   </main>
@@ -1288,7 +1294,7 @@ function traceView({ i }, practice) {
   }).join('');
   const coins = strokes.map((s, si) => {
     const [x, y] = s.pts[0];
-    if (trace.finished[si]) return `<g transform="translate(${(x - 15).toFixed(1)} ${(y - 15).toFixed(1)})">${starSvg(30).replace('<svg ', '<svg x="0" y="0" ')}</g>`;
+    if (trace.finished[si] || done) return `<g transform="translate(${(x - 15).toFixed(1)} ${(y - 15).toFixed(1)})">${starSvg(30).replace('<svg ', '<svg x="0" y="0" ')}</g>`;
     return `<g class="coin ${si === nextStroke ? 'next' : 'later'}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle r="15" fill="${si === 0 ? '#158048' : '#1F6FE0'}" stroke="#FFFFFF" stroke-width="3"/><text y="6" text-anchor="middle" font-size="17" font-weight="800" fill="#FFFFFF" font-family="Baloo Bhaijaan 2, system-ui">${si + 1}</text></g>`;
   }).join('');
   // Done: the gaps take the last paint, under the child's own ink.
@@ -1301,10 +1307,8 @@ function traceView({ i }, practice) {
   const nextBtn = done
     ? `<button type="button" class="primary-btn ready trace-next">${practice ? 'Next letter' : 'Play'} ${ICON.next}</button>`
     : `<button type="button" class="primary-btn locked" disabled aria-label="Next is locked until ${l.name_latin} is traced">${ICON.lock} Finish ${AR(l.letter, 'btn-ar')} first</button>`;
-  return `<div class="learn-wrap trace ${done ? 'done' : ''}">
-    ${head}
-    <button type="button" class="hint-bubble ${done ? 'ok' : ''}" aria-label="${hint} Tap to hear and see how">${ICON.speaker.replace('<svg', '<svg class="hint-ico"')}<span>${hint}</span></button>
-    <div class="trace-card ${done ? 'done' : ''}">
+  const bubble = `<button type="button" class="hint-bubble ${done ? 'ok' : ''}" aria-label="${hint} Tap to hear and see how">${ICON.speaker.replace('<svg', '<svg class="hint-ico"')}<span>${hint}</span></button>`;
+  const card = `<div class="trace-card ${done ? 'done' : ''}">
       <svg class="trace-svg" viewBox="0 0 ${TRACE_W} ${TRACE_H}" aria-label="${done ? `You traced ${l.name_latin}` : `Trace the letter ${l.name_latin}`}">
         <defs><clipPath id="traceClip">${g.svgText('')}</clipPath></defs>
         ${g.svgText('fill="#C8DCF4" stroke="#13294B" stroke-width="3" stroke-linejoin="round"')}
@@ -1313,9 +1317,19 @@ function traceView({ i }, practice) {
         ${HAND_SVG}
       </svg>
       ${done ? burst(1) + `<span class="done-badge"><img src="${img('lion')}" alt=""><span>You traced ${AR(l.letter)}!</span></span>` : ''}
-    </div>
-    <div class="paints" role="radiogroup" aria-label="Paint colour">${PAINTS.map(([n, c, d], k) => `<button type="button" role="radio" class="paint ${k === trace.paint ? 'on' : ''}" aria-checked="${k === trace.paint}" aria-label="${n}" data-k="${k}" style="background:${c}"></button>`).join('')}</div>
-    <div class="trace-foot"><button type="button" class="square-btn trace-again" aria-label="Again: clear and show me how">${ICON.again}</button>${nextBtn}</div>
+    </div>`;
+  const tools = `<div class="paints" role="radiogroup" aria-label="Paint colour">${PAINTS.map(([n, c, d], k) => `<button type="button" role="radio" class="paint ${k === trace.paint ? 'on' : ''}" aria-checked="${k === trace.paint}" aria-label="${n}" data-k="${k}" style="background:${c}"></button>`).join('')}</div>
+    <div class="trace-foot"><button type="button" class="square-btn trace-again" aria-label="Again: clear and show me how">${ICON.again}</button>${nextBtn}</div>`;
+  // A wide landscape tablet: the canvas takes the full height, the rest stacks beside it.
+  if (S.device === 'tablet') return `<div class="learn-wrap trace wide ${done ? 'done' : ''}">
+    ${head}
+    <div class="trace-wide">${card}<div class="trace-side">${bubble}${tools}</div></div>
+  </div>`;
+  return `<div class="learn-wrap trace ${done ? 'done' : ''}">
+    ${head}
+    ${bubble}
+    ${card}
+    ${tools}
   </div>`;
 }
 function traceMount(root, { i }, practice) {
@@ -1692,7 +1706,7 @@ const NOTES = {
   tpaint: { file: 'ToddlerPaint', from: 'Toddler home, “ارسم” tile.', rules: ['A random letter from all 28, never the same twice in a row. “لوّن ال…” plays on each new letter.', 'A hand shows the strokes once; the first touch stops it.', 'Fat 30 dp brush, 4 crayons, wipe. Paint only shows on the letter.', 'No star meter. After about 400 dp of paint on the letter: green frame, star burst, Leo cheers.', 'Then a ring counts down 4 seconds and a new letter starts by itself; “Paint it again” keeps the same letter.'] },
   home: { file: 'Main', from: 'App start in Preschool or Early reader mode; Home tab.', rules: ['No name and no star count: the app stores no profile, and stickers are the only reward.', 'The stage path shows this stage’s 4 letters: learned green, today’s big and blue, the rest waiting. The stage sticker waits at the end of the path.', 'Tapping today’s letter or picture plays it; nothing plays on open.', 'One button: “Let’s learn ب”. With Trace only on it reads “Trace ب”; once all 28 are learned it offers a random letter to practise.', 'System Back opens the parent gate.'] },
   lesson: { file: 'Lesson', from: 'Home button; Map; after the previous letter’s game.', rules: ['Step bar: Meet, Trace, Play.', 'Plays letter, then word, on open. The big letter, the picture and the sound button replay.', 'Picture word with its first letter in the stage colour, plus the English meaning for parents.', 'Early reader adds the letter shapes card (Alone, Start, Middle, End; non-joining letters show Alone and End only). Switch mode in the controls to see it.', '“Trace it” goes on; Back goes home.'] },
-  trace: { file: 'Trace', from: 'Meet, “Trace it”.', rules: ['Plays the letter, then the spoken hint, then a hand shows every stroke in order.', 'Guide: pale blue letter with a navy outline, dots every 18 dp, numbered start coins (1 is green), arrows at stroke ends. The next stroke is bright; later strokes are faded.', 'Dots turn green under the finger (30 dp tolerance). A stroke counts once its dots are green, in any order or direction: every one (100 %) in Early reader, 85 % in Preschool; its coin turns into a star. Missed dots stay white, and green ones stay green, so the child can go back and fill in the gaps.', 'The letter is done only when the paint also covers the letter shape (all of it in Early reader, 90 % in Preschool), not just the dotted line (a fine grid inside the letter; the soft 4 dp edge does not count). The brush is as wide as the letter, so a trace down the middle fills it; wandering off the middle leaves gaps. Once every stroke is followed, any unpainted spots pulse yellow and Leo says “Now colour in the yellow spots!”.', 'No stars while tracing and no “I did it!” button. Next stays grey and locked (“Finish ب first”) until every stroke is done.', 'When done: every dot turns green and any gaps take the last paint, under the child’s own ink. Star burst, “You traced ب!”, and Next turns blue and pulses. It never moves on by itself.', 'After 5 s without a touch the hand shows the next stroke again. Again clears the ink and replays the demo.'] },
+  trace: { file: 'Trace', from: 'Meet, “Trace it”.', rules: ['Plays the letter, then the spoken hint, then a hand shows every stroke in order.', 'Guide: pale blue letter with a navy outline, dots every 18 dp, numbered start coins (1 is green), arrows at stroke ends. The next stroke is bright; later strokes are faded.', 'Dots turn green under the finger (30 dp tolerance). A stroke counts once its dots are green, in any order or direction: every one (100 %) in Early reader, 85 % in Preschool; its coin turns into a star. Missed dots stay white, and green ones stay green, so the child can go back and fill in the gaps.', 'The letter is done only when the paint also covers the letter shape (all of it in Early reader, 90 % in Preschool), not just the dotted line (a fine grid inside the letter; the soft 4 dp edge does not count). The brush is as wide as the letter, so a trace down the middle fills it; wandering off the middle leaves gaps. Once every stroke is followed, any unpainted spots pulse yellow and Leo says “Now colour in the yellow spots!”.', 'No stars while tracing and no “I did it!” button. Next stays grey and locked (“Finish ب first”) until every stroke is done.', 'When done: every dot turns green, every coin is a star, and any gaps take the last paint, under the child’s own ink. Star burst, “You traced ب!”, and Next turns blue and pulses. It never moves on by itself.', 'After 5 s without a touch the hand shows the next stroke again. Again clears the ink and replays the demo.', 'Wide landscape tablet (840 dp or wider, wider than tall; `TraceTablet.html`): the canvas fills the left at full height; the hint, paints, Again and Next stack in a 380 dp column on the right. Tablet portrait keeps the phone layout.'] },
   practice: { file: 'Trace (practice)', from: 'Home or Map while Trace only is on.', rules: ['Same tracing as Trace, without the step bar.', 'Practice never makes a letter learned, never gives a sticker and never unlocks a stage.', 'Next letter goes to the following letter in the alphabet, only when tapped.'] },
   quiz: { file: 'Quiz', from: 'Trace, “Play”.', rules: ['Asks “Which starts with ب?” on open; the bubble asks again.', 'Pictures only. Preschool 3 in a column; Early reader 4 in a 2×2 grid. The right picture never sits in the same place two rounds running.', 'Three rounds, shown as three dots. No star counter.', 'Wrong: soft “boing”, the picture dims, the right one wiggles, and an orange “Almost! Try again” explains what the tapped picture starts with. Unlimited tries.', 'Right: green frame, a star pops, the word appears, praise and vibration. Then “Great job! Next”, only when tapped.', 'The third right answer makes the letter learned. The button then reads “Next letter”, or “Get your sticker” when the stage is complete.'] },
   reward: { file: 'Reward', from: 'The game’s last round when it completes a stage.', rules: ['The stage sticker is the hero; tapping it says the stage’s letters. Confetti unless calm motion is on.', 'The four letters with their pictures, then the next stage shown as unlocked.', 'No stars or points: the sticker is the only reward.', '“Go to Carrot Farm” opens the map; the square button opens the sticker book. “Back to map” when nothing new unlocked.'] },
@@ -1713,6 +1727,7 @@ const STATIC = {
   Trace: () => { newTrace(2, false); trace.demoDone = true; return ['trace', { i: 2 }]; },
   'Trace-done': () => { fillTrace(2); return ['trace', { i: 2 }]; },
   'Trace-fill': () => { fillTrace(2, 10); return ['trace', { i: 2 }]; },
+  TraceTablet: () => { S.device = 'tablet'; fillTrace(2, 10); return ['trace', { i: 2 }]; },
   Quiz: () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: false, wrong: null, saved: null }; return ['quiz', { i: 2 }]; },
   'Quiz-almost': () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: false, wrong: L(4), saved: null }; return ['quiz', { i: 2 }]; },
   'Quiz-done': () => { quiz = { i: 2, round: 2, options: [L(4), g2(), L(3)], slot: 1, solved: true, wrong: null, saved: null }; return ['quiz', { i: 2 }]; },
@@ -1759,15 +1774,17 @@ function routeParams(id) {
   if (id === 'reward') return { stage: Math.max(1, ...[...S.stickers], 1) };
   return {};
 }
+// Screens with their own wide landscape tablet layout; the rest use the phone layout, centred.
+const TABLET_ROUTES = ['tfind', 'trace', 'practice'];
 function syncShell(name) {
   document.querySelectorAll('.nav-link').forEach((b) => b.classList.toggle('on', b.dataset.route === name));
   const n = NOTES[name] || NOTES.closed;
   document.getElementById('notes').innerHTML = `<h2>${SCREENS[name].title}</h2>
     ${n.file ? `<p class="note-file">Reference: <code>screens/${n.file}.html</code></p>` : ''}
     <p class="note-from"><b>Reached from</b> ${n.from}</p><ul>${n.rules.map((r) => `<li>${r}</li>`).join('')}</ul>`;
-  const tablet = S.device === 'tablet' && name === 'tfind';
+  const tablet = S.device === 'tablet' && TABLET_ROUTES.includes(name);
   document.getElementById('device').classList.toggle('tablet', tablet);
-  document.getElementById('device-note').hidden = !(S.device === 'tablet' && name !== 'tfind');
+  document.getElementById('device-note').hidden = !(S.device === 'tablet' && !tablet);
   fitDevice();
   try { history.replaceState(null, '', '#' + name); } catch (e) { /* sandboxed */ }
   syncControls();
@@ -1827,7 +1844,7 @@ function buildShell() {
   on('ctl-progress', 'change', (e) => { applyPreset(e.target.value); reviewPick = null; render(); });
   on('ctl-time', 'change', (e) => { S.timeUp = e.target.checked; render(); });
   on('ctl-calm', 'change', (e) => { S.calm = e.target.checked; render(); });
-  on('ctl-device', 'change', (e) => { S.device = e.target.value; if (S.device === 'tablet' && route.name !== 'tfind') { S.mode = 'toddler'; go('tfind'); } else render(); });
+  on('ctl-device', 'change', (e) => { S.device = e.target.value; if (S.device === 'tablet' && !TABLET_ROUTES.includes(route.name)) { S.mode = 'toddler'; go('tfind'); } else render(); });
   on('ctl-back', 'click', systemBack);
   on('ctl-reset', 'click', () => { Object.assign(S, { mode: 'preschool', voice: true, vib: true, minutes: 20, unlockAll: false, traceOnly: false, timeUp: false, calm: false, device: 'phone' }); applyPreset('mid'); trace = quiz = find = paint = null; gateOpen = false; go('home'); });
   document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));

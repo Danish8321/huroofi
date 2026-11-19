@@ -364,6 +364,12 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .paint.on { border-color: var(--navy) !important }
 .trace-foot { display: flex; gap: 12px; padding-bottom: 26px }
 .trace-foot .primary-btn { flex: 1 }
+/* Wide landscape tablet: canvas on the left at full height; hint, paints, Again and Next stacked on the right. */
+.learn-wrap.wide { padding: 24px 28px 0 }
+.trace-wide { flex: 1; display: flex; gap: 24px; min-height: 0; padding-bottom: 28px }
+.trace-wide .trace-card { flex: 1 }
+.trace-side { width: 380px; display: flex; flex-direction: column; gap: 20px }
+.trace-side .trace-foot { margin-top: auto; padding-bottom: 0 }
 /* quiz */
 .quiz-head { display: flex; align-items: center; justify-content: space-between }
 .qdots { display: flex; gap: 8px; align-items: center }

@@ -13,3 +13,6 @@ val BoxWithConstraintsScope.windowWidth: Dp
 
 val BoxWithConstraintsScope.windowHeight: Dp
     @Composable get() = if (constraints.hasBoundedHeight) with(LocalDensity.current) { constraints.maxHeight.toDp() } else Dp.Infinity
+
+/** Wide landscape windows get a screen's tablet layout; tablet portrait keeps the phone layout (plan 08 decision 3). */
+fun useWideLayout(widthDp: Float, heightDp: Float): Boolean = widthDp >= 840f && widthDp > heightDp

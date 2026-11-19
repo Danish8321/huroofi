@@ -1,5 +1,6 @@
 package com.huroofi.app.toddler.find
 
+import com.huroofi.app.ui.components.useWideLayout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -8,13 +9,13 @@ import org.junit.Test
 class FindLayoutTest {
     @Test
     fun bigTabletLandscapeUsesTheTabletLayout() {
-        assertTrue(useTabletFind(1280f, 800f))
+        assertTrue(useWideLayout(1280f, 800f))
         assertEquals(0.976f, tabletFindScale(1280f, 800f), 0.001f)
     }
 
     @Test
     fun smallTabletLandscapeScalesDownButKeeps64dpTargets() {
-        assertTrue(useTabletFind(960f, 600f))
+        assertTrue(useWideLayout(960f, 600f))
         assertEquals(0.732f, tabletFindScale(960f, 600f), 0.001f)
         assertEquals(64f, minTouch(84f, tabletFindScale(960f, 600f)), 0f)
         // The 20 sp English line would be 14.6 sp here.
@@ -24,8 +25,8 @@ class FindLayoutTest {
 
     @Test
     fun portraitAndSquareWindowsKeepThePhoneLayout() {
-        assertFalse(useTabletFind(800f, 1280f))
-        assertFalse(useTabletFind(840f, 840f))
+        assertFalse(useWideLayout(800f, 1280f))
+        assertFalse(useWideLayout(840f, 840f))
     }
 
     @Test
