@@ -119,4 +119,16 @@ class StrokeCheckTest {
         assertFalse(c.done)
         assertNull(c.nextStroke())
     }
+
+    @Test
+    fun preschoolFinishesAStrokeAtEightyFivePercent() {
+        val easy = StrokeCheck(listOf(body), tolerancePx = 5f, need = PRESCHOOL_STROKE_NEED)
+        val strict = StrokeCheck(listOf(body), tolerancePx = 5f)
+        body.take(8).forEach { easy.addInk(it); strict.addInk(it) }
+        assertFalse(easy.finished(0))
+        easy.addInk(body[8])
+        strict.addInk(body[8])
+        assertTrue(easy.done)
+        assertFalse(strict.done)
+    }
 }

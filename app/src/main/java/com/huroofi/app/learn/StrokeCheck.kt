@@ -6,6 +6,9 @@ import kotlin.math.ceil
 /** Share of each stroke's dots that must be inked: all of them (plan 15 decision 1; was 70 %, plan 09 decision 3). */
 const val STROKE_NEED = 1f
 
+/** Preschool's share: a little less, and the missed dots turn green once the letter is done (plan 16 slice 17). */
+const val PRESCHOOL_STROKE_NEED = 0.85f
+
 /**
  * [points] resampled evenly, about [spacingPx] apart, first and last point included.
  * A single point (a dot stroke) gives itself.

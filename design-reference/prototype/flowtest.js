@@ -31,6 +31,7 @@
     click('.go-btn'); ok(route.name === 'lesson' && route.p.i === 2, 'Let\'s learn opens lesson ب');
     click('.lesson-next'); ok(route.name === 'trace', 'Trace it opens trace');
     ok($('.primary-btn.locked'), 'trace Next locked');
+    S.mode = 'reader'; // Early reader needs every dot and the whole letter
     await wait(500);
     const g = fitGlyph(L(2).letter, TRACE_W, TRACE_H, 0.8);
     const body = STROKES[2][0].points.map(g.at);
@@ -43,6 +44,7 @@
     drawStrokes(".trace-svg", trace.areaPts.filter((p, k) => !trace.area[k]).map((p) => [p]));
     ok(trace.done && $('.trace-next'), 'painting the whole letter unlocks Play');
     await wait(4000); ok(route.name === 'trace', 'trace does not auto-advance');
+    S.mode = 'preschool';
     click('.trace-next'); ok(route.name === 'quiz', 'Play opens quiz');
     await solveQuiz(2);
     ok(S.learned.has(2) && route.name === 'lesson' && route.p.i === 3, 'quiz learns ب and opens ت');
@@ -83,6 +85,12 @@
       drawStrokes('.trace-svg', STROKES[i].map((st) => st.points.map(gi.at)));
       ok(trace.done, 'tracing down the middle of ' + L(i).letter + ' paints the whole letter');
     }
+    // Preschool: a stroke that stops short still finishes; the missed dots and gaps fill in.
+    trace = null; go('practice', { i: 2 });
+    const gp = fitGlyph(L(2).letter, TRACE_W, TRACE_H, 0.8);
+    drawStrokes('.trace-svg', STROKES[2].map((st, k) => { const pts = resample(st.points.map(gp.at), 4); return k === 0 ? pts.slice(0, -12) : pts; }));
+    const missed = trace.covered.flat().filter((v) => !v).length;
+    ok(missed > 0 && trace.done && $('.trace-next') && !$('.tdot:not(.on)') && $('.ink rect'), `Preschool finishes with ${missed} dots missed, all shown green and filled`);
     systemBack(); ok(route.name === 'home', 'back from practice to home');
     ok(errs.length === 0, 'no JS errors ' + errs.join(' | '));
     const pre = document.createElement('pre'); pre.id = 'testlog'; pre.textContent = log.join('\n'); document.body.appendChild(pre);

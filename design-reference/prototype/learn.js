@@ -161,7 +161,10 @@ SCREENS.lesson = {
 };
 
 // ---------- Trace (and Trace practice) ----------
-const TRACE_W = 350, TRACE_H = 420, DOT_STEP = 18, TOLERANCE = 30, COVER = 1, BRUSH_SLACK = 4;
+const TRACE_W = 350, TRACE_H = 420, DOT_STEP = 18, TOLERANCE = 30, BRUSH_SLACK = 4;
+// Share of each stroke's dots, and of the letter, to cover. Preschool needs a little less, and the
+// rest fills in when done; Early reader needs it all.
+const traceNeed = () => S.mode === 'reader' ? { stroke: 1, area: 1 } : { stroke: 0.85, area: 0.9 };
 const PAINTS = [...CRAYONS, ['Pink', '#FF6FA5', '#D94C84']];
 let trace = null;
 function newTrace(i, practice) {
@@ -189,7 +192,7 @@ function traceView({ i }, practice) {
   // Every stroke followed but some of the letter still unpainted: show the gaps.
   const filling = !done && nextStroke < 0;
   const gapEls = filling ? trace.areaPts.map((p, k) => trace.area[k] ? '' : `<circle class="tgap" data-a="${k}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="7"/>`).join("") : "";
-  const dotEls = dots.map((ds, si) => ds.map((p, k) => `<circle class="tdot ${trace.covered[si][k] ? 'on' : ''} ${si === nextStroke || nextStroke < 0 ? "" : "later"}" data-s="${si}" data-k="${k}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${trace.covered[si][k] ? 6 : 4.5}"/>`).join('')).join('');
+  const dotEls = dots.map((ds, si) => ds.map((p, k) => `<circle class="tdot ${trace.covered[si][k] || done ? 'on' : ''} ${si === nextStroke || nextStroke < 0 ? "" : "later"}" data-s="${si}" data-k="${k}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${trace.covered[si][k] || done ? 6 : 4.5}"/>`).join('')).join('');
   const arrows = strokes.map((s, si) => {
     if (s.pts.length < 2) return '';
     const [ax, ay] = s.pts[s.pts.length - 1], [bx, by] = s.pts[s.pts.length - 2];
@@ -202,7 +205,9 @@ function traceView({ i }, practice) {
     if (trace.finished[si]) return `<g transform="translate(${(x - 15).toFixed(1)} ${(y - 15).toFixed(1)})">${starSvg(30).replace('<svg ', '<svg x="0" y="0" ')}</g>`;
     return `<g class="coin ${si === nextStroke ? 'next' : 'later'}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle r="15" fill="${si === 0 ? '#158048' : '#1F6FE0'}" stroke="#FFFFFF" stroke-width="3"/><text y="6" text-anchor="middle" font-size="17" font-weight="800" fill="#FFFFFF" font-family="Baloo Bhaijaan 2, system-ui">${si + 1}</text></g>`;
   }).join('');
-  const ink = trace.ink.map((s) => `<path d="${svgPath(s.pts.length === 1 ? [s.pts[0], s.pts[0]] : s.pts)}" stroke="${s.color}" stroke-width="${(trace.reach * 2).toFixed(1)}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+  // Done: the gaps take the last paint, under the child's own ink.
+  const fill = done ? `<rect width="${TRACE_W}" height="${TRACE_H}" fill="${PAINTS[trace.paint][1]}"/>` : '';
+  const ink = fill + trace.ink.map((s) => `<path d="${svgPath(s.pts.length === 1 ? [s.pts[0], s.pts[0]] : s.pts)}" stroke="${s.color}" stroke-width="${(trace.reach * 2).toFixed(1)}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
   const hint = done ? (practice ? 'Well done! Tap Next for another letter' : 'Well done! Tap Play for the picture game') : filling ? 'Now colour in the yellow spots!' : 'Start at the green 1, then follow the dots!';
   const head = practice
     ? `<div class="flow-head"><button type="button" class="round-btn" data-go="home" aria-label="Back to home">${ICON.back}</button><span class="practice-title">Trace practice</span></div>`
@@ -299,17 +304,18 @@ function traceMount(root, { i }, practice) {
     cur.el.setAttribute('d', svgPath(cur.pts));
     cover(p);
   });
-  // Completion is checked when the finger lifts: a stroke counts once every one of its dots is covered, any order or direction.
+  // Completion is checked when the finger lifts: a stroke counts once enough of its dots are covered (traceNeed), any order or direction.
   // Covered dots stay green across touches, so a child can go back and fill in the ones they missed.
   const up = () => {
     if (!cur) return;
     cur = null;
     let changed = false;
+    const need = traceNeed();
     trace.covered.forEach((cv, si) => {
-      if (!trace.finished[si] && cv.filter(Boolean).length / cv.length >= COVER) { trace.finished[si] = true; changed = true; buzz('tick'); }
+      if (!trace.finished[si] && cv.filter(Boolean).length / cv.length >= need.stroke) { trace.finished[si] = true; changed = true; buzz('tick'); }
     });
-    // Done only when every stroke is followed and the whole letter is painted.
-    if (trace.finished.every(Boolean) && trace.area.every(Boolean)) {
+    // Done only when every stroke is followed and enough of the letter is painted.
+    if (trace.finished.every(Boolean) && trace.area.filter(Boolean).length / trace.area.length >= need.area) {
       trace.done = true;
       buzz('confirm');
       say('cheer', 'praise');

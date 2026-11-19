@@ -28,11 +28,18 @@ fun brushReach(area: List<Offset>, lines: List<List<Offset>>, slackPx: Float, mi
     return maxOf(minPx, furthest + slackPx)
 }
 
+/** Share of the letter's spots to paint: all of them (plan 15 decision 1). */
+const val AREA_NEED = 1f
+
+/** Preschool's share; the gaps take the paint once the letter is done (plan 16 slice 17). */
+const val PRESCHOOL_AREA_NEED = 0.9f
+
 /**
  * Which spots of the letter are painted (plan 15 decision 1). [points] is a grid inside the letter;
  * ink paints every point within [reachPx] of its path. Painted spots stay painted until [clear].
+ * Done at [need] of the spots.
  */
-class AreaCheck(val points: List<Offset>, val reachPx: Float) {
+class AreaCheck(val points: List<Offset>, val reachPx: Float, private val need: Float = AREA_NEED) {
     private val painted = BooleanArray(points.size)
 
     /** Paints along the ink from [from] to [to]; pass the same point twice for a tap. */
@@ -44,7 +51,7 @@ class AreaCheck(val points: List<Offset>, val reachPx: Float) {
 
     fun painted(k: Int): Boolean = painted[k]
 
-    val done: Boolean get() = painted.all { it }
+    val done: Boolean get() = painted.isEmpty() || painted.count { it }.toFloat() / painted.size >= need
 
     fun clear() {
         painted.fill(false)

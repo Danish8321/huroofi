@@ -71,4 +71,15 @@ class LetterAreaTest {
         assertFalse(area.painted(0))
         assertFalse(area.done)
     }
+
+    @Test
+    fun preschoolIsDoneAtNinetyPercent() {
+        val easy = AreaCheck(bar, reachPx = 1f, need = PRESCHOOL_AREA_NEED)
+        val strict = AreaCheck(bar, reachPx = 1f)
+        bar.take(91).forEach { easy.paint(it, it); strict.paint(it, it) } // 89 % of 102
+        assertFalse(easy.done)
+        easy.paint(bar[91], bar[91])
+        assertTrue(easy.done)
+        assertFalse(strict.done)
+    }
 }
