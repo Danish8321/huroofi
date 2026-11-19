@@ -5,10 +5,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
@@ -94,8 +97,9 @@ fun StickerBookScreen(
                     }
                     val perRow = if (wide) StickerBookSpec.WIDE_PER_ROW else 2
                     for (row in stages.chunked(perRow)) {
+                        // Every card in a row is as tall as the tallest, as in the prototype's grid (a long name wraps at large text).
                         Row(
-                            Modifier.fillMaxWidth(),
+                            Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                             horizontalArrangement = Arrangement.spacedBy(StickerBookSpec.Gap, Alignment.CenterHorizontally),
                         ) {
                             for (stage in row) {
@@ -105,6 +109,7 @@ fun StickerBookScreen(
                                 Box(
                                     // A lone last slot keeps half the width, centred.
                                     (if (row.size == 1 && !wide) Modifier.fillMaxWidth(0.5f).padding(horizontal = StickerBookSpec.Gap / 4) else Modifier.weight(1f))
+                                        .fillMaxHeight()
                                         .then(if (has) Modifier.dropEdge(StickerBookSpec.CardEdge, 5.dp, shape) else Modifier)
                                         .clip(shape)
                                         .background(if (has) HuroofiTokens.Card else StickerBookSpec.EmptyCard)
