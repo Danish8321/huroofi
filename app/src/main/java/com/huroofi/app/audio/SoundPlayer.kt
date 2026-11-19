@@ -20,20 +20,34 @@ interface AudioBackend {
     fun stop()
 
     fun release()
+
+    /** The media volume is at zero. */
+    fun isMuted(): Boolean
+
+    /** Shows the system volume panel without changing the volume. */
+    fun showVolume()
 }
 
 /**
  * Rules shared by every backend: voice toggle, one clip at a time, missing file is silent.
- * [voiceEnabled] reads the Parent-zone voice setting.
+ * [voiceEnabled] reads the Parent-zone voice setting. The first clip asked for with the volume at
+ * zero shows the system volume panel, once a session, so a grown-up sees why nothing is heard; a
+ * parent who muted on purpose is not nagged (plan 16 slice 15).
  */
 class GatedSoundPlayer(
     private val backend: AudioBackend,
     private val voiceEnabled: suspend () -> Boolean,
 ) : SoundPlayer {
+    private var volumeShown = false
+
     override suspend fun play(clip: Clip) {
         if (!voiceEnabled()) return
         backend.stop()
         if (!backend.exists(clip.path)) return
+        if (!volumeShown && backend.isMuted()) {
+            volumeShown = true
+            backend.showVolume()
+        }
         backend.playToEnd(clip.path)
     }
 

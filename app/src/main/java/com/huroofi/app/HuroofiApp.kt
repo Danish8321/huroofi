@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -14,6 +15,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -170,6 +172,12 @@ private fun PlayTimeKeeper(nav: NavHostController, startRoute: String) {
     var pending by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val counting = route in ChildRoutes
+    // A child watching or listening does not touch the screen; it stays on until Rest or the Parent zone.
+    val view = LocalView.current
+    DisposableEffect(counting) {
+        view.keepScreenOn = counting
+        onDispose { view.keepScreenOn = false }
+    }
     LifecycleResumeEffect(counting) {
         val ticking = if (counting) {
             scope.launch {
