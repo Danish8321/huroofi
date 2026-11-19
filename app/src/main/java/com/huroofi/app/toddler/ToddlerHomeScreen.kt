@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
@@ -51,6 +52,8 @@ import com.huroofi.app.ui.components.ParentLock
 import com.huroofi.app.ui.components.ScaleDownToFit
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarIcon
+import com.huroofi.app.ui.components.useWideLayout
+import com.huroofi.app.ui.components.windowHeight
 import com.huroofi.app.ui.components.windowWidth
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.HuroofiTheme
@@ -72,35 +75,48 @@ fun ToddlerHomeScreen(
     modifier: Modifier = Modifier,
 ) {
     val spec = ToddlerHomeSpec
-    ToddlerScaffold(
-        modifier,
-        top = 24.dp,
-        overlay = {
-            ParentLock(
-                onRequestParentZone = onRequestParentZone,
-                contentDescription = PARENT_LOCK_DESCRIPTION,
-                modifier = Modifier.align(Alignment.TopEnd).padding(top = 18.dp, end = 18.dp),
-            )
-        },
-    ) {
-        // The bubble stops short of the corner lock. On a narrow phone Leo gives up width first.
-        BoxWithConstraints(Modifier.fillMaxWidth()) {
-            val leo = (windowWidth * spec.MASCOT_SHARE).coerceIn(spec.MascotMin, spec.MascotSize)
-            Row(
-                Modifier.padding(end = 52.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.size(leo))
-                PromptBubble(onReplayPrompt, Modifier.weight(1f))
+    BoxWithConstraints(modifier.fillMaxSize()) {
+        // Wide landscape tablet (`ToddlerHomeTablet.html`): the question on one line, the tiles side by side.
+        val wide = useWideLayout(windowWidth.value, windowHeight.value)
+        ToddlerScaffold(
+            top = 24.dp,
+            wide = wide,
+            overlay = {
+                ParentLock(
+                    onRequestParentZone = onRequestParentZone,
+                    contentDescription = PARENT_LOCK_DESCRIPTION,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 18.dp, end = 18.dp),
+                )
+            },
+        ) {
+            // The bubble stops short of the corner lock. On a narrow phone Leo gives up width first.
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                val leo = (windowWidth * spec.MASCOT_SHARE).coerceIn(spec.MascotMin, spec.MascotSize)
+                Row(
+                    Modifier.padding(end = 52.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.size(leo))
+                    PromptBubble(onReplayPrompt, oneLine = wide, if (wide) Modifier else Modifier.weight(1f))
+                }
             }
-        }
-        for (activity in ToddlerActivity.entries) {
-            ActivityTile(
-                activity,
-                onClick = { onOpenActivity(activity) },
-                modifier = Modifier.weight(1f).heightIn(max = spec.TileHeight + spec.TileShadow),
-            )
+            if (wide) {
+                Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(spec.WideGap)) {
+                    for (activity in ToddlerActivity.entries) {
+                        ActivityTile(activity, wide = true, onClick = { onOpenActivity(activity) }, modifier = Modifier.weight(1f).fillMaxHeight())
+                    }
+                }
+            } else {
+                for (activity in ToddlerActivity.entries) {
+                    ActivityTile(
+                        activity,
+                        wide = false,
+                        onClick = { onOpenActivity(activity) },
+                        modifier = Modifier.weight(1f).heightIn(max = spec.TileHeight + spec.TileShadow),
+                    )
+                }
+            }
         }
     }
 }
@@ -135,7 +151,7 @@ fun ToddlerScaffold(
 
 /** Leo's question. A tap anywhere on it asks again; the sun button says so. */
 @Composable
-private fun PromptBubble(onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun PromptBubble(onClick: () -> Unit, oneLine: Boolean, modifier: Modifier = Modifier) {
     val spec = ToddlerHomeSpec
     val shape = RoundedCornerShape(28.dp)
     Row(
@@ -158,14 +174,14 @@ private fun PromptBubble(onClick: () -> Unit, modifier: Modifier = Modifier) {
             contentAlignment = Alignment.Center,
         ) { SoundIcon(HuroofiTokens.Navy, size = 28.dp) }
         // Two lines as designed, broken between the words: a narrow phone shrinks them, never splits a word.
-        ScaleDownToFit(Modifier.weight(1f)) {
-            ArabicText("ماذا\nنلعب؟", size = spec.BUBBLE_SP.sp, color = HuroofiTokens.Navy)
+        ScaleDownToFit(if (oneLine) Modifier else Modifier.weight(1f)) {
+            ArabicText(if (oneLine) "ماذا نلعب؟" else "ماذا\nنلعب؟", size = spec.BUBBLE_SP.sp, color = HuroofiTokens.Navy)
         }
     }
 }
 
 @Composable
-private fun ActivityTile(activity: ToddlerActivity, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ActivityTile(activity: ToddlerActivity, wide: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val spec = ToddlerHomeSpec
     val tile = activity.tile
     val shape = RoundedCornerShape(spec.TileCorner)
@@ -191,25 +207,42 @@ private fun ActivityTile(activity: ToddlerActivity, onClick: () -> Unit, modifie
                 .background(tile.background, shape)
                 .border(spec.TileBorder, tile.border, shape),
         ) {
-            Row(
-                Modifier.matchParentSize().padding(start = 16.dp, end = 22.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Art and label keep their designed size, shrinking only in a short window (tablet landscape).
-                ScaleDownToFit(Modifier.weight(1f)) {
+            // Art and label keep their designed size, shrinking only in a short window; a tall wide tile grows the art.
+            val art = @Composable { m: Modifier ->
+                ScaleDownToFit(m, maxScale = if (wide) spec.WIDE_ART_SCALE else 1f) {
                     when (activity) {
                         ToddlerActivity.CARDS -> CardsArt()
                         ToddlerActivity.FIND -> FindArt()
                         ToddlerActivity.PAINT -> PaintArt()
                     }
                 }
-                // The play circle sits under its label, so a narrow or short tile never puts it over the word.
-                ScaleDownToFit(Modifier.widthIn(min = spec.LabelMinWidth)) {
+            }
+            // The play circle sits under its label, so a narrow or short tile never puts it over the word.
+            val label = @Composable { m: Modifier ->
+                ScaleDownToFit(m) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         ArabicText(activity.arabicLabel, size = spec.LABEL_SP.sp, color = tile.text)
                         GoCircle(tile.border, Modifier)
                     }
+                }
+            }
+            if (wide) {
+                Column(
+                    Modifier.matchParentSize().padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    art(Modifier.weight(1f).fillMaxWidth())
+                    label(Modifier)
+                }
+            } else {
+                Row(
+                    Modifier.matchParentSize().padding(start = 16.dp, end = 22.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    art(Modifier.weight(1f))
+                    label(Modifier.widthIn(min = spec.LabelMinWidth))
                 }
             }
         }

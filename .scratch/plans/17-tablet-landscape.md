@@ -17,6 +17,7 @@ Started 2026-11-19 by the maintainer ("start with the other resolution changes i
    - Also: a shape cell grows with the text size instead of clipping its label ("End", "Alone" were cut at 200 %, on phones too).
 4. **Picture game** (`feat/tablet-quiz`). All the pictures sit in one row (3 in Preschool, 4 in Early reader), up to 160 dp; once solved the word goes under the picture (`QuizTablet.html`). Close, dots, question and foot keep their phone order across the full width. `CappedWidth(wide = true)` now drops the 480 dp column for any screen; `ToddlerScaffold` uses it.
 5. **Look & listen** (`feat/tablet-cards`). The card fills the middle at full height; the previous arrow sits on its left and the next arrow on its right, each with its neighbour's picture under it (`ToddlerCardsTablet.html`).
+6. **Toddler home** (`feat/tablet-toddler-home`). Leo and the question on one line across the top; the three tiles stand side by side at full height, picture on top (grown up to 1.6×), word and play circle under it (`ToddlerHomeTablet.html`).
 
 ## Built
 
@@ -34,3 +35,5 @@ Started 2026-11-19 by the maintainer ("start with the other resolution changes i
   - Emulator, Early reader, after tracing أ (100 %): four tiles of about 215 × 290 dp in one row; a wrong pick (sparrow) showed "Almost! Try again" and dimmed it; the lion then went green with أسد under it and "Great job! Next". `a11y.sh` PASS (6 targets, min 64 dp). Portrait keeps the 2 × 2 phone layout; 200 % text still fits.
 - Slice 5, `feat/tablet-cards`, merged to `main`. `check.sh`, `test-fast.sh` and `design.sh` PASS (new reference screen `ToddlerCardsTablet.html`).
   - Emulator, Toddler, Look & listen: the card is about 440 × 300 dp between the arrows; Next went from أسد to بطة and the peeks followed (lion left, apple right). `a11y.sh` PASS (7 targets, min 64 dp). Portrait keeps the phone layout; 200 % text fits.
+- Slice 6, `feat/tablet-toddler-home`, merged to `main`. `check.sh`, `test-fast.sh` (new `fitScale` grow test) and `design.sh` PASS (new reference screen `ToddlerHomeTablet.html`).
+  - Emulator, Toddler home: three tiles of about 300 × 450 dp side by side; Find it opened from its tile. `a11y.sh` PASS (5 targets, min 64 dp). Portrait keeps the phone layout; 200 % text fits.

@@ -5,7 +5,7 @@ const GROUPS = [
   ['Grown-ups and limits', ['gate', 'zone', 'rest']]
 ];
 const NOTES = {
-  thome: { file: 'ToddlerHome', from: 'App start in Toddler mode; Home button on toddler screens.', rules: ['Leo asks “ماذا نلعب؟” on open; tapping the bubble asks again.', 'Three activity tiles, each a preview of its game. Every tile is far above 64 dp.', 'The small lock is a tap; the hold happens on the parent gate.', 'System Back does nothing here.'] },
+  thome: { file: 'ToddlerHome', from: 'App start in Toddler mode; Home button on toddler screens.', rules: ['Leo asks “ماذا نلعب؟” on open; tapping the bubble asks again.', 'Three activity tiles, each a preview of its game. Every tile is far above 64 dp.', 'The small lock is a tap; the hold happens on the parent gate.', 'System Back does nothing here.', 'Wide landscape tablet (`ToddlerHomeTablet.html`): Leo and the question on one line across the top; the three tiles stand side by side, each with its picture on top and the word and play circle under it.'] },
   tcards: { file: 'ToddlerCards', from: 'Toddler home, “اسمع” tile.', rules: ['All 28 letters in alphabet order; wraps at both ends.', 'On arrival: letter, then word. Tap the letter for the letter, the picture or sound button for the word; both wiggle.', '96 dp arrows plus swipe. The two small pictures between the arrows show what comes before and after.', 'No page dots: 28 dots are noise to a toddler.', 'Wide landscape tablet (`ToddlerCardsTablet.html`): the card fills the middle at full height, the previous arrow on its left and the next arrow on its right, each with its neighbour’s picture under it.'] },
   tfind: { file: 'ToddlerFind', from: 'Toddler home, “ابحث” tile.', rules: ['Asks only for toddler words (21 of 28). Two pictures; the target never repeats the last one.', 'Wrong tap: that picture nudges, the right one wiggles, a soft “boing”. The first wrong tap of a round also repeats the question. No X, no red, nothing lost.', 'Right tap: stars burst from the picture, praise plays, vibration.', 'No star counter and no sets of three. After the celebration the Next button fills up for 4 seconds, then the next round starts by itself; tapping Next skips the wait.', 'Tablets in landscape get the side-by-side layout (switch Device to Tablet).'] },
   tpaint: { file: 'ToddlerPaint', from: 'Toddler home, “ارسم” tile.', rules: ['A random letter from all 28, never the same twice in a row. “لوّن ال…” plays on each new letter.', 'A hand shows the strokes once; the first touch stops it.', 'Fat 30 dp brush, 4 crayons, wipe. Paint only shows on the letter.', 'No star meter. After about 400 dp of paint on the letter: green frame, star burst, Leo cheers.', 'Then a ring counts down 4 seconds and a new letter starts by itself; “Paint it again” keeps the same letter.', 'Wide landscape tablet (840 dp or wider, wider than tall; `ToddlerPaintTablet.html`): the canvas fills the left at full height; the crayons and wipe, or once done “Paint it again” and the ring, sit centred in a 320 dp column on the right.'] },
@@ -45,6 +45,7 @@ const STATIC = {
   ParentGate: () => { gateOpen = false; return ['gate']; },
   Parents: () => { S.mode = 'preschool'; applyPreset('mid'); return ['zone']; },
   ToddlerHome: () => { S.mode = 'toddler'; return ['thome']; },
+  ToddlerHomeTablet: () => { S.device = 'tablet'; S.mode = 'toddler'; return ['thome']; },
   ToddlerCards: () => { cardIndex = 2; return ['tcards']; },
   ToddlerCardsTablet: () => { S.device = 'tablet'; cardIndex = 2; return ['tcards']; },
   ToddlerFind: () => { find = { target: g2(), options: [g2(), L(3)], solved: false, wrongOnce: false }; return ['tfind']; },
@@ -84,7 +85,7 @@ function routeParams(id) {
   return {};
 }
 // Screens with their own wide landscape tablet layout; the rest use the phone layout, centred.
-const TABLET_ROUTES = ['tcards', 'tfind', 'tpaint', 'lesson', 'trace', 'practice', 'quiz'];
+const TABLET_ROUTES = ['thome', 'tcards', 'tfind', 'tpaint', 'lesson', 'trace', 'practice', 'quiz'];
 function syncShell(name) {
   document.querySelectorAll('.nav-link').forEach((b) => b.classList.toggle('on', b.dataset.route === name));
   const n = NOTES[name] || NOTES.closed;

@@ -182,6 +182,10 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .tile-ar { font-size: 44px; line-height: 1.4; min-width: 100px; text-align: center }
 .tile-cards .tile-ar { color: #A35400 } .tile-find .tile-ar { color: #0B4FB0 } .tile-paint .tile-ar { color: #B0185A }
 /* The play circle sits under its label, so a narrow or short tile never puts it over the word. */
+.tiles-wide { flex: 1; display: flex; gap: 24px; min-height: 0; padding-bottom: 8px }
+.tiles-wide .tile { flex-direction: column; justify-content: center; gap: 16px; padding: 24px 16px 20px !important }
+.tiles-wide .tile-art { flex: 1; height: auto; transform: scale(1.6) }
+.t-wrap.wide .bubble-ar { white-space: nowrap }
 .tile-side { display: flex; flex-direction: column; align-items: center; gap: 4px }
 .tile-go { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFFFFF }
 .tile-go svg { width: 22px; height: 22px }
@@ -547,7 +551,7 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 
 
 
-<div id="screen" class="screen screen-thome static-phone"><div class="t-wrap">
+<div id="screen" class="screen screen-thome static-phone"><div class="t-wrap ">
     <button type="button" class="parent-lock corner" data-go="gate" aria-label="Grown-ups: open the parent gate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></button>
     <div class="leo-row">
       <img class="leo" src="../../assets/illustrations/png/lion.png" alt="Leo the lion">
