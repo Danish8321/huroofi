@@ -14,6 +14,9 @@ const val MAX_LIMIT_MINUTES = 60
 const val LIMIT_STEP_MINUTES = 5
 const val DEFAULT_LIMIT_MINUTES = 20
 
+/** No daily limit: the stepper's one step past [MAX_LIMIT_MINUTES] (plan 16 slice 16). Never stored before it. */
+const val DAILY_LIMIT_OFF = 0
+
 /** [stageOf] maps letter index to stage number (derived from letters.json by the caller). */
 fun isStageComplete(stage: Int, completed: Set<Int>, stageOf: Map<Int, Int>): Boolean {
     val inStage = stageOf.filterValues { it == stage }.keys
@@ -28,14 +31,16 @@ fun unlockedStage(completed: Set<Int>, stageOf: Map<Int, Int>): Int {
     return open
 }
 
-fun limitReached(usageSeconds: Int, limitMinutes: Int): Boolean = usageSeconds >= limitMinutes * 60
+fun limitReached(usageSeconds: Int, limitMinutes: Int): Boolean =
+    limitMinutes != DAILY_LIMIT_OFF && usageSeconds >= limitMinutes * 60
 
 /** Stored usage counts only for the day it was recorded; a new day starts at zero. */
 fun usageForToday(storedDay: String?, storedSeconds: Int, today: String): Int =
     if (storedDay == today) storedSeconds.coerceAtLeast(0) else 0
 
-/** Snaps to the nearest step of 5 inside 5..60. */
+/** Snaps to the nearest step of 5 inside 5..60; [DAILY_LIMIT_OFF] stays off. */
 fun clampLimitMinutes(minutes: Int): Int {
+    if (minutes == DAILY_LIMIT_OFF) return DAILY_LIMIT_OFF
     val snapped = ((minutes + LIMIT_STEP_MINUTES / 2) / LIMIT_STEP_MINUTES) * LIMIT_STEP_MINUTES
     return snapped.coerceIn(MIN_LIMIT_MINUTES, MAX_LIMIT_MINUTES)
 }

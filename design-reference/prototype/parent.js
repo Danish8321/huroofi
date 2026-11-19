@@ -77,7 +77,7 @@ SCREENS.zone = {
         ${row('Voice & sounds', 'Native-speaker audio for every letter', sw('voice', S.voice))}
         ${row('Vibration', 'A gentle buzz when your child gets it right', sw('vib', S.vib))}
         ${row('Show vowel marks', `Adds vowel marks like ${AR('بَ بِ بُ')} in lessons`, sw('marks', false, true), '<small class="soon">Coming soon: vowel marks arrive in a later update.</small>')}
-        ${row('Daily play time', 'A calm “time to rest” screen appears when it is used up', `<span class="stepper"><button type="button" class="step-btn" data-step="-5" aria-label="5 minutes less" ${S.minutes <= 5 ? 'disabled' : ''}>${ICON.minus}</button><b>${S.minutes} min</b><button type="button" class="step-btn" data-step="5" aria-label="5 minutes more" ${S.minutes >= 60 ? 'disabled' : ''}>${ICON.plus}</button></span>`)}
+        ${row('Daily play time', S.minutes ? 'A calm rest screen comes when it is used up and the game ends' : 'No daily limit', `<span class="stepper"><button type="button" class="step-btn" data-step="-5" aria-label="5 minutes less" ${S.minutes === 5 ? 'disabled' : ''}>${ICON.minus}</button><b>${S.minutes ? `${S.minutes} min` : 'Off'}</b><button type="button" class="step-btn" data-step="5" aria-label="5 minutes more" ${S.minutes === 0 ? 'disabled' : ''}>${ICON.plus}</button></span>`)}
         ${row('Offline pack', 'All content is on this device.', '', '<small>To keep your child in Huroofi, turn on App pinning in your phone\'s Settings.</small>')}
       </section>
       <section class="z-card list"><h2>Lessons</h2>
@@ -103,8 +103,10 @@ SCREENS.zone = {
       document.dispatchEvent(new Event('settings'));
     }));
     root.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => {
-      S.minutes = Math.min(60, Math.max(5, S.minutes + +b.dataset.step));
-      if (S.timeUp && +b.dataset.step > 0) S.timeUp = false;
+      // 0 is Off: one step past 60, and one step down from it is 60 again.
+      const up = +b.dataset.step > 0;
+      S.minutes = S.minutes === 0 ? (up ? 0 : 60) : S.minutes === 60 && up ? 0 : Math.max(5, S.minutes + +b.dataset.step);
+      if (S.timeUp && up) S.timeUp = false;
       render();
       document.dispatchEvent(new Event('settings'));
     }));

@@ -26,16 +26,23 @@ val ChildRoutes = setOf(
 
 enum class RestMove { None, ToRest, LeaveRest }
 
-/** Where to go when the route or the limit changes. */
-fun restMove(route: String?, limitReached: Boolean): RestMove = when {
-    route in ChildRoutes && limitReached -> RestMove.ToRest
-    route == Routes.Rest && !limitReached -> RestMove.LeaveRest
-    else -> RestMove.None
-}
+/** How long the game open when time runs out may go on before Rest (plan 16 slice 16). */
+const val GRACE_SECONDS = 180
 
-/** Stored seconds plus the ones not saved yet, so the Rest screen is never late by a save interval. */
-fun limitReached(storedSeconds: Int, pendingSeconds: Int, limitMinutes: Int): Boolean =
-    limitReached(storedSeconds + pendingSeconds, limitMinutes)
+/**
+ * Where to go when the route or the time changes. [graceRoute] is the screen that was open when a
+ * second of play ran the time out: it is not cut off, but any other child screen goes to Rest, and
+ * so does it after [GRACE_SECONDS].
+ */
+fun restMove(route: String?, usedSeconds: Int, limitMinutes: Int, graceRoute: String? = null): RestMove {
+    val reached = limitReached(usedSeconds, limitMinutes)
+    val graceOver = limitReached(usedSeconds - GRACE_SECONDS, limitMinutes)
+    return when {
+        route in ChildRoutes && reached && (route != graceRoute || graceOver) -> RestMove.ToRest
+        route == Routes.Rest && !reached -> RestMove.LeaveRest
+        else -> RestMove.None
+    }
+}
 
 /** Counts seconds of play and hands them out in batches for saving. */
 class UsageMeter(private val flushEvery: Int = FLUSH_EVERY_SECONDS) {

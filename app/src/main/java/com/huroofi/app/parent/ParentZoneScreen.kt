@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import com.huroofi.app.R
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.data.progress.AgeMode
+import com.huroofi.app.data.progress.DAILY_LIMIT_OFF
 import com.huroofi.app.data.progress.LIMIT_STEP_MINUTES
 import com.huroofi.app.data.progress.MAX_LIMIT_MINUTES
 import com.huroofi.app.data.progress.MIN_LIMIT_MINUTES
@@ -378,7 +379,8 @@ private fun SettingsCard(
             color = ZoneSpec.Soon,
         )
         ZoneDivider()
-        SettingRow("Daily play time", AnnotatedString("A calm “time to rest” screen appears when it is used up")) {
+        val limitNote = if (limitMinutes == DAILY_LIMIT_OFF) "No daily limit" else "A calm rest screen comes when it is used up and the game ends"
+        SettingRow("Daily play time", AnnotatedString(limitNote)) {
             LimitStepper(limitMinutes, onLimitChange)
         }
         ZoneDivider()
@@ -514,19 +516,24 @@ private fun ToggleRow(title: String, subtitle: AnnotatedString, checked: Boolean
     }
 }
 
-/** − 20 min +, in steps of 5 within 5..60; effective at once (plan 06 decision 6). */
+/** − 20 min +, in steps of 5 within 5..60, then Off one step past 60; effective at once (plan 06 decision 6). */
 @Composable
 private fun LimitStepper(minutes: Int, onChange: (Int) -> Unit) {
+    val off = minutes == DAILY_LIMIT_OFF
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        StepButton("−", "Less time", enabled = minutes > MIN_LIMIT_MINUTES) { onChange(minutes - LIMIT_STEP_MINUTES) }
+        StepButton("−", "Less time", enabled = off || minutes > MIN_LIMIT_MINUTES) {
+            onChange(if (off) MAX_LIMIT_MINUTES else minutes - LIMIT_STEP_MINUTES)
+        }
         Text(
-            "$minutes min",
+            if (off) "Off" else "$minutes min",
             style = HuroofiText.body.copy(fontWeight = FontWeight.ExtraBold),
             color = HuroofiTokens.Navy,
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(min = ZoneSpec.StepperValue),
         )
-        StepButton("+", "More time", enabled = minutes < MAX_LIMIT_MINUTES) { onChange(minutes + LIMIT_STEP_MINUTES) }
+        StepButton("+", "More time", enabled = !off) {
+            onChange(if (minutes >= MAX_LIMIT_MINUTES) DAILY_LIMIT_OFF else minutes + LIMIT_STEP_MINUTES)
+        }
     }
 }
 
