@@ -64,11 +64,16 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
    - Home's "Today" chip is placed by its measured size, centred under the letter, and its text stops growing at 130 % (`CapFontScale`). Larger, it covered half the letter. The letter itself is what TalkBack reads. The prototype centres the chip too (it sat 30 px left of the centre point).
    - Left as is: at 200 % the "Daily play time" row is narrow (a word or two per line) but readable and unclipped.
 
+13. **The main button stays on screen in a short window.** Branch `feat/a11y-short-windows`. Review item 5.
+   - Finding: fixed minimum heights of 760, 740 and 680 dp scrolled the whole Lesson, Quiz and Trace in shorter windows, so "Trace it", Next and Again/Next sat below the edge on the 600 dp-tall tablet and on a 320 dp phone.
+   - Fix: the header and the main button stay put, and the middle of the screen (`FillColumn`) gives its big card the height left. The card never goes below a floor: the Lesson letter card 184 dp (the letter shrinks to 96 sp in it), the Trace canvas 200 dp (the letter refits), the Quiz grid 72 dp a row. Only below that does the middle scroll. The three `MinHeight`s and `CappedWidth`'s scroll are gone.
+   - The Lesson letter is now placed by its ink (`CenteredLetter`), like every other single letter.
+   - Prototype unchanged: its frame is fixed at 390 × 844, where no card reaches its floor.
+
 ## Later (needs the prototype first, then `design.sh`)
 
-- Short windows: Lesson, Quiz and Trace minimum heights push the main button off-screen on a 600 dp-tall tablet and a 320 dp phone.
 - Toddler layouts at 360 and 320 dp, and on the tablet in landscape: wrapping prompt, play circle over the labels, crayon and eraser row too wide. The same happens at a larger Display size (520 dpi on the phone): Paint's eraser and Trace's pink crayon are clipped at the right edge.
-- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12.
+- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12. Item 5 is slice 13.
 
 ## Needs the maintainer's decision
 
@@ -157,3 +162,12 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - Preschool Home, stage 6, ق today: the chip is whole at 100, 130 and 200 %. At 200 % it touches the bottom of ق, because the larger header makes the path card shorter.
   - `a11y.sh` PASS: Home at 100 % and 200 % (6 targets, min 64 dp); Parent zone at 200 % with `--parent`.
   - The emulator is left in Preschool mode at 100 % text. Its daily limit was used up, so its clock was moved a day on to keep walking, then set back to automatic.
+- Slice 13, `feat/a11y-short-windows`, merged to `main`. `check.sh` and `test-fast.sh` PASS. No unit test: layout only, walked instead.
+  - Emulator `huroofi_tablet_small`, landscape (1920 × 1200 px, 320 dpi):
+    - Preschool: Lesson alif, Trace alif and the 3-picture Quiz all fit with the button on screen (before: "Trace it" and Again/Next below the edge). Quiz `a11y.sh` PASS (6 targets).
+    - Early reader: the letter card sits at its 184 dp floor with "Trace it" on screen, and the shapes card scrolls under it. Trace's canvas is 208 dp. The 4-picture Quiz fits. `a11y.sh` PASS on all three (5, 8, 6 targets).
+    - Early reader at 200 % text: all three buttons on screen; on Trace the crayon row is the part that scrolls. `a11y.sh` PASS on all three.
+  - Emulator `huroofi_phone`:
+    - Design size, Early reader Lesson ق, screenshot against `main`'s build: only the glyph's pixels differ (it now centres by ink, same size); the cards and gaps are identical.
+    - 320 dp (`wm density 540`), Early reader: "Trace it" and Again/Next on screen; Lesson `a11y.sh` PASS. Trace still fails Purple and Pink (52 and 48 dp wide); that is the Toddler-layouts item below, not this slice.
+  - Not walked: Quiz on the 320 dp phone (it is 711 dp tall, more than the tablet's 550). Both emulators had used up their daily limit (the tablet's to real play time over the long walk), so their clocks were moved on, then set back to automatic.

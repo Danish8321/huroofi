@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -24,6 +24,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -40,6 +41,7 @@ import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
+import com.huroofi.app.ui.components.FillColumn
 import com.huroofi.app.ui.components.ChevronIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.RoundIconButton
@@ -51,6 +53,7 @@ import com.huroofi.app.ui.components.rememberWiggle
 import com.huroofi.app.ui.components.stepTabsPairs
 import com.huroofi.app.ui.components.wiggle
 import com.huroofi.app.ui.theme.ArabicText
+import com.huroofi.app.ui.theme.CenteredLetter
 import com.huroofi.app.ui.theme.ContrastPair
 import com.huroofi.app.ui.theme.HuroofiDimens
 import com.huroofi.app.ui.theme.HuroofiText
@@ -85,8 +88,11 @@ object LessonSpec {
     const val INLINE_SP = 22f
     val textSizes = listOf(LETTER_SP, LETTER_WITH_SHAPES_SP, NAME_SP, WORD_SP, SHAPE_SP, INLINE_SP)
 
-    /** Tall enough for the card, the word, the shapes and the button; a shorter window scrolls. */
-    val MinHeight = 760.dp
+    /** Room above and below the letter for the name row (16 dp in, 28 dp tall). */
+    val LetterBand = 44.dp
+    /** A short window shrinks the letter to this, then scrolls the cards. */
+    const val LETTER_MIN_SP = 96f
+    val CardMin = LETTER_MIN_SP.dp + LetterBand * 2
 
     val touchSizes = listOf(Back, Sound, Picture, HuroofiDimens.PrimaryButtonHeight)
     val colors = listOf(
@@ -154,15 +160,18 @@ fun LessonScreen(
     onNext: (() -> Unit)?,
 ) {
     val colors = stage.colors()
-    CappedWidth(HuroofiTokens.Sky, minHeight = LessonSpec.MinHeight) {
+    CappedWidth(HuroofiTokens.Sky) {
         Column(
             Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 26.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             PathHeader(PathStep.MEET, "Back to home", onBack)
-            LetterCard(letter, colors, showShapes, onHear, onHearLetter, Modifier.weight(1f))
-            WordCard(letter, colors, onHearWord)
-            if (showShapes) ShapesCard(letter)
+            // The header and "Trace it" stay put; a short window shrinks the letter card, then scrolls.
+            FillColumn(fill = 0, fillMin = LessonSpec.CardMin, modifier = Modifier.weight(1f)) {
+                LetterCard(letter, colors, showShapes, onHear, onHearLetter, Modifier)
+                WordCard(letter, colors, onHearWord)
+                if (showShapes) ShapesCard(letter)
+            }
             if (onNext != null) PrimaryButton("Trace it", onClick = onNext, icon = ButtonIcons.Next)
         }
     }
@@ -189,7 +198,7 @@ private fun LetterCard(letter: Letter, colors: StageColors, showShapes: Boolean,
         }
         // The whole card is the letter's button, so a thin letter like alif is still easy to tap.
         // No clip and no ripple: the glyph's line box overflows, and the wiggle is the answer.
-        Box(
+        BoxWithConstraints(
             Modifier
                 .matchParentSize()
                 .clickable(interactionSource = null, indication = null, role = Role.Button) {
@@ -207,14 +216,13 @@ private fun LetterCard(letter: Letter, colors: StageColors, showShapes: Boolean,
                 },
             contentAlignment = Alignment.Center,
         ) {
-            IgnoreFontScale {
-                ArabicText(
-                    letter.letter,
-                    Modifier.wrapContentHeight(unbounded = true).wiggle(letterWiggle),
-                    size = (if (showShapes) LessonSpec.LETTER_WITH_SHAPES_SP else LessonSpec.LETTER_SP).sp,
-                    color = HuroofiTokens.Navy,
-                )
-            }
+            // A short window shrinks the card (the prototype's `min-height: 0`) and the letter with it:
+            // Naskh ink is at most about 1 em tall, so the em is the card's height less a band for the name row.
+            val cardHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() }
+            val full = if (showShapes) LessonSpec.LETTER_WITH_SHAPES_SP else LessonSpec.LETTER_SP
+            // CenteredLetter ignores the font scale, so 1 sp is 1 dp here.
+            val size = minOf(full, (cardHeight - LessonSpec.LetterBand * 2).value).coerceAtLeast(LessonSpec.LETTER_MIN_SP)
+            CenteredLetter(letter.letter, Modifier.wiggle(letterWiggle), size = size.sp, color = HuroofiTokens.Navy)
         }
         RoundIconButton(
             contentDescription = "Hear ${letter.nameLatin} and ${letter.meaningEn}",

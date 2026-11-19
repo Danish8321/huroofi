@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huroofi.app.R
@@ -57,6 +58,7 @@ import com.huroofi.app.data.content.Stage
 import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
+import com.huroofi.app.ui.components.FillColumn
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.RoundIconButton
@@ -110,10 +112,13 @@ object QuizSpec {
     val textSizes = listOf(CHIP_SP, WORD_SP, WORD_FOUR_SP, INLINE_SP)
 
     /** The smallest option tile; option tiles share the space left, so this is their floor. */
-    val TileMin = 96.dp
+    val TileMin = 72.dp
 
-    /** Tall enough for three [TileMin] tiles; a shorter window scrolls (tablet landscape). */
-    val MinHeight = 740.dp
+    /** The option grid's floor: below it the question and grid scroll, and the foot stays put. */
+    fun gridMin(options: Int): Dp {
+        val rows = if (options == 4) 2 else options
+        return TileMin * rows + 16.dp * (rows - 1)
+    }
 
     /** The question bubble is at least as tall as Leo, so the whole bubble is one big tap target. */
     val touchSizes = listOf(Close, Leo, TileMin, HuroofiDimens.PrimaryButtonHeight)
@@ -186,7 +191,7 @@ fun QuizScreen(
 ) {
     val colors = stage.colors()
     val target = game.target
-    CappedWidth(HuroofiTokens.Sky, minHeight = QuizSpec.MinHeight) {
+    CappedWidth(HuroofiTokens.Sky) {
         Column(
             Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 26.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -205,8 +210,11 @@ fun QuizScreen(
                 // Balances the close button so the dots sit in the middle.
                 Spacer(Modifier.width(QuizSpec.Close))
             }
-            Question(target, onHear)
-            OptionGrid(game, colors, Modifier.weight(1f), onPick)
+            // The close button and the foot stay put; a short window shrinks the tiles, then scrolls.
+            FillColumn(fill = 1, fillMin = QuizSpec.gridMin(game.options.size), modifier = Modifier.weight(1f)) {
+                Question(target, onHear)
+                OptionGrid(game, colors, Modifier, onPick)
+            }
             // A live region, so TalkBack says "Almost! Try again" or Next as they appear (plan 16 slice 7).
             Box(Modifier.fillMaxWidth().heightIn(min = QuizSpec.Foot).semantics { liveRegion = LiveRegionMode.Polite }, contentAlignment = Alignment.Center) {
                 val wrong = game.wrongPick
