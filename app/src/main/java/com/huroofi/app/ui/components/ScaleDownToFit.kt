@@ -13,12 +13,13 @@ fun fitScale(w: Int, h: Int, maxW: Int, maxH: Int): Float =
 
 /**
  * Lays [content] out at its natural size and draws it scaled down, centred, when the space is
- * smaller (a short tablet landscape window). At full size it is untouched.
+ * smaller (a short tablet landscape window, a narrow phone). At full size it is untouched. Text is
+ * measured unwrapped, so a line shrinks instead of breaking.
  */
 @Composable
 fun ScaleDownToFit(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Layout(content, modifier) { measurables, constraints ->
-        val placeable = measurables.single().measure(Constraints(maxWidth = constraints.maxWidth))
+        val placeable = measurables.single().measure(Constraints())
         val width = constraints.constrainWidth(placeable.width)
         val height = constraints.constrainHeight(placeable.height)
         val scale = fitScale(placeable.width, placeable.height, width, height)

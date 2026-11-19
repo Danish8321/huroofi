@@ -85,6 +85,7 @@ import com.huroofi.app.ui.components.Ink
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.LocalBuzz
 import com.huroofi.app.ui.components.RoundIconButton
+import com.huroofi.app.ui.components.ScaleDownToFit
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarBurst
 import com.huroofi.app.ui.components.WipeIcon
@@ -134,6 +135,7 @@ object PaintSpec {
     val CrayonRing = 6.dp
     val CrayonShadow = 5.dp
     val Wipe = 64.dp
+    val ToolGap = 8.dp
     val WipeBorder = 3.dp
     val Pink = ToddlerActivity.PAINT.tile.border
     val PinkShadow = ToddlerActivity.PAINT.tile.shadow
@@ -250,7 +252,10 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                ArabicText(ToddlerPhrases.colourAr(page.letter), size = PaintSpec.BUBBLE_SP.sp, color = colors.navy)
+                // A 320 dp phone shrinks the words rather than pushing the speaker out of the pill.
+                ScaleDownToFit(Modifier.weight(1f, fill = false)) {
+                    ArabicText(ToddlerPhrases.colourAr(page.letter), size = PaintSpec.BUBBLE_SP.sp, color = colors.navy)
+                }
                 SoundIcon(color = PaintSpec.Pink, size = PaintSpec.BubbleIcon)
             }
         }
@@ -329,16 +334,18 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     }
 }
 
-/** The four crayons and the wipe button. */
+/** The four crayons, and the wipe button under them (prototype), so a 320 dp phone fits all at full size. */
 @Composable
 private fun Crayons(crayon: Crayon, onPick: (Crayon) -> Unit, onWipe: () -> Unit) {
     val colors = LocalHuroofiColors.current
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        for (c in Crayon.entries) CrayonButton(c, selected = c == crayon) { onPick(c) }
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(PaintSpec.ToolGap)) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            for (c in Crayon.entries) CrayonButton(c, selected = c == crayon) { onPick(c) }
+        }
         Box(
             Modifier
                 .size(PaintSpec.Wipe)

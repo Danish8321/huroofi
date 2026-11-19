@@ -70,10 +70,15 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
    - The Lesson letter is now placed by its ink (`CenteredLetter`), like every other single letter.
    - Prototype unchanged: its frame is fixed at 390 × 844, where no card reaches its floor.
 
-## Later (needs the prototype first, then `design.sh`)
+14. **Toddler screens fit a narrow phone and a larger Display size.** Branch `feat/a11y-toddler-layouts`. The review's "Later" toddler-layouts item.
+   - Toddler home: the play circle sits under its label, not over the tile's corner, so a narrow or short tile never covers the word. Prototype: `.tile-side`.
+   - Toddler home: the prompt stays two lines, broken between the words ("ماذا / نلعب؟"); a narrow phone shrinks it, never splits a word. Leo is a quarter of the width, 56 to 96 dp, so the bubble keeps room at 320 dp. `ScaleDownToFit` now measures its content unwrapped (all three callers are on this screen).
+   - Paint: the wipe button sits under the four crayons, as in the prototype, and the prompt pill shrinks its words rather than pushing out the speaker.
+   - Trace: five crayons in one row when 5 × 64 dp fits, else three over two, centred. All stay 64 dp.
 
-- Toddler layouts at 360 and 320 dp, and on the tablet in landscape: wrapping prompt, play circle over the labels, crayon and eraser row too wide. The same happens at a larger Display size (520 dpi on the phone): Paint's eraser and Trace's pink crayon are clipped at the right edge.
-- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12. Item 5 is slice 13.
+## Later
+
+- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12. Item 5 is slice 13; the toddler-layouts item is slice 14.
 
 ## Needs the maintainer's decision
 
@@ -171,3 +176,11 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - Design size, Early reader Lesson ق, screenshot against `main`'s build: only the glyph's pixels differ (it now centres by ink, same size); the cards and gaps are identical.
     - 320 dp (`wm density 540`), Early reader: "Trace it" and Again/Next on screen; Lesson `a11y.sh` PASS. Trace still fails Purple and Pink (52 and 48 dp wide); that is the Toddler-layouts item below, not this slice.
   - Not walked: Quiz on the 320 dp phone (it is 711 dp tall, more than the tablet's 550). Both emulators had used up their daily limit (the tablet's to real play time over the long walk), so their clocks were moved on, then set back to automatic.
+- Slice 14, `feat/a11y-toddler-layouts`, merged to `main`. `check.sh`, `test-fast.sh` and `design.sh` PASS. No unit test: layout only, walked instead.
+  - Emulator `huroofi_phone` at the design size, 360 dp (`wm density 480`) and 320 dp (`wm density 540`):
+    - Toddler home: the circle is under each label; the prompt is two whole words at all three. `a11y.sh` PASS at all three (5 targets). Before, at 320 dp the prompt ran one letter per line and squeezed the tiles to strips.
+    - Paint: four crayons in a row, wipe under them, at all three; `a11y.sh` PASS (7 targets). At 320 dp the prompt pill keeps its speaker.
+    - Find and Cards at 320 dp: fit; `a11y.sh` PASS (5 and 7 targets).
+    - Early reader Trace ق: five crayons in a row at the design size and 360 dp, three over two at 320 dp; `a11y.sh` PASS at all three (8 targets). Before, Purple and Pink failed at 320 dp.
+  - Emulator `huroofi_tablet_small`, landscape: Toddler home, Paint, Find and Cards fit; `a11y.sh` PASS on all four.
+  - The phone is left in Early reader mode at its design size; the tablet in Toddler mode.

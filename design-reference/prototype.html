@@ -181,7 +181,9 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .tile-art { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 100% }
 .tile-ar { font-size: 44px; line-height: 1.4; min-width: 100px; text-align: center }
 .tile-cards .tile-ar { color: #A35400 } .tile-find .tile-ar { color: #0B4FB0 } .tile-paint .tile-ar { color: #B0185A }
-.tile-go { position: absolute; right: 16px; bottom: 14px; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFFFFF }
+/* The play circle sits under its label, so a narrow or short tile never puts it over the word. */
+.tile-side { display: flex; flex-direction: column; align-items: center; gap: 4px }
+.tile-go { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFFFFF }
 .tile-go svg { width: 22px; height: 22px }
 .tile-cards .tile-go { background: #F59E0B } .tile-find .tile-go { background: #2F80ED } .tile-paint .tile-go { background: #EC4F8C }
 .mini-card { width: 84px; height: 112px; border-radius: 18px; background: #FFFFFF; border: 4px solid #F59E0B; display: flex; align-items: center; justify-content: center }
@@ -861,13 +863,13 @@ SCREENS.thome = {
     </div>
     <button type="button" class="tile tile-cards" data-go="tcards" aria-label="Look and listen">
       <span class="tile-art"><span class="mini-card tilt-l"><img src="${img('lion')}" alt=""></span><span class="mini-card tilt-r"><img src="${img('duck')}" alt=""></span></span>
-      ${AR('اسمع', 'tile-ar')}<span class="tile-go">${ICON.play}</span></button>
+      <span class="tile-side">${AR('اسمع', 'tile-ar')}<span class="tile-go">${ICON.play}</span></span></button>
     <button type="button" class="tile tile-find" data-go="tfind" aria-label="Find it">
       <span class="tile-art"><span class="mini-pic ok"><img src="${img('duck')}" alt="">${starSvg(28)}</span><span class="mini-pic"><img src="${img('apple')}" alt=""></span></span>
-      ${AR('ابحث', 'tile-ar')}<span class="tile-go">${ICON.play}</span></button>
+      <span class="tile-side">${AR('ابحث', 'tile-ar')}<span class="tile-go">${ICON.play}</span></span></button>
     <button type="button" class="tile tile-paint" data-go="tpaint" aria-label="Paint">
       <span class="tile-art"><span class="mini-paint">${AR('ب')}</span></span>
-      ${AR('ارسم', 'tile-ar')}<span class="tile-go">${ICON.play}</span></button>
+      <span class="tile-side">${AR('ارسم', 'tile-ar')}<span class="tile-go">${ICON.play}</span></span></button>
   </div>`,
   mount: (root) => {
     bindGo(root);
