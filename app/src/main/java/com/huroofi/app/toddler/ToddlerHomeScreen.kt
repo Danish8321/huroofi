@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
@@ -114,13 +115,16 @@ fun ToddlerScaffold(
     modifier: Modifier = Modifier,
     background: Color = LocalHuroofiColors.current.sky,
     top: Dp = 18.dp,
+    /** A wide landscape tablet layout uses the whole width instead of the centred phone column. */
+    wide: Boolean = false,
     overlay: @Composable BoxScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    CappedWidth(background, modifier) {
+    val body: @Composable BoxScope.() -> Unit = {
         Column(
             Modifier
                 .fillMaxHeight()
+                .then(if (wide) Modifier.fillMaxWidth() else Modifier)
                 .safeDrawingPadding()
                 .padding(start = 20.dp, end = 20.dp, top = top, bottom = 26.dp),
             verticalArrangement = Arrangement.spacedBy(ToddlerHomeSpec.Gap),
@@ -128,6 +132,7 @@ fun ToddlerScaffold(
         )
         Box(Modifier.matchParentSize().safeDrawingPadding(), content = overlay)
     }
+    if (wide) Box(modifier.fillMaxSize().background(background), content = body) else CappedWidth(background, modifier, body)
 }
 
 /** Leo's question. A tap anywhere on it asks again; the sun button says so. */

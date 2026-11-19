@@ -157,9 +157,10 @@ SCREENS.tpaint = {
     const l = paint.letter, done = paint.done;
     const g = fitGlyph(l.letter, PAINT_W, PAINT_H, 0.78);
     const ink = paint.strokes.map((s) => `<path d="${svgPath(s.pts)}" stroke="${s.color}" stroke-width="30" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
-    return `<div class="t-wrap paint-wrap ${done ? 'done' : ''}">
+    const wide = S.device === 'tablet';
+    return `<div class="t-wrap paint-wrap ${done ? 'done' : ''} ${wide ? 'wide' : ''}">
       ${toddlerTop(`<button type="button" class="sun-btn big paint-say" aria-label="Hear: paint the letter ${l.name_latin}">${ICON.speaker}</button>`)}
-      <div class="paint-card">
+      ${wide ? '<div class="paint-wide">' : ''}<div class="paint-card">
         <svg class="paint-svg" viewBox="0 0 ${PAINT_W} ${PAINT_H}" aria-label="${done ? `You painted ${l.name_latin}!` : `Paint the letter ${l.name_latin} with your finger`}">
           <defs><clipPath id="letterClip">${g.svgText('')}</clipPath></defs>
           ${g.svgText('fill="#FFE7F0" stroke="#F2B5CC" stroke-width="4" stroke-dasharray="3 10" stroke-linecap="round"')}
@@ -168,12 +169,12 @@ SCREENS.tpaint = {
         </svg>
         ${done ? burst(1) + `<img class="cheer-leo" src="${img('lion')}" alt="">` : ''}
       </div>
-      ${done ? `<div class="paint-done-row">
+      ${wide ? '<div class="paint-side">' : ''}${done ? `<div class="paint-done-row">
           <button type="button" class="round-btn paint-again" aria-label="Paint it again">${ICON.again}</button>
           ${ringNext('Next letter. It starts by itself in a moment')}</div>`
         : `<div class="crayons" role="radiogroup" aria-label="Crayon colour">${CRAYONS.map(([n, c, d], k) =>
           `<button type="button" role="radio" class="crayon ${k === paint.crayon ? 'on' : ''}" aria-checked="${k === paint.crayon}" aria-label="${n}" data-k="${k}" style="background:${c};box-shadow:0 5px 0 ${d}"></button>`).join('')}</div>
-        <button type="button" class="wipe" aria-label="Wipe and paint again">${ICON.again}</button>`}
+        <button type="button" class="wipe" aria-label="Wipe and paint again">${ICON.again}</button>`}${wide ? '</div></div>' : ''}
     </div>`;
   },
   mount: (root) => {

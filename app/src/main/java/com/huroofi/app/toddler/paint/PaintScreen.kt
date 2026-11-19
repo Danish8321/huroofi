@@ -17,6 +17,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import com.huroofi.app.ui.components.windowWidth
+import com.huroofi.app.ui.components.windowHeight
+import com.huroofi.app.ui.components.useWideLayout
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -124,6 +130,9 @@ object PaintSpec {
     const val STROKE_ALPHA = 0.9f
     /** Under the canvas: the crayons, or once done "Paint it again" and the ring (`.paint-done-row`). */
     val ControlsHeight = 156.dp
+    /** Wide landscape tablet: the column beside the canvas, and the gap between them. */
+    val SideWidth = 320.dp
+    val WideGap = 28.dp
     val DoneGap = 24.dp
     val Again = 72.dp
     val AgainIcon = 30.dp
@@ -239,83 +248,80 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
     }
     DisposableEffect(Unit) { onDispose { audio.stop() } }
 
-    ToddlerScaffold {
-        ToddlerHeader(onHome = onHome, onRequestParentZone = onRequestParentZone, homeIcon = PaintSpec.HomeIcon, homeShadow = PaintSpec.HomeShadow) {
-            Row(
-                Modifier
-                    .height(PaintSpec.BubbleHeight)
-                    .clip(RoundedCornerShape(PaintSpec.BubbleCorner))
-                    .background(colors.card)
-                    .clickable(role = Role.Button) { audio.ask(page.letter) }
-                    .semantics { contentDescription = ToddlerPhrases.colourEn(page.letter) }
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                // A 320 dp phone shrinks the words rather than pushing the speaker out of the pill.
-                ScaleDownToFit(Modifier.weight(1f, fill = false)) {
-                    ArabicText(ToddlerPhrases.colourAr(page.letter), size = PaintSpec.BUBBLE_SP.sp, color = colors.navy)
-                }
-                SoundIcon(color = PaintSpec.Pink, size = PaintSpec.BubbleIcon)
-            }
-        }
-        // Canvas and controls stay together, centred in the space left, so no gap opens between
-        // them and the done row never covers the canvas (plan 11 decision 5).
-        Column(
-            Modifier.fillMaxWidth().weight(1f),
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(Modifier.weight(1f, fill = false).canvasSize(PaintSpec.CANVAS_ASPECT, PaintSpec.CANVAS_TALLEST)) {
-                val shape = RoundedCornerShape(PaintSpec.CanvasCorner)
-                Box(
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val wide = useWideLayout(windowWidth.value, windowHeight.value)
+        ToddlerScaffold(wide = wide) {
+            ToddlerHeader(onHome = onHome, onRequestParentZone = onRequestParentZone, homeIcon = PaintSpec.HomeIcon, homeShadow = PaintSpec.HomeShadow) {
+                Row(
                     Modifier
-                        .matchParentSize()
-                        .padding(top = PaintSpec.CanvasShadow)
-                        .background(if (done) colors.successShadow else PaintSpec.PinkShadow, shape),
-                )
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(bottom = PaintSpec.CanvasShadow)
-                        .clip(shape)
+                        .height(PaintSpec.BubbleHeight)
+                        .clip(RoundedCornerShape(PaintSpec.BubbleCorner))
                         .background(colors.card)
-                        .border(PaintSpec.CanvasBorder, if (done) colors.success else PaintSpec.Pink, shape)
-                        .onSizeChanged { canvasSize = it },
+                        .clickable(role = Role.Button) { audio.ask(page.letter) }
+                        .semantics { contentDescription = ToddlerPhrases.colourEn(page.letter) }
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    PaintLayer(
-                        painting = page.painting,
-                        glyph = glyph,
-                        onStart = {
-                            demoRun = null
-                            if (!page.painting.done) page = page.copy(painting = page.painting.start(it))
-                        },
-                        onMove = move@{
-                            if (page.painting.done) return@move
-                            val at = with(density) { Offset(it.x.dp.toPx(), it.y.dp.toPx()) }
-                            val counts = onLetter?.contains(at, with(density) { PaintSpec.OnLetterSlop.toPx() }) ?: true
-                            page = page.copy(painting = page.painting.moveTo(it, counts))
-                        },
-                        modifier = Modifier
+                    // A 320 dp phone shrinks the words rather than pushing the speaker out of the pill.
+                    ScaleDownToFit(Modifier.weight(1f, fill = false)) {
+                        ArabicText(ToddlerPhrases.colourAr(page.letter), size = PaintSpec.BUBBLE_SP.sp, color = colors.navy)
+                    }
+                    SoundIcon(color = PaintSpec.Pink, size = PaintSpec.BubbleIcon)
+                }
+            }
+            val canvas: @Composable (Modifier) -> Unit = { size ->
+                Box(size) {
+                    val shape = RoundedCornerShape(PaintSpec.CanvasCorner)
+                    Box(
+                        Modifier
                             .matchParentSize()
-                            .semantics {
-                                liveRegion = LiveRegionMode.Polite // "You painted …!" is spoken (plan 16 slice 7)
-                                contentDescription = if (done) {
-                                    "You painted ${page.letter.nameLatin}!"
-                                } else {
-                                    "Paint over the letter ${page.letter.nameLatin} with your finger"
-                                }
-                            },
+                            .padding(top = PaintSpec.CanvasShadow)
+                            .background(if (done) colors.successShadow else PaintSpec.PinkShadow, shape),
                     )
-                    LetterOutline(page.letter.letter, Modifier.matchParentSize(), fill = false)
-                    DemoHand(demoPaths, demoRun, onFinished = { demoRun = null })
-                    if (done) {
-                        StarBurst()
-                        CheeringLeo(Modifier.align(Alignment.BottomEnd).padding(PaintSpec.LeoInset))
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(bottom = PaintSpec.CanvasShadow)
+                            .clip(shape)
+                            .background(colors.card)
+                            .border(PaintSpec.CanvasBorder, if (done) colors.success else PaintSpec.Pink, shape)
+                            .onSizeChanged { canvasSize = it },
+                    ) {
+                        PaintLayer(
+                            painting = page.painting,
+                            glyph = glyph,
+                            onStart = {
+                                demoRun = null
+                                if (!page.painting.done) page = page.copy(painting = page.painting.start(it))
+                            },
+                            onMove = move@{
+                                if (page.painting.done) return@move
+                                val at = with(density) { Offset(it.x.dp.toPx(), it.y.dp.toPx()) }
+                                val counts = onLetter?.contains(at, with(density) { PaintSpec.OnLetterSlop.toPx() }) ?: true
+                                page = page.copy(painting = page.painting.moveTo(it, counts))
+                            },
+                            modifier = Modifier
+                                .matchParentSize()
+                                .semantics {
+                                    liveRegion = LiveRegionMode.Polite // "You painted …!" is spoken (plan 16 slice 7)
+                                    contentDescription = if (done) {
+                                        "You painted ${page.letter.nameLatin}!"
+                                    } else {
+                                        "Paint over the letter ${page.letter.nameLatin} with your finger"
+                                    }
+                                },
+                        )
+                        LetterOutline(page.letter.letter, Modifier.matchParentSize(), fill = false)
+                        DemoHand(demoPaths, demoRun, onFinished = { demoRun = null })
+                        if (done) {
+                            StarBurst()
+                            CheeringLeo(Modifier.align(Alignment.BottomEnd).padding(PaintSpec.LeoInset))
+                        }
                     }
                 }
             }
-            Box(Modifier.fillMaxWidth().height(PaintSpec.ControlsHeight), contentAlignment = Alignment.Center) {
+            val controls: @Composable () -> Unit = {
                 if (done) {
                     DoneRow(
                         letter = page.letter,
@@ -328,6 +334,24 @@ fun PaintScreen(strokesOf: (Int) -> List<TraceStroke>, onHome: () -> Unit, onReq
                         onPick = { page = page.copy(painting = page.painting.select(it)) },
                         onWipe = { page = page.copy(painting = page.painting.wipe()) },
                     )
+                }
+            }
+            if (wide) {
+                // Wide landscape tablet (`ToddlerPaintTablet.html`): canvas left at full height, controls centred beside it.
+                Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(PaintSpec.WideGap)) {
+                    canvas(Modifier.weight(1f).fillMaxHeight())
+                    Box(Modifier.width(PaintSpec.SideWidth).fillMaxHeight(), contentAlignment = Alignment.Center) { controls() }
+                }
+            } else {
+                // Canvas and controls stay together, centred in the space left, so no gap opens between
+                // them and the done row never covers the canvas (plan 11 decision 5).
+                Column(
+                    Modifier.fillMaxWidth().weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    canvas(Modifier.weight(1f, fill = false).canvasSize(PaintSpec.CANVAS_ASPECT, PaintSpec.CANVAS_TALLEST))
+                    Box(Modifier.fillMaxWidth().height(PaintSpec.ControlsHeight), contentAlignment = Alignment.Center) { controls() }
                 }
             }
         }
