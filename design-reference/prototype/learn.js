@@ -202,7 +202,7 @@ function traceView({ i }, practice) {
   }).join('');
   const coins = strokes.map((s, si) => {
     const [x, y] = s.pts[0];
-    if (trace.finished[si]) return `<g transform="translate(${(x - 15).toFixed(1)} ${(y - 15).toFixed(1)})">${starSvg(30).replace('<svg ', '<svg x="0" y="0" ')}</g>`;
+    if (trace.finished[si] || done) return `<g transform="translate(${(x - 15).toFixed(1)} ${(y - 15).toFixed(1)})">${starSvg(30).replace('<svg ', '<svg x="0" y="0" ')}</g>`;
     return `<g class="coin ${si === nextStroke ? 'next' : 'later'}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle r="15" fill="${si === 0 ? '#158048' : '#1F6FE0'}" stroke="#FFFFFF" stroke-width="3"/><text y="6" text-anchor="middle" font-size="17" font-weight="800" fill="#FFFFFF" font-family="Baloo Bhaijaan 2, system-ui">${si + 1}</text></g>`;
   }).join('');
   // Done: the gaps take the last paint, under the child's own ink.
@@ -215,10 +215,8 @@ function traceView({ i }, practice) {
   const nextBtn = done
     ? `<button type="button" class="primary-btn ready trace-next">${practice ? 'Next letter' : 'Play'} ${ICON.next}</button>`
     : `<button type="button" class="primary-btn locked" disabled aria-label="Next is locked until ${l.name_latin} is traced">${ICON.lock} Finish ${AR(l.letter, 'btn-ar')} first</button>`;
-  return `<div class="learn-wrap trace ${done ? 'done' : ''}">
-    ${head}
-    <button type="button" class="hint-bubble ${done ? 'ok' : ''}" aria-label="${hint} Tap to hear and see how">${ICON.speaker.replace('<svg', '<svg class="hint-ico"')}<span>${hint}</span></button>
-    <div class="trace-card ${done ? 'done' : ''}">
+  const bubble = `<button type="button" class="hint-bubble ${done ? 'ok' : ''}" aria-label="${hint} Tap to hear and see how">${ICON.speaker.replace('<svg', '<svg class="hint-ico"')}<span>${hint}</span></button>`;
+  const card = `<div class="trace-card ${done ? 'done' : ''}">
       <svg class="trace-svg" viewBox="0 0 ${TRACE_W} ${TRACE_H}" aria-label="${done ? `You traced ${l.name_latin}` : `Trace the letter ${l.name_latin}`}">
         <defs><clipPath id="traceClip">${g.svgText('')}</clipPath></defs>
         ${g.svgText('fill="#C8DCF4" stroke="#13294B" stroke-width="3" stroke-linejoin="round"')}
@@ -227,9 +225,19 @@ function traceView({ i }, practice) {
         ${HAND_SVG}
       </svg>
       ${done ? burst(1) + `<span class="done-badge"><img src="${img('lion')}" alt=""><span>You traced ${AR(l.letter)}!</span></span>` : ''}
-    </div>
-    <div class="paints" role="radiogroup" aria-label="Paint colour">${PAINTS.map(([n, c, d], k) => `<button type="button" role="radio" class="paint ${k === trace.paint ? 'on' : ''}" aria-checked="${k === trace.paint}" aria-label="${n}" data-k="${k}" style="background:${c}"></button>`).join('')}</div>
-    <div class="trace-foot"><button type="button" class="square-btn trace-again" aria-label="Again: clear and show me how">${ICON.again}</button>${nextBtn}</div>
+    </div>`;
+  const tools = `<div class="paints" role="radiogroup" aria-label="Paint colour">${PAINTS.map(([n, c, d], k) => `<button type="button" role="radio" class="paint ${k === trace.paint ? 'on' : ''}" aria-checked="${k === trace.paint}" aria-label="${n}" data-k="${k}" style="background:${c}"></button>`).join('')}</div>
+    <div class="trace-foot"><button type="button" class="square-btn trace-again" aria-label="Again: clear and show me how">${ICON.again}</button>${nextBtn}</div>`;
+  // A wide landscape tablet: the canvas takes the full height, the rest stacks beside it.
+  if (S.device === 'tablet') return `<div class="learn-wrap trace wide ${done ? 'done' : ''}">
+    ${head}
+    <div class="trace-wide">${card}<div class="trace-side">${bubble}${tools}</div></div>
+  </div>`;
+  return `<div class="learn-wrap trace ${done ? 'done' : ''}">
+    ${head}
+    ${bubble}
+    ${card}
+    ${tools}
   </div>`;
 }
 function traceMount(root, { i }, practice) {

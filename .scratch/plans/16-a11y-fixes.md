@@ -101,7 +101,7 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
 
 ## Needs the maintainer's decision
 
-Tablet landscape layouts (every screen now fits in landscape, slices 13 and 14; this is about dedicated side-by-side designs): deferred until after the store release, maintainer 2026-11-19.
+Tablet landscape layouts (every screen now fits in landscape, slices 13 and 14; this is about dedicated side-by-side designs): moved to plan 17, maintainer 2026-11-19.
 
 ## Built
 

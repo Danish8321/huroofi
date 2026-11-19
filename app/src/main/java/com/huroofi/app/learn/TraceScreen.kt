@@ -11,6 +11,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import com.huroofi.app.ui.components.windowHeight
+import com.huroofi.app.ui.components.useWideLayout
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -173,6 +178,9 @@ object TraceSpec {
 
     /** A short window shrinks the canvas to this (the letter refits), then scrolls the middle. */
     val CanvasMin = 200.dp
+
+    /** The hint, paints and buttons beside the canvas on a wide tablet (`.trace-side`). */
+    val SideWidth = 380.dp
 
     val Pink = Color(0xFFFF6FA5)
 
@@ -472,222 +480,259 @@ fun TraceScreen(
         }
     }
 
-    CappedWidth(HuroofiTokens.Sky) {
-        Column(
-            Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+    val header: @Composable () -> Unit = {
+        if (practice) PathHeader(null, "Back to home", onBack) else PathHeader(PathStep.TRACE, "Back to lesson", onBack)
+    }
+    val bubble: @Composable () -> Unit = {
+        // The hint is spoken too (plan 14 decision 2). A tap says it again and, until the letter is
+        // traced, shows how (the prototype's one bubble replaces the lion helper).
+        val bubbleShape = RoundedCornerShape(TraceSpec.BubbleCorner)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = TraceSpec.Bubble)
+                .clip(bubbleShape)
+                .background(if (finished) TraceSpec.BubbleDone else HuroofiTokens.Card)
+                .clickable(role = Role.Button, onClickLabel = if (finished) "Hear it again" else "Hear it and see how") {
+                    onHearHint(phase)
+                    if (!finished) send(DemoEvent.HelperTap)
+                }
+                .padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (practice) PathHeader(null, "Back to home", onBack) else PathHeader(PathStep.TRACE, "Back to lesson", onBack)
-            // The header and Again/Next stay put; a short window shrinks the canvas, then scrolls.
-            FillColumn(fill = 1, fillMin = TraceSpec.CanvasMin, modifier = Modifier.weight(1f), edge = 0.dp) {
-                // The hint is spoken too (plan 14 decision 2). A tap says it again and, until the letter is
-                // traced, shows how (the prototype's one bubble replaces the lion helper).
-                val bubbleShape = RoundedCornerShape(TraceSpec.BubbleCorner)
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = TraceSpec.Bubble)
-                        .clip(bubbleShape)
-                        .background(if (finished) TraceSpec.BubbleDone else HuroofiTokens.Card)
-                        .clickable(role = Role.Button, onClickLabel = if (finished) "Hear it again" else "Hear it and see how") {
-                            onHearHint(phase)
-                            if (!finished) send(DemoEvent.HelperTap)
+            Box(
+                Modifier
+                    .size(TraceSpec.BubbleSound)
+                    .dropEdge(HuroofiTokens.SunShadow, 4.dp, CircleShape)
+                    .background(HuroofiTokens.Sun, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) { SoundIcon(HuroofiTokens.Navy, size = 26.dp) }
+            Text(
+                when (phase) {
+                    TracePhase.Trace -> "Start at the green 1, then follow the dots!"
+                    TracePhase.Fill -> "Now colour in the yellow spots!"
+                    TracePhase.Done -> if (practice) "Well done! Tap Next for another letter" else "Well done! Tap Play for the picture game"
+                },
+                // A live region, so TalkBack hears each new step and "Well done!" (plan 16 slice 7).
+                Modifier.weight(1f).semantics { liveRegion = LiveRegionMode.Polite },
+                style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
+                color = HuroofiTokens.Navy,
+            )
+        }
+    }
+    val canvas: @Composable (size: Modifier) -> Unit = { size ->
+        val cardShape = RoundedCornerShape(TraceSpec.CanvasCorner)
+        Box(
+            size
+                .dropEdge(if (finished) TraceSpec.DoneEdge else TraceSpec.EdgeColor, 6.dp, cardShape)
+                .clip(cardShape)
+                .background(HuroofiTokens.Card)
+                .border(TraceSpec.CanvasRing, if (finished) TraceSpec.DoneRing else HuroofiTokens.Card, cardShape)
+                .onSizeChanged { canvasSize = it }
+                .semantics { contentDescription = if (finished) "You traced $name" else "Trace the letter $name" }
+                .pointerInput(Unit) {
+                    drawWithPen(
+                        onTouch = { send(DemoEvent.Touch) },
+                        ink = object : Ink {
+                            var stroke: InkStroke? = null
+
+                            override fun start(at: Offset) {
+                                stroke = InkStroke(currentCrayon, mutableStateListOf(at)).also { inkStrokes += it }
+                                currentCheck?.addInk(at)
+                                send(DemoEvent.Ink)
+                            }
+
+                            override fun move(to: Offset) {
+                                val s = stroke ?: return
+                                val before = currentCheck?.finishedStrokes
+                                currentCheck?.addSegment(s.points.last(), to, TraceSpec.Tolerance.toPx() / 2f)
+                                // A light tick for each finished stroke; the last one gets finish()'s buzz instead.
+                                currentCheck?.let { if (!it.done && before != null && it.finishedStrokes > before) buzz.tick() }
+                                send(DemoEvent.Ink)
+                                s.points += to
+                            }
+
+                            override fun end() {
+                                stroke = null
+                                lifted(currentCheck)
+                            }
+                        },
+                    )
+                },
+        ) {
+            // Ink shows only on the letter (plan 12 decision 4): the band is drawn first, out to
+            // the outline's middle, and the ink lands only where the band is.
+            Canvas(Modifier.fillMaxSize().graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)) {
+                val g = glyph ?: return@Canvas
+                drawText(g.layout, TraceSpec.Band, g.topLeft, drawStyle = Fill) // the outline below leaves Stroke set on the layout
+                drawText(g.layout, TraceSpec.Band, g.topLeft, drawStyle = Stroke(TraceSpec.OutlineWidth.toPx(), join = StrokeJoin.Round))
+                // Done: any gaps take the last paint, under the child's own ink.
+                if (finished) drawRect(crayon, blendMode = BlendMode.SrcAtop)
+                // As wide as the brush the paint check uses, so what shows painted is what counts.
+                val width = (check?.area?.reachPx ?: TraceSpec.BrushMin.toPx()) * 2f
+                val style = Stroke(width = width, cap = StrokeCap.Round, join = StrokeJoin.Round)
+                for (s in inkStrokes) {
+                    if (s.points.size == 1) {
+                        drawCircle(s.color, width / 2f, s.points[0], blendMode = BlendMode.SrcAtop)
+                        continue
+                    }
+                    val path = Path().apply {
+                        moveTo(s.points[0].x, s.points[0].y)
+                        for (p in s.points.drop(1)) lineTo(p.x, p.y)
+                    }
+                    drawPath(path, s.color, style = style, blendMode = BlendMode.SrcAtop)
+                }
+            }
+            Canvas(Modifier.fillMaxSize()) {
+                val guide = check
+                if (guide != null && guide.revision < 0) return@Canvas // reading it redraws the canvas as the guide changes
+                glyph?.let { drawText(it.layout, TraceSpec.Outline, it.topLeft, drawStyle = Stroke(TraceSpec.OutlineWidth.toPx(), join = StrokeJoin.Round)) }
+                if (guide == null || glyph == null) return@Canvas
+                val next = guide.nextStroke()
+                for ((i, dots) in guide.dots.withIndex()) {
+                    val base = (if (dots.size == 1) TraceSpec.DotStrokeRadius else TraceSpec.DotRadius).toPx()
+                    for ((d, dot) in dots.withIndex()) {
+                        if (guide.covered(i, d) || finished) {
+                            drawCircle(TraceSpec.DoneDot, base * (1f + TraceSpec.DONE_GROW * guide.pop(i, d)), dot)
+                        } else {
+                            drawCircle(TraceSpec.Dot, base, dot, alpha = if (next == null || i == next) 1f else TraceSpec.LATER_ALPHA)
                         }
-                        .padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                    }
+                }
+                for ((i, dots) in guide.dots.withIndex()) {
+                    val color = if (i == 0) TraceSpec.FirstCoin else TraceSpec.OtherCoin
+                    val radius = TraceSpec.CoinRadius.toPx() * (if (i == next) pulse else 1f)
+                    if (guide.finished(i) || finished) {
+                        drawStar(coins[i], radius * 1.15f)
+                        continue
+                    }
+                    drawArrow(dots, color, glyph.ink.center)
+                    drawCircle(color, radius, coins[i])
+                    val number = coinNumbers[i]
+                    drawText(number, topLeft = Offset(coins[i].x - number.size.width / 2f, coins[i].y - number.size.height / 2f))
+                }
+                if (!guide.filling) return@Canvas
+                val gap = TraceSpec.GapRadius.toPx() * (1f + TraceSpec.GAP_GROW * gapPulse)
+                val edge = Stroke(TraceSpec.GapEdgeWidth.toPx())
+                for ((k, spot) in guide.area.points.withIndex()) {
+                    if (guide.area.painted(k)) continue
+                    drawCircle(TraceSpec.GapFill, gap, spot)
+                    drawCircle(TraceSpec.GapEdge, gap, spot, style = edge)
+                }
+            }
+            DemoHand(demoPaths, demoRun, onFinished = { demoRun = null })
+            if (finished) {
+                StarBurst()
+                DoneBadge(letter, Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp))
+            }
+        }
+    }
+    val crayons: @Composable () -> Unit = {
+        // Five in a row when they fit at full size, else three over two (a 320 dp phone).
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val fit = windowWidth >= TraceSpec.CrayonSize * TraceSpec.crayons.size
+            FlowRow(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = if (fit) Arrangement.SpaceBetween else Arrangement.spacedBy(TraceSpec.CrayonGap * 2, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(TraceSpec.CrayonGap),
+                maxItemsInEachRow = if (fit) TraceSpec.crayons.size else 3,
+            ) {
+                for ((color, label) in TraceSpec.crayons) {
+                    val picked = color == crayon
                     Box(
                         Modifier
-                            .size(TraceSpec.BubbleSound)
-                            .dropEdge(HuroofiTokens.SunShadow, 4.dp, CircleShape)
-                            .background(HuroofiTokens.Sun, CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) { SoundIcon(HuroofiTokens.Navy, size = 26.dp) }
-                    Text(
-                        when (phase) {
-                            TracePhase.Trace -> "Start at the green 1, then follow the dots!"
-                            TracePhase.Fill -> "Now colour in the yellow spots!"
-                            TracePhase.Done -> if (practice) "Well done! Tap Next for another letter" else "Well done! Tap Play for the picture game"
-                        },
-                        // A live region, so TalkBack hears each new step and "Well done!" (plan 16 slice 7).
-                        Modifier.weight(1f).semantics { liveRegion = LiveRegionMode.Polite },
-                        style = HuroofiText.body.copy(fontWeight = FontWeight.Bold),
-                        color = HuroofiTokens.Navy,
+                            .size(TraceSpec.CrayonSize)
+                            .clip(CircleShape)
+                            .background(color)
+                            .border(TraceSpec.CrayonRing, if (picked) HuroofiTokens.Navy else HuroofiTokens.Card, CircleShape)
+                            .semantics {
+                                contentDescription = label
+                                selected = picked
+                            }
+                            .clickable(role = Role.RadioButton) { crayon = color },
                     )
                 }
-                val cardShape = RoundedCornerShape(TraceSpec.CanvasCorner)
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .dropEdge(if (finished) TraceSpec.DoneEdge else TraceSpec.EdgeColor, 6.dp, cardShape)
-                        .clip(cardShape)
-                        .background(HuroofiTokens.Card)
-                        .border(TraceSpec.CanvasRing, if (finished) TraceSpec.DoneRing else HuroofiTokens.Card, cardShape)
-                        .onSizeChanged { canvasSize = it }
-                        .semantics { contentDescription = if (finished) "You traced $name" else "Trace the letter $name" }
-                        .pointerInput(Unit) {
-                            drawWithPen(
-                                onTouch = { send(DemoEvent.Touch) },
-                                ink = object : Ink {
-                                    var stroke: InkStroke? = null
+            }
+        }
+    }
+    val foot: @Composable () -> Unit = {
+        // Again beside the Next button, which stays locked until the letter is traced (plan 15 decision 1).
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            val againShape = RoundedCornerShape(22.dp)
+            Box(
+                Modifier
+                    .size(TraceSpec.Again)
+                    .clip(againShape)
+                    .background(HuroofiTokens.Card)
+                    .border(3.dp, TraceSpec.AgainBorder, againShape)
+                    .semantics { contentDescription = "Again: clear and show me how" }
+                    .clickable(role = Role.Button) {
+                        inkStrokes.clear()
+                        check?.clear()
+                        finished = false
+                        filling = false
+                        send(DemoEvent.Again)
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                LineIcon(ButtonIcons.Again, HuroofiTokens.Navy, size = 30.dp, strokeWidth = 2.4f)
+            }
+            if (finished) {
+                PrimaryButton(
+                    if (practice) "Next letter" else "Play",
+                    onClick = onNext,
+                    modifier = Modifier.weight(1f).graphicsLayer {
+                        scaleX = ready
+                        scaleY = ready
+                    },
+                    icon = ButtonIcons.Next,
+                )
+            } else {
+                PrimaryButton(
+                    withArabic("Finish ", letter, " first"),
+                    onClick = {},
+                    modifier = Modifier.weight(1f),
+                    kind = ButtonKind.Locked,
+                    leadingIcon = ButtonIcons.Lock,
+                )
+            }
+        }
+    }
 
-                                    override fun start(at: Offset) {
-                                        stroke = InkStroke(currentCrayon, mutableStateListOf(at)).also { inkStrokes += it }
-                                        currentCheck?.addInk(at)
-                                        send(DemoEvent.Ink)
-                                    }
-
-                                    override fun move(to: Offset) {
-                                        val s = stroke ?: return
-                                        val before = currentCheck?.finishedStrokes
-                                        currentCheck?.addSegment(s.points.last(), to, TraceSpec.Tolerance.toPx() / 2f)
-                                        // A light tick for each finished stroke; the last one gets finish()'s buzz instead.
-                                        currentCheck?.let { if (!it.done && before != null && it.finishedStrokes > before) buzz.tick() }
-                                        send(DemoEvent.Ink)
-                                        s.points += to
-                                    }
-
-                                    override fun end() {
-                                        stroke = null
-                                        lifted(currentCheck)
-                                    }
-                                },
-                            )
-                        },
-                ) {
-                    // Ink shows only on the letter (plan 12 decision 4): the band is drawn first, out to
-                    // the outline's middle, and the ink lands only where the band is.
-                    Canvas(Modifier.fillMaxSize().graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)) {
-                        val g = glyph ?: return@Canvas
-                        drawText(g.layout, TraceSpec.Band, g.topLeft, drawStyle = Fill) // the outline below leaves Stroke set on the layout
-                        drawText(g.layout, TraceSpec.Band, g.topLeft, drawStyle = Stroke(TraceSpec.OutlineWidth.toPx(), join = StrokeJoin.Round))
-                        // Done: any gaps take the last paint, under the child's own ink.
-                        if (finished) drawRect(crayon, blendMode = BlendMode.SrcAtop)
-                        // As wide as the brush the paint check uses, so what shows painted is what counts.
-                        val width = (check?.area?.reachPx ?: TraceSpec.BrushMin.toPx()) * 2f
-                        val style = Stroke(width = width, cap = StrokeCap.Round, join = StrokeJoin.Round)
-                        for (s in inkStrokes) {
-                            if (s.points.size == 1) {
-                                drawCircle(s.color, width / 2f, s.points[0], blendMode = BlendMode.SrcAtop)
-                                continue
-                            }
-                            val path = Path().apply {
-                                moveTo(s.points[0].x, s.points[0].y)
-                                for (p in s.points.drop(1)) lineTo(p.x, p.y)
-                            }
-                            drawPath(path, s.color, style = style, blendMode = BlendMode.SrcAtop)
-                        }
-                    }
-                    Canvas(Modifier.fillMaxSize()) {
-                        val guide = check
-                        if (guide != null && guide.revision < 0) return@Canvas // reading it redraws the canvas as the guide changes
-                        glyph?.let { drawText(it.layout, TraceSpec.Outline, it.topLeft, drawStyle = Stroke(TraceSpec.OutlineWidth.toPx(), join = StrokeJoin.Round)) }
-                        if (guide == null || glyph == null) return@Canvas
-                        val next = guide.nextStroke()
-                        for ((i, dots) in guide.dots.withIndex()) {
-                            val base = (if (dots.size == 1) TraceSpec.DotStrokeRadius else TraceSpec.DotRadius).toPx()
-                            for ((d, dot) in dots.withIndex()) {
-                                if (guide.covered(i, d) || finished) {
-                                    drawCircle(TraceSpec.DoneDot, base * (1f + TraceSpec.DONE_GROW * guide.pop(i, d)), dot)
-                                } else {
-                                    drawCircle(TraceSpec.Dot, base, dot, alpha = if (next == null || i == next) 1f else TraceSpec.LATER_ALPHA)
-                                }
-                            }
-                        }
-                        for ((i, dots) in guide.dots.withIndex()) {
-                            val color = if (i == 0) TraceSpec.FirstCoin else TraceSpec.OtherCoin
-                            val radius = TraceSpec.CoinRadius.toPx() * (if (i == next) pulse else 1f)
-                            if (guide.finished(i)) {
-                                drawStar(coins[i], radius * 1.15f)
-                                continue
-                            }
-                            drawArrow(dots, color, glyph.ink.center)
-                            drawCircle(color, radius, coins[i])
-                            val number = coinNumbers[i]
-                            drawText(number, topLeft = Offset(coins[i].x - number.size.width / 2f, coins[i].y - number.size.height / 2f))
-                        }
-                        if (!guide.filling) return@Canvas
-                        val gap = TraceSpec.GapRadius.toPx() * (1f + TraceSpec.GAP_GROW * gapPulse)
-                        val edge = Stroke(TraceSpec.GapEdgeWidth.toPx())
-                        for ((k, spot) in guide.area.points.withIndex()) {
-                            if (guide.area.painted(k)) continue
-                            drawCircle(TraceSpec.GapFill, gap, spot)
-                            drawCircle(TraceSpec.GapEdge, gap, spot, style = edge)
-                        }
-                    }
-                    DemoHand(demoPaths, demoRun, onFinished = { demoRun = null })
-                    if (finished) {
-                        StarBurst()
-                        DoneBadge(letter, Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp))
-                    }
-                }
-                // Five in a row when they fit at full size, else three over two (a 320 dp phone).
-                BoxWithConstraints(Modifier.fillMaxWidth()) {
-                    val fit = windowWidth >= TraceSpec.CrayonSize * TraceSpec.crayons.size
-                    FlowRow(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = if (fit) Arrangement.SpaceBetween else Arrangement.spacedBy(TraceSpec.CrayonGap * 2, Alignment.CenterHorizontally),
-                        verticalArrangement = Arrangement.spacedBy(TraceSpec.CrayonGap),
-                        maxItemsInEachRow = if (fit) TraceSpec.crayons.size else 3,
-                    ) {
-                        for ((color, label) in TraceSpec.crayons) {
-                            val picked = color == crayon
-                            Box(
-                                Modifier
-                                    .size(TraceSpec.CrayonSize)
-                                    .clip(CircleShape)
-                                    .background(color)
-                                    .border(TraceSpec.CrayonRing, if (picked) HuroofiTokens.Navy else HuroofiTokens.Card, CircleShape)
-                                    .semantics {
-                                        contentDescription = label
-                                        selected = picked
-                                    }
-                                    .clickable(role = Role.RadioButton) { crayon = color },
-                            )
-                        }
+    BoxWithConstraints(Modifier.fillMaxSize().background(HuroofiTokens.Sky)) {
+        if (useWideLayout(windowWidth.value, windowHeight.value)) {
+            // Wide landscape tablet (`TraceTablet.html`): the canvas at full height, the rest stacked beside it.
+            Column(
+                Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 28.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                header()
+                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    canvas(Modifier.weight(1f).fillMaxHeight())
+                    // Again/Next sit at the bottom; a large text size scrolls the column instead.
+                    FillColumn(fill = 2, fillMin = 0.dp, modifier = Modifier.width(TraceSpec.SideWidth).fillMaxHeight(), gap = 20.dp, edge = 0.dp) {
+                        bubble()
+                        crayons()
+                        Spacer(Modifier)
+                        foot()
                     }
                 }
             }
-            // Again beside the Next button, which stays locked until the letter is traced (plan 15 decision 1).
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                val againShape = RoundedCornerShape(22.dp)
-                Box(
-                    Modifier
-                        .size(TraceSpec.Again)
-                        .clip(againShape)
-                        .background(HuroofiTokens.Card)
-                        .border(3.dp, TraceSpec.AgainBorder, againShape)
-                        .semantics { contentDescription = "Again: clear and show me how" }
-                        .clickable(role = Role.Button) {
-                            inkStrokes.clear()
-                            check?.clear()
-                            finished = false
-                            filling = false
-                            send(DemoEvent.Again)
-                        },
-                    contentAlignment = Alignment.Center,
+        } else {
+            CappedWidth(HuroofiTokens.Sky) {
+                Column(
+                    Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 20.dp, vertical = 18.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    LineIcon(ButtonIcons.Again, HuroofiTokens.Navy, size = 30.dp, strokeWidth = 2.4f)
-                }
-                if (finished) {
-                    PrimaryButton(
-                        if (practice) "Next letter" else "Play",
-                        onClick = onNext,
-                        modifier = Modifier.weight(1f).graphicsLayer {
-                            scaleX = ready
-                            scaleY = ready
-                        },
-                        icon = ButtonIcons.Next,
-                    )
-                } else {
-                    PrimaryButton(
-                        withArabic("Finish ", letter, " first"),
-                        onClick = {},
-                        modifier = Modifier.weight(1f),
-                        kind = ButtonKind.Locked,
-                        leadingIcon = ButtonIcons.Lock,
-                    )
+                    header()
+                    // The header and Again/Next stay put; a short window shrinks the canvas, then scrolls.
+                    FillColumn(fill = 1, fillMin = TraceSpec.CanvasMin, modifier = Modifier.weight(1f), edge = 0.dp) {
+                        bubble()
+                        canvas(Modifier.fillMaxWidth())
+                        crayons()
+                    }
+                    foot()
                 }
             }
         }

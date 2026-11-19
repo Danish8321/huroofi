@@ -31,7 +31,7 @@ if echo "$LOG" | grep -qE '^(FAIL|MISSING)'; then echo "FAIL: flow test"; exit 1
 KEYS=$(node -e "const s=require('fs').readFileSync('$P/shell.js','utf8');const b=s.slice(s.indexOf('const STATIC = {'));console.log([...b.slice(0,b.indexOf('\n};')).matchAll(/^\s+'?([A-Za-z-]+)'?: \(\) =>/gm)].map(m=>m[1]).join(' '))")
 N=0
 for k in $KEYS; do
-  size=390,844; [ "$k" = ToddlerFindTablet ] && size=1180,820
+  size=390,844; case "$k" in *Tablet) size=1180,820 ;; esac
   dump 8000 "$size" "$(url design-reference/prototype.html)#static-$k" | node "$P/snapshot.js" "$k"
   N=$((N + 1))
 done
