@@ -416,6 +416,11 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .q-foot { min-height: 64px; display: flex; align-items: center; justify-content: center; padding-bottom: 26px; flex-shrink: 0 }
 .q-hint { margin: 0; height: 64px; width: 100%; border-radius: 22px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 700; color: var(--muted) }
 .q-hint svg { width: 24px; height: 24px }
+.quiz.wide .q-cards { grid-auto-flow: column; grid-auto-columns: 1fr; grid-template-columns: none; grid-template-rows: 1fr }
+.quiz.wide .q-card { flex-direction: column; gap: 4px }
+.quiz.wide .q-card img { width: 160px; height: 160px }
+.quiz.wide .q-word { position: static; font-size: 44px }
+.quiz.wide .q-card.right img { transform: none }
 .almost { width: 100%; min-height: 64px; border-radius: 22px; background: var(--almost); color: var(--almost-ink); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 12px; text-align: center }
 .almost b { font-size: 20px; font-weight: 800 }
 .almost span { font-size: 16px; font-weight: 700 }
@@ -539,7 +544,7 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 
 
 
-<div id="screen" class="screen screen-quiz static-phone"><div class="learn-wrap quiz ">
+<div id="screen" class="screen screen-quiz static-phone"><div class="learn-wrap quiz  ">
       <div class="quiz-head"><button type="button" class="round-btn" data-go="home" aria-label="Leave game"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button><span class="qdots" aria-label="Question 2 of 3"><span class="qdot done"></span><span class="qdot done"></span><span class="qdot "></span></span><span class="head-gap"></span></div>
       <div class="leo-row small"><img class="leo" src="../../assets/illustrations/png/lion.png" alt="Leo the lion">
         <button type="button" class="bubble q-bubble" aria-label="Hear the question"><span class="sun-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M16 9a4 4 0 0 1 0 6"></path></svg></span><span class="q-ask">Which starts with</span><span class="q-letter"><span dir="rtl" class="ar ">ب</span></span></button></div>

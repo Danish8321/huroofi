@@ -375,7 +375,7 @@ SCREENS.quiz = {
       const w = quiz.wrong;
       foot = `<div class="almost" role="status"><b>Almost! Try again</b><span>${cap(w.meaning_en)} (${AR(w.word_ar)}) starts with ${AR(w.word_first)}</span></div>`;
     } else foot = `<p class="q-hint">${ICON.hand}<span>Listen, then tap a picture</span></p>`;
-    return `<div class="learn-wrap quiz ${reader ? 'four' : ''}">
+    return `<div class="learn-wrap quiz ${reader ? 'four' : ''} ${S.device === 'tablet' ? 'wide' : ''}">
       <div class="quiz-head"><button type="button" class="round-btn" data-go="home" aria-label="Leave game">${ICON.close}</button><span class="qdots" aria-label="Question ${quiz.round} of ${ROUNDS}">${dots}</span><span class="head-gap"></span></div>
       <div class="leo-row small"><img class="leo" src="${img('lion')}" alt="Leo the lion">
         <button type="button" class="bubble q-bubble" aria-label="Hear the question"><span class="sun-btn">${ICON.speaker}</span><span class="q-ask">Which starts with</span><span class="q-letter">${AR(l.letter)}</span></button></div>

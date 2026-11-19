@@ -10,6 +10,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import com.huroofi.app.ui.components.windowWidth
+import com.huroofi.app.ui.components.windowHeight
+import com.huroofi.app.ui.components.useWideLayout
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -94,6 +99,8 @@ object QuizSpec {
     val TileBorder = 6.dp
     val Picture = 120.dp
     val PictureFour = 110.dp
+    /** Wide landscape tablet: one row of tall tiles. */
+    val PictureWide = 160.dp
     val Star = 34.dp
     val Foot = 64.dp
     val EdgeColor = Color(0xFFCFE2F7)
@@ -115,8 +122,8 @@ object QuizSpec {
     val TileMin = 72.dp
 
     /** The option grid's floor: below it the question and grid scroll, and the foot stays put. */
-    fun gridMin(options: Int): Dp {
-        val rows = if (options == 4) 2 else options
+    fun gridMin(options: Int, wide: Boolean): Dp {
+        val rows = if (wide) 1 else if (options == 4) 2 else options
         return TileMin * rows + 16.dp * (rows - 1)
     }
 
@@ -191,37 +198,44 @@ fun QuizScreen(
 ) {
     val colors = stage.colors()
     val target = game.target
-    CappedWidth(HuroofiTokens.Sky) {
-        Column(
-            Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 26.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RoundIconButton(
-                    contentDescription = "Leave game",
-                    onClick = onClose,
-                    toddler = true,
-                    size = QuizSpec.Close,
-                    containerColor = HuroofiTokens.Card,
-                    shadowColor = QuizSpec.EdgeColor,
-                    shadowDepth = 4.dp,
-                ) { LineIcon(CloseIcon, HuroofiTokens.Navy, size = 26.dp, strokeWidth = 2.8f) }
-                RoundDots(game, Modifier.weight(1f))
-                // Balances the close button so the dots sit in the middle.
-                Spacer(Modifier.width(QuizSpec.Close))
-            }
-            // The close button and the foot stay put; a short window shrinks the tiles, then scrolls.
-            FillColumn(fill = 1, fillMin = QuizSpec.gridMin(game.options.size), modifier = Modifier.weight(1f)) {
-                Question(target, onHear)
-                OptionGrid(game, colors, Modifier, onPick)
-            }
-            // A live region, so TalkBack says "Almost! Try again" or Next as they appear (plan 16 slice 7).
-            Box(Modifier.fillMaxWidth().heightIn(min = QuizSpec.Foot).semantics { liveRegion = LiveRegionMode.Polite }, contentAlignment = Alignment.Center) {
-                val wrong = game.wrongPick
-                when {
-                    game.solved -> PrimaryButton(nextLabel, onClick = onContinue, kind = ButtonKind.Success, enabled = canContinue, icon = ButtonIcons.Next)
-                    wrong != null -> WrongPanel(wrong)
-                    else -> IdleHint()
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        // Wide landscape tablet (`QuizTablet.html`): the whole width, every picture in one row.
+        val wide = useWideLayout(windowWidth.value, windowHeight.value)
+        CappedWidth(HuroofiTokens.Sky, wide = wide) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .safeDrawingPadding()
+                    .padding(if (wide) PaddingValues(horizontal = 28.dp, vertical = 24.dp) else PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 26.dp)),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RoundIconButton(
+                        contentDescription = "Leave game",
+                        onClick = onClose,
+                        toddler = true,
+                        size = QuizSpec.Close,
+                        containerColor = HuroofiTokens.Card,
+                        shadowColor = QuizSpec.EdgeColor,
+                        shadowDepth = 4.dp,
+                    ) { LineIcon(CloseIcon, HuroofiTokens.Navy, size = 26.dp, strokeWidth = 2.8f) }
+                    RoundDots(game, Modifier.weight(1f))
+                    // Balances the close button so the dots sit in the middle.
+                    Spacer(Modifier.width(QuizSpec.Close))
+                }
+                // The close button and the foot stay put; a short window shrinks the tiles, then scrolls.
+                FillColumn(fill = 1, fillMin = QuizSpec.gridMin(game.options.size, wide), modifier = Modifier.weight(1f)) {
+                    Question(target, onHear)
+                    OptionGrid(game, colors, wide, Modifier, onPick)
+                }
+                // A live region, so TalkBack says "Almost! Try again" or Next as they appear (plan 16 slice 7).
+                Box(Modifier.fillMaxWidth().heightIn(min = QuizSpec.Foot).semantics { liveRegion = LiveRegionMode.Polite }, contentAlignment = Alignment.Center) {
+                    val wrong = game.wrongPick
+                    when {
+                        game.solved -> PrimaryButton(nextLabel, onClick = onContinue, kind = ButtonKind.Success, enabled = canContinue, icon = ButtonIcons.Next)
+                        wrong != null -> WrongPanel(wrong)
+                        else -> IdleHint()
+                    }
                 }
             }
         }
@@ -298,24 +312,36 @@ private fun Question(target: Letter, onHear: () -> Unit) {
     }
 }
 
-/** 2 × 2 for four pictures (Early reader), one column for three; tiles share the space left. */
+/** 2 × 2 for four pictures (Early reader), one column for three, one row when [wide]; tiles share the space left. */
 @Composable
-private fun OptionGrid(game: QuizGame, colors: StageColors, modifier: Modifier, onPick: (Letter) -> Unit) {
+private fun OptionGrid(game: QuizGame, colors: StageColors, wide: Boolean, modifier: Modifier, onPick: (Letter) -> Unit) {
     val four = game.options.size == 4
-    val rows = if (four) game.options.chunked(2) else game.options.map { listOf(it) }
+    val rows = when {
+        wide -> listOf(game.options)
+        four -> game.options.chunked(2)
+        else -> game.options.map { listOf(it) }
+    }
+    val tile = when {
+        wide -> TileStyle(QuizSpec.PictureWide, QuizSpec.WORD_SP, stacked = true)
+        four -> TileStyle(QuizSpec.PictureFour, QuizSpec.WORD_FOUR_SP, stacked = true)
+        else -> TileStyle(QuizSpec.Picture, QuizSpec.WORD_SP, stacked = false)
+    }
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         for (row in rows) {
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 for (option in row) {
-                    OptionTile(option, game, colors, four, Modifier.weight(1f).fillMaxHeight()) { onPick(option) }
+                    OptionTile(option, game, colors, tile, Modifier.weight(1f).fillMaxHeight()) { onPick(option) }
                 }
             }
         }
     }
 }
 
+/** A tile's picture size and solved word size; [stacked] puts the word under the picture. */
+private class TileStyle(val picture: Dp, val wordSp: Float, val stacked: Boolean)
+
 @Composable
-private fun OptionTile(option: Letter, game: QuizGame, colors: StageColors, four: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun OptionTile(option: Letter, game: QuizGame, colors: StageColors, style: TileStyle, modifier: Modifier, onClick: () -> Unit) {
     val isTarget = game.isRight(option)
     val solvedHere = game.solved && isTarget
     val tilt = remember { Animatable(0f) }
@@ -364,21 +390,21 @@ private fun OptionTile(option: Letter, game: QuizGame, colors: StageColors, four
                 .padding(12.dp),
             contentAlignment = Alignment.Center,
         ) {
-            val picture = if (four) QuizSpec.PictureFour else QuizSpec.Picture
+            val picture = style.picture
             val image = @Composable { m: Modifier ->
                 Image(letterPicture(option), contentDescription = null, modifier = m.sizeIn(maxWidth = picture, maxHeight = picture).fillMaxSize())
             }
             val word = @Composable {
                 ArabicText(
                     highlightedWord(option.wordFirst, option.wordRest, colors.accent),
-                    size = (if (four) QuizSpec.WORD_FOUR_SP else QuizSpec.WORD_SP).sp,
+                    size = style.wordSp.sp,
                     color = HuroofiTokens.Navy,
                 )
             }
             when {
                 !solvedHere -> image(Modifier)
-                // Early reader: the word sits under the picture, which moves up to make room.
-                four -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Early reader and wide: the word sits under the picture, which moves up to make room.
+                style.stacked -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     image(Modifier.weight(1f, fill = false))
                     word()
                 }
