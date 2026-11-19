@@ -16,6 +16,8 @@ private class FakeBackend(private val existing: Set<String>) : AudioBackend {
     val events = mutableListOf<String>()
     var stops = 0
     var released = false
+    var muted = false
+    var volumeShown = 0
     private var current: CancellableContinuation<Unit>? = null
 
     override fun exists(path: String) = path in existing
@@ -40,6 +42,12 @@ private class FakeBackend(private val existing: Set<String>) : AudioBackend {
 
     override fun release() {
         released = true
+    }
+
+    override fun isMuted() = muted
+
+    override fun showVolume() {
+        volumeShown++
     }
 }
 
@@ -94,6 +102,35 @@ class SoundPlayerTest {
         first.join()
         backend.finishCurrent()
         second.join()
+    }
+
+    @Test
+    fun mutedVolumeIsShownOnceASession() = runTest {
+        val backend = FakeBackend(setOf(clipA.path, clipB.path)).apply { muted = true }
+        val player = GatedSoundPlayer(backend) { true }
+        val first = launch(start = CoroutineStart.UNDISPATCHED) { player.play(clipA) }
+        val second = launch(start = CoroutineStart.UNDISPATCHED) { player.play(clipB) }
+        assertEquals(1, backend.volumeShown)
+        first.join()
+        backend.finishCurrent()
+        second.join()
+    }
+
+    @Test
+    fun volumeIsNotShownWhenAudibleOrWhenThereIsNothingToHear() = runTest {
+        val audible = FakeBackend(setOf(clipA.path))
+        val a = launch(start = CoroutineStart.UNDISPATCHED) { GatedSoundPlayer(audible) { true }.play(clipA) }
+        audible.finishCurrent()
+        a.join()
+        assertEquals(0, audible.volumeShown)
+
+        val voiceOff = FakeBackend(setOf(clipA.path)).apply { muted = true }
+        GatedSoundPlayer(voiceOff) { false }.play(clipA)
+        assertEquals(0, voiceOff.volumeShown)
+
+        val missing = FakeBackend(emptySet()).apply { muted = true }
+        GatedSoundPlayer(missing) { true }.play(clipA)
+        assertEquals(0, missing.volumeShown)
     }
 
     @Test

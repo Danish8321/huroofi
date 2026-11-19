@@ -76,13 +76,20 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
    - Paint: the wipe button sits under the four crayons, as in the prototype, and the prompt pill shrinks its words rather than pushing out the speaker.
    - Trace: five crayons in one row when 5 × 64 dp fits, else three over two, centred. All stay 64 dp.
 
+15. **Sound safety.** Branch `feat/sound-safety`. From the maintainer-decision list; the maintainer said go ahead on 2026-11-20, and the child-facing details were left to me.
+   - Audio focus: each clip asks for transient focus (other apps duck under it) and gives it back when it ends. A call or another app taking focus ends the clip; while one holds it, the clip is skipped silently. Clips play as media speech.
+   - The volume keys set the media volume all the time, not the ringer between clips.
+   - Muted: the first clip asked for with the media volume at zero shows the system volume panel, once a session. No new picture on the child's screen, so a toddler sees nothing to puzzle over, and a parent who muted on purpose is not nagged. The Parent-zone voice switch off, or a missing recording, shows nothing.
+   - The screen stays on while a child screen (the play-time routes) is shown; on Rest, the gate and the Parent zone it may sleep.
+   - Prototype unchanged: nothing new is drawn.
+
 ## Later
 
-- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12. Item 5 is slice 13; the toddler-layouts item is slice 14.
+- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12. Item 5 is slice 13; the toddler-layouts item is slice 14; sound safety is slice 15.
 
 ## Needs the maintainer's decision
 
-Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape layouts; sound safety (mute detection, audio focus, keep-screen-on).
+Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape layouts (every screen now fits in landscape, slices 13 and 14; this is about dedicated side-by-side designs).
 
 ## Built
 
@@ -184,3 +191,10 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - Early reader Trace ق: five crayons in a row at the design size and 360 dp, three over two at 320 dp; `a11y.sh` PASS at all three (8 targets). Before, Purple and Pink failed at 320 dp.
   - Emulator `huroofi_tablet_small`, landscape: Toddler home, Paint, Find and Cards fit; `a11y.sh` PASS on all four.
   - The phone is left in Early reader mode at its design size; the tablet in Toddler mode.
+- Slice 15, `feat/sound-safety`, merged to `main`. `check.sh` and `test-fast.sh` PASS: `SoundPlayerTest.mutedVolumeIsShownOnceASession`, `volumeIsNotShownWhenAudibleOrWhenThereIsNothingToHear`.
+  - Emulator `huroofi_tablet_small`, Toddler mode:
+    - In the app, the volume keys moved the media volume (5 to 0).
+    - Media volume 0, fresh start: the system volume panel opened, showing muted, as the first prompt was asked for. Tapping Leo's prompt again: no panel.
+    - `dumpsys audio`: each clip `requestAudioFocus` with `USAGE_MEDIA/CONTENT_TYPE_SPEECH`, `req=3` (transient, may duck), and `abandonAudioFocus` about 0.3 s later when the silent placeholder ended.
+    - `dumpsys window`: `KEEP_SCREEN_ON` on Toddler home, not on Rest.
+  - Not verified: a call or another app taking focus mid-clip (the placeholder clips are too short to catch); real recordings. The daily limit ran out again, so the clock was moved a day on, then set back to automatic; media volume restored.
