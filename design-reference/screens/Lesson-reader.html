@@ -382,6 +382,10 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .trace-foot .primary-btn { flex: 1 }
 /* Wide landscape tablet: canvas on the left at full height; hint, paints, Again and Next stacked on the right. */
 .learn-wrap.wide { padding: 24px 28px 0 }
+.lesson-wide { flex: 1; display: flex; gap: 24px; min-height: 0; padding-bottom: 28px }
+.lesson-side { width: 380px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto }
+.lesson-side .lesson-next { margin: auto 0 0 }
+.lesson.wide .big-letter { font-size: 260px }
 .trace-wide { flex: 1; display: flex; gap: 24px; min-height: 0; padding-bottom: 28px }
 .trace-wide .trace-card { flex: 1 }
 .trace-side { width: 380px; display: flex; flex-direction: column; gap: 20px }
@@ -535,7 +539,7 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 
 
 
-<div id="screen" class="screen screen-lesson static-phone"><div class="learn-wrap lesson reader">
+<div id="screen" class="screen screen-lesson static-phone"><div class="learn-wrap lesson reader ">
       <div class="flow-head"><button type="button" class="round-btn" data-go="home" aria-label="Back to home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button><div class="steps" aria-label="Step 1 of 3"><span class="step now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg><b>Meet</b></span><span class="step-line "></span><span class="step todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z"></path><path d="M14 6l3 3"></path></svg></span><span class="step-line "></span><span class="step todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"></path></svg></span></div></div>
       <div class="letter-card" style="background:#FFEDC4;border-color:#F59E0B;box-shadow:0 8px 0 #A35400">
         <span class="letter-name"><b>baa</b> <span dir="rtl" class="ar ">باء</span></span>

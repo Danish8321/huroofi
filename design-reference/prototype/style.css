@@ -370,6 +370,10 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .trace-foot .primary-btn { flex: 1 }
 /* Wide landscape tablet: canvas on the left at full height; hint, paints, Again and Next stacked on the right. */
 .learn-wrap.wide { padding: 24px 28px 0 }
+.lesson-wide { flex: 1; display: flex; gap: 24px; min-height: 0; padding-bottom: 28px }
+.lesson-side { width: 380px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto }
+.lesson-side .lesson-next { margin: auto 0 0 }
+.lesson.wide .big-letter { font-size: 260px }
 .trace-wide { flex: 1; display: flex; gap: 24px; min-height: 0; padding-bottom: 28px }
 .trace-wide .trace-card { flex: 1 }
 .trace-side { width: 380px; display: flex; flex-direction: column; gap: 20px }
