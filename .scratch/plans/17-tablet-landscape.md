@@ -15,6 +15,7 @@ Started 2026-11-19 by the maintainer ("start with the other resolution changes i
 2. **Finger paint** (`feat/tablet-paint`). The canvas fills the left at full height; the crayons and wipe, or once done "Paint it again" and the ring, sit centred in a 320 dp column on the right (`ToddlerPaintTablet.html`). The header (Home, prompt, lock) spans the top. `ToddlerScaffold(wide = true)` drops the 480 dp phone column so the next Toddler screens can reuse it.
 3. **Meet** (`feat/tablet-meet`). The letter card fills the left at full height, the letter up to 260 dp; the word card, the shapes card (Early reader) and "Trace it" stack in a 380 dp column on the right, "Trace it" at its bottom (`LessonTablet.html`). A large text size scrolls the column.
    - Also: a shape cell grows with the text size instead of clipping its label ("End", "Alone" were cut at 200 %, on phones too).
+4. **Picture game** (`feat/tablet-quiz`). All the pictures sit in one row (3 in Preschool, 4 in Early reader), up to 160 dp; once solved the word goes under the picture (`QuizTablet.html`). Close, dots, question and foot keep their phone order across the full width. `CappedWidth(wide = true)` now drops the 480 dp column for any screen; `ToddlerScaffold` uses it.
 
 ## Built
 
@@ -28,3 +29,5 @@ Started 2026-11-19 by the maintainer ("start with the other resolution changes i
   - Emulator, Toddler, Finger paint: the canvas is about 570 × 465 dp beside the crayons; painting ر finished it and the next letter started by itself; ض showed the green frame, stars, Again and the ring beside the canvas. `a11y.sh` PASS (7 targets, min 64 dp). Portrait keeps the phone layout; at 200 % text the prompt grows and everything still fits.
 - Slice 3, `feat/tablet-meet`, merged to `main`. `check.sh`, `test-fast.sh` and `design.sh` PASS (new reference screen `LessonTablet.html`).
   - Emulator, Early reader, Meet أ: the letter card is about 500 × 470 dp beside the word and shapes cards; `a11y.sh` PASS (5 targets, min 64 dp). Portrait keeps the phone layout. At 200 % text the shape labels show whole and the side column scrolls to "Trace it".
+- Slice 4, `feat/tablet-quiz`, merged to `main`. `check.sh`, `test-fast.sh` and `design.sh` PASS (new reference screen `QuizTablet.html`).
+  - Emulator, Early reader, after tracing أ (100 %): four tiles of about 215 × 290 dp in one row; a wrong pick (sparrow) showed "Almost! Try again" and dimmed it; the lion then went green with أسد under it and "Great job! Next". `a11y.sh` PASS (6 targets, min 64 dp). Portrait keeps the 2 × 2 phone layout; 200 % text still fits.

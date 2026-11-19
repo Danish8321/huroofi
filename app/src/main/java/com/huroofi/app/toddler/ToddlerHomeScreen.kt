@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
@@ -120,7 +119,7 @@ fun ToddlerScaffold(
     overlay: @Composable BoxScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val body: @Composable BoxScope.() -> Unit = {
+    CappedWidth(background, modifier, wide) {
         Column(
             Modifier
                 .fillMaxHeight()
@@ -132,7 +131,6 @@ fun ToddlerScaffold(
         )
         Box(Modifier.matchParentSize().safeDrawingPadding(), content = overlay)
     }
-    if (wide) Box(modifier.fillMaxSize().background(background), content = body) else CappedWidth(background, modifier, body)
 }
 
 /** Leo's question. A tap anywhere on it asks again; the sun button says so. */
