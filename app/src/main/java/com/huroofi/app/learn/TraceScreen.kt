@@ -212,8 +212,8 @@ private class InkStroke(val color: Color, val points: SnapshotStateList<Offset>)
  * The dots of every stroke and how far each covered dot has popped. The canvas reads [revision], so
  * it redraws when ink lands or a dot moves a frame.
  */
-private class GuideState(val dots: List<List<Offset>>, tolerancePx: Float, val area: AreaCheck) {
-    private val check = StrokeCheck(dots, tolerancePx)
+private class GuideState(val dots: List<List<Offset>>, tolerancePx: Float, val area: AreaCheck, strokeNeed: Float) {
+    private val check = StrokeCheck(dots, tolerancePx, strokeNeed)
     private val pops = dots.map { FloatArray(it.size) }
     var revision by mutableIntStateOf(0)
         private set
@@ -332,6 +332,8 @@ fun TraceScreen(
     onNext: () -> Unit,
     onHearHint: (TracePhase) -> Unit = {},
     practice: Boolean = false,
+    /** Preschool: a little less of each stroke and of the letter, and the rest fills in when done (plan 16 slice 17). */
+    preschool: Boolean = false,
 ) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
@@ -341,13 +343,15 @@ fun TraceScreen(
     }
     val inkStrokes = remember { mutableStateListOf<InkStroke>() }
     val inkFit = remember { arrayOfNulls<FittedGlyph>(1) } // the fit the ink was drawn on
-    val check = remember(glyph, strokes) {
+    val check = remember(glyph, strokes, preschool) {
         glyph?.let { g ->
             with(density) {
                 val spots = GlyphMask(g, canvasSize, density).grid(TraceSpec.AreaStep.toPx(), TraceSpec.AreaInset.toPx())
                 val lines = strokes.map { s -> s.points.map { toCanvas(it, g.ink) } }
-                val area = AreaCheck(spots, brushReach(spots, lines, TraceSpec.BrushSlack.toPx(), TraceSpec.BrushMin.toPx()))
-                GuideState(guideDots(strokes, g.ink, TraceSpec.DotSpacing.toPx()), TraceSpec.Tolerance.toPx(), area).also { guide ->
+                val reach = brushReach(spots, lines, TraceSpec.BrushSlack.toPx(), TraceSpec.BrushMin.toPx())
+                val area = AreaCheck(spots, reach, if (preschool) PRESCHOOL_AREA_NEED else AREA_NEED)
+                val need = if (preschool) PRESCHOOL_STROKE_NEED else STROKE_NEED
+                GuideState(guideDots(strokes, g.ink, TraceSpec.DotSpacing.toPx()), TraceSpec.Tolerance.toPx(), area, need).also { guide ->
                     // A rotation or settings change refits the letter: the ink moves with it and counts
                     // again (plan 16 slice 3). Ink is only read while drawing, so this is safe here.
                     val old = inkFit[0]
@@ -558,6 +562,8 @@ fun TraceScreen(
                         val g = glyph ?: return@Canvas
                         drawText(g.layout, TraceSpec.Band, g.topLeft, drawStyle = Fill) // the outline below leaves Stroke set on the layout
                         drawText(g.layout, TraceSpec.Band, g.topLeft, drawStyle = Stroke(TraceSpec.OutlineWidth.toPx(), join = StrokeJoin.Round))
+                        // Done: any gaps take the last paint, under the child's own ink.
+                        if (finished) drawRect(crayon, blendMode = BlendMode.SrcAtop)
                         // As wide as the brush the paint check uses, so what shows painted is what counts.
                         val width = (check?.area?.reachPx ?: TraceSpec.BrushMin.toPx()) * 2f
                         val style = Stroke(width = width, cap = StrokeCap.Round, join = StrokeJoin.Round)
@@ -582,7 +588,7 @@ fun TraceScreen(
                         for ((i, dots) in guide.dots.withIndex()) {
                             val base = (if (dots.size == 1) TraceSpec.DotStrokeRadius else TraceSpec.DotRadius).toPx()
                             for ((d, dot) in dots.withIndex()) {
-                                if (guide.covered(i, d)) {
+                                if (guide.covered(i, d) || finished) {
                                     drawCircle(TraceSpec.DoneDot, base * (1f + TraceSpec.DONE_GROW * guide.pop(i, d)), dot)
                                 } else {
                                     drawCircle(TraceSpec.Dot, base, dot, alpha = if (next == null || i == next) 1f else TraceSpec.LATER_ALPHA)

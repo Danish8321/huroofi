@@ -89,13 +89,19 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
    - The stepper goes one step past 60 to Off (stored as 0, `DAILY_LIMIT_OFF`; the old clamp never stored 0). Down from Off is 60. Off reads "No daily limit"; play time is still counted.
    - The row's caption: "A calm rest screen comes when it is used up and the game ends". Prototype: `parent.js` stepper and caption, and the Rest and Parents rules in `shell.js`.
 
+17. **Preschool tracing is easier; Early reader is unchanged.** Branch `feat/preschool-trace`. From the maintainer-decision list; the maintainer chose "easier for the youngest who trace" on 2026-11-19 (Toddler has no tracing; its Paint is distance only).
+   - Preschool: a stroke finishes at 85 % of its dots (`PRESCHOOL_STROKE_NEED`) and the letter at 90 % painted (`PRESCHOOL_AREA_NEED`). Early reader stays at 100 % and 100 % (plan 15 decision 1).
+   - The leftovers fill in once done, in both modes: every dot shows green, and any gaps take the current paint under the child's own ink. In Early reader that only touches the soft edge.
+   - Below 90 % painted, the yellow-spot step still shows, as before.
+   - Prototype: `traceNeed()` in `learn.js`, Trace rules in `shell.js`; the flow test pins the strict checks to Early reader and adds a Preschool one.
+
 ## Later
 
-- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12. Item 5 is slice 13; the toddler-layouts item is slice 14; sound safety is slice 15; the Rest warning and limit Off are slice 16.
+- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12. Item 5 is slice 13; the toddler-layouts item is slice 14; sound safety is slice 15; the Rest warning and limit Off are slice 16; Preschool tracing is slice 17.
 
 ## Needs the maintainer's decision
 
-Easier tracing; tablet landscape layouts (every screen now fits in landscape, slices 13 and 14; this is about dedicated side-by-side designs).
+Tablet landscape layouts (every screen now fits in landscape, slices 13 and 14; this is about dedicated side-by-side designs): deferred until after the store release, maintainer 2026-11-19.
 
 ## Built
 
@@ -211,3 +217,8 @@ Easier tracing; tablet landscape layouts (every screen now fits in landscape, sl
     - Time ran out on Toddler home: Rest came with usage at exactly limit + 180 s. Same on Find (25 min limit): Rest at 1500 + 180 s, Find playing until then.
     - Limit 30, on Find: 20 s past the limit Find was still playing; tapping Home went straight to Rest (usage limit + 25 s).
   - The tablet is left at 100 % text (it had stayed at 200 % since slice 13) and a 60-minute limit.
+- Slice 17, `feat/preschool-trace`, merged to `main`. `check.sh`, `test-fast.sh` and `design.sh` PASS: `StrokeCheckTest.preschoolFinishesAStrokeAtEightyFivePercent`, `LetterAreaTest.preschoolIsDoneAtNinetyPercent` (each against the strict check); flow test "Preschool finishes with 1 dots missed, all shown green and filled".
+  - Emulator `huroofi_tablet_small`, Trace أ, the same two swipes in each mode (the alif stopped 64 px, more than the 30 dp tolerance, short of its last dot; then the hamza):
+    - Preschool: done at once, "Well done! Tap Play", every dot green, Play unlocked. `a11y.sh` PASS (8 targets, min 64 dp).
+    - Early reader: the last dot stays grey, the tail unpainted, "Finish أ first" locked.
+  - The daily limit was set to Off for the walk, then back to 60; mode back to Toddler.

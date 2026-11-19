@@ -125,12 +125,14 @@ fun TraceRoute(index: Int, onBack: () -> Unit, onNext: () -> Unit, practice: Boo
     val scope = rememberCoroutineScope()
     val prompt = remember { PromptPlayer(container.sound, scope) }
     val strokes = remember(index) { container.content.strokes(index) }
+    val mode by container.progress.mode.collectAsStateWithLifecycle<AgeMode?>(null)
     // Sound first: the letter, then the spoken hint, then the demo hand starts (plan 09 decision 4, plan 14 decision 2).
     var introDone by remember(index) { mutableStateOf(false) }
     LaunchedEffect(index) {
         prompt.play(listOf(Clips.letter(letter), Clips.traceHint)).join()
         introDone = true
     }
+    val current = mode ?: return Loading()
     TraceScreen(
         letter = letter.letter,
         name = letter.nameLatin,
@@ -146,6 +148,7 @@ fun TraceRoute(index: Int, onBack: () -> Unit, onNext: () -> Unit, practice: Boo
             )
         },
         practice = practice,
+        preschool = current == AgeMode.PRESCHOOL,
         onBack = {
             prompt.stop()
             onBack()
