@@ -41,6 +41,9 @@ object ToddlerHomeSpec {
     val LabelMinWidth = 100.dp
     val GoCircle = 48.dp
     val MascotSize = 96.dp
+    /** Leo is this share of the column's width, between [MascotMin] and [MascotSize]. */
+    const val MASCOT_SHARE = 0.25f
+    val MascotMin = 56.dp
     val BubbleHeight = 76.dp
     val BubbleEdge = 4.dp
     val SunButton = 56.dp

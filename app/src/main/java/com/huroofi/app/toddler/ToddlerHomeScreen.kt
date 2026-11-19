@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -50,6 +51,7 @@ import com.huroofi.app.ui.components.ParentLock
 import com.huroofi.app.ui.components.ScaleDownToFit
 import com.huroofi.app.ui.components.SoundIcon
 import com.huroofi.app.ui.components.StarIcon
+import com.huroofi.app.ui.components.windowWidth
 import com.huroofi.app.ui.theme.ArabicText
 import com.huroofi.app.ui.theme.HuroofiTheme
 import com.huroofi.app.ui.theme.HuroofiTokens
@@ -81,14 +83,17 @@ fun ToddlerHomeScreen(
             )
         },
     ) {
-        // The bubble stops short of the corner lock.
-        Row(
-            Modifier.padding(end = 52.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.size(spec.MascotSize))
-            PromptBubble(onReplayPrompt, Modifier.weight(1f))
+        // The bubble stops short of the corner lock. On a narrow phone Leo gives up width first.
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val leo = (windowWidth * spec.MASCOT_SHARE).coerceIn(spec.MascotMin, spec.MascotSize)
+            Row(
+                Modifier.padding(end = 52.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(painterResource(R.drawable.pic_lion), contentDescription = null, modifier = Modifier.size(leo))
+                PromptBubble(onReplayPrompt, Modifier.weight(1f))
+            }
         }
         for (activity in ToddlerActivity.entries) {
             ActivityTile(
@@ -149,7 +154,10 @@ private fun PromptBubble(onClick: () -> Unit, modifier: Modifier = Modifier) {
                 .background(HuroofiTokens.Sun, CircleShape),
             contentAlignment = Alignment.Center,
         ) { SoundIcon(HuroofiTokens.Navy, size = 28.dp) }
-        ArabicText("ماذا نلعب؟", size = spec.BUBBLE_SP.sp, color = HuroofiTokens.Navy, modifier = Modifier.weight(1f))
+        // Two lines as designed, broken between the words: a narrow phone shrinks them, never splits a word.
+        ScaleDownToFit(Modifier.weight(1f)) {
+            ArabicText("ماذا\nنلعب؟", size = spec.BUBBLE_SP.sp, color = HuroofiTokens.Navy)
+        }
     }
 }
 
@@ -193,11 +201,14 @@ private fun ActivityTile(activity: ToddlerActivity, onClick: () -> Unit, modifie
                         ToddlerActivity.PAINT -> PaintArt()
                     }
                 }
+                // The play circle sits under its label, so a narrow or short tile never puts it over the word.
                 ScaleDownToFit(Modifier.widthIn(min = spec.LabelMinWidth)) {
-                    ArabicText(activity.arabicLabel, size = spec.LABEL_SP.sp, color = tile.text)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        ArabicText(activity.arabicLabel, size = spec.LABEL_SP.sp, color = tile.text)
+                        GoCircle(tile.border, Modifier)
+                    }
                 }
             }
-            GoCircle(tile.border, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 14.dp))
         }
     }
 }

@@ -15,13 +15,13 @@ SCREENS.thome = {
     </div>
     <button type="button" class="tile tile-cards" data-go="tcards" aria-label="Look and listen">
       <span class="tile-art"><span class="mini-card tilt-l"><img src="${img('lion')}" alt=""></span><span class="mini-card tilt-r"><img src="${img('duck')}" alt=""></span></span>
-      ${AR('اسمع', 'tile-ar')}<span class="tile-go">${ICON.play}</span></button>
+      <span class="tile-side">${AR('اسمع', 'tile-ar')}<span class="tile-go">${ICON.play}</span></span></button>
     <button type="button" class="tile tile-find" data-go="tfind" aria-label="Find it">
       <span class="tile-art"><span class="mini-pic ok"><img src="${img('duck')}" alt="">${starSvg(28)}</span><span class="mini-pic"><img src="${img('apple')}" alt=""></span></span>
-      ${AR('ابحث', 'tile-ar')}<span class="tile-go">${ICON.play}</span></button>
+      <span class="tile-side">${AR('ابحث', 'tile-ar')}<span class="tile-go">${ICON.play}</span></span></button>
     <button type="button" class="tile tile-paint" data-go="tpaint" aria-label="Paint">
       <span class="tile-art"><span class="mini-paint">${AR('ب')}</span></span>
-      ${AR('ارسم', 'tile-ar')}<span class="tile-go">${ICON.play}</span></button>
+      <span class="tile-side">${AR('ارسم', 'tile-ar')}<span class="tile-go">${ICON.play}</span></span></button>
   </div>`,
   mount: (root) => {
     bindGo(root);

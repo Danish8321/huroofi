@@ -74,6 +74,9 @@ import com.huroofi.app.ui.components.ButtonIcons
 import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
 import com.huroofi.app.ui.components.FillColumn
+import com.huroofi.app.ui.components.windowWidth
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.FlowRow
 import com.huroofi.app.ui.components.DemoHand
 import com.huroofi.app.ui.components.DemoHandSpec
 import com.huroofi.app.ui.components.DemoRun
@@ -121,6 +124,8 @@ object TraceSpec {
     val ArrowLength = 30.dp
     val CrayonSize = 64.dp
     val CrayonRing = 5.dp
+    /** Space between crayons once they wrap to two rows. */
+    val CrayonGap = 8.dp
     val Again = 64.dp
     val AgainBorder = Color(0xFFA9CBF2)
     /** The band: the glyph filled pale blue. Darker than `Trace.html`'s `#EEF3F9`, which toddlers could not see (kid review, 2026-10-07). */
@@ -611,21 +616,30 @@ fun TraceScreen(
                         DoneBadge(letter, Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp))
                     }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    for ((color, label) in TraceSpec.crayons) {
-                        val picked = color == crayon
-                        Box(
-                            Modifier
-                                .size(TraceSpec.CrayonSize)
-                                .clip(CircleShape)
-                                .background(color)
-                                .border(TraceSpec.CrayonRing, if (picked) HuroofiTokens.Navy else HuroofiTokens.Card, CircleShape)
-                                .semantics {
-                                    contentDescription = label
-                                    selected = picked
-                                }
-                                .clickable(role = Role.RadioButton) { crayon = color },
-                        )
+                // Five in a row when they fit at full size, else three over two (a 320 dp phone).
+                BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    val fit = windowWidth >= TraceSpec.CrayonSize * TraceSpec.crayons.size
+                    FlowRow(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = if (fit) Arrangement.SpaceBetween else Arrangement.spacedBy(TraceSpec.CrayonGap * 2, Alignment.CenterHorizontally),
+                        verticalArrangement = Arrangement.spacedBy(TraceSpec.CrayonGap),
+                        maxItemsInEachRow = if (fit) TraceSpec.crayons.size else 3,
+                    ) {
+                        for ((color, label) in TraceSpec.crayons) {
+                            val picked = color == crayon
+                            Box(
+                                Modifier
+                                    .size(TraceSpec.CrayonSize)
+                                    .clip(CircleShape)
+                                    .background(color)
+                                    .border(TraceSpec.CrayonRing, if (picked) HuroofiTokens.Navy else HuroofiTokens.Card, CircleShape)
+                                    .semantics {
+                                        contentDescription = label
+                                        selected = picked
+                                    }
+                                    .clickable(role = Role.RadioButton) { crayon = color },
+                            )
+                        }
                     }
                 }
             }
