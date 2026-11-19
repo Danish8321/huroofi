@@ -131,21 +131,21 @@ SCREENS.lesson = {
   title: 'Meet the letter',
   view: ({ i }) => {
     const l = L(i), st = stageOf(l.stage);
-    const reader = S.mode === 'reader';
-    return `<div class="learn-wrap lesson ${reader ? 'reader' : ''}">
+    const reader = S.mode === 'reader', wide = S.device === 'tablet';
+    return `<div class="learn-wrap lesson ${reader ? 'reader' : ''} ${wide ? 'wide' : ''}">
       <div class="flow-head"><button type="button" class="round-btn" data-go="home" aria-label="Back to home">${ICON.back}</button>${stepBar('meet')}</div>
-      <div class="letter-card" style="background:${st.pastel};border-color:${st.border};box-shadow:0 8px 0 ${st.accent_dark}">
+      ${wide ? '<div class="lesson-wide">' : ''}<div class="letter-card" style="background:${st.pastel};border-color:${st.border};box-shadow:0 8px 0 ${st.accent_dark}">
         <span class="letter-name"><b>${l.name_latin}</b> ${AR(l.name_ar)}</span>
         <button type="button" class="sun-btn lesson-sound" aria-label="Hear ${l.name_latin} and ${l.meaning_en}">${ICON.speaker}</button>
         <button type="button" class="big-letter" aria-label="Letter ${l.name_latin}. Tap to hear">${AR(l.letter)}</button>
       </div>
-      <button type="button" class="word-card" aria-label="${cap(l.meaning_en)}. Tap to hear">
+      ${wide ? '<div class="lesson-side">' : ''}<button type="button" class="word-card" aria-label="${cap(l.meaning_en)}. Tap to hear">
         <span class="word-pic"><img src="${img(l.picture)}" alt=""></span>
         <span class="word-text">${pictureWord(l, 'lesson-word')}<span class="meaning">${l.meaning_en}</span></span>
       </button>
       ${reader ? `<div class="shapes-card"><div class="shapes-head"><b>${AR(l.letter)} in words</b><span class="reader-chip">Early reader</span></div>
         <div class="shapes" dir="rtl">${shapes(l).map(([n, s], k) => `<span class="shape ${k === 0 ? 'alone' : ''}" aria-label="${n} shape">${AR(s)}<small dir="ltr">${n}</small></span>`).join('')}</div></div>` : ''}
-      <button type="button" class="primary-btn lesson-next" data-go="trace" data-i="${i}">Trace it ${ICON.next}</button>
+      <button type="button" class="primary-btn lesson-next" data-go="trace" data-i="${i}">Trace it ${ICON.next}</button>${wide ? '</div></div>' : ''}
     </div>`;
   },
   mount: (root, { i }) => {

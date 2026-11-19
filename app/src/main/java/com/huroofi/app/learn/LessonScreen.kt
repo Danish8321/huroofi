@@ -9,10 +9,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import com.huroofi.app.ui.components.windowWidth
+import com.huroofi.app.ui.components.windowHeight
+import com.huroofi.app.ui.components.useWideLayout
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -82,11 +88,14 @@ object LessonSpec {
     val ReaderChipText = Color(0xFF4C2DB0)
     const val LETTER_SP = 170f
     const val LETTER_WITH_SHAPES_SP = 140f
+    /** Wide landscape tablet: the letter card is full height, so the letter grows to this. */
+    const val LETTER_WIDE_SP = 260f
+    val SideWidth = 380.dp
     const val NAME_SP = 22f
     const val WORD_SP = 48f
     const val SHAPE_SP = 36f
     const val INLINE_SP = 22f
-    val textSizes = listOf(LETTER_SP, LETTER_WITH_SHAPES_SP, NAME_SP, WORD_SP, SHAPE_SP, INLINE_SP)
+    val textSizes = listOf(LETTER_SP, LETTER_WITH_SHAPES_SP, LETTER_WIDE_SP, NAME_SP, WORD_SP, SHAPE_SP, INLINE_SP)
 
     /** Room above and below the letter for the name row (16 dp in, 28 dp tall). */
     val LetterBand = 44.dp
@@ -160,25 +169,49 @@ fun LessonScreen(
     onNext: (() -> Unit)?,
 ) {
     val colors = stage.colors()
-    CappedWidth(HuroofiTokens.Sky) {
-        Column(
-            Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 26.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            PathHeader(PathStep.MEET, "Back to home", onBack)
-            // The header and "Trace it" stay put; a short window shrinks the letter card, then scrolls.
-            FillColumn(fill = 0, fillMin = LessonSpec.CardMin, modifier = Modifier.weight(1f)) {
-                LetterCard(letter, colors, showShapes, onHear, onHearLetter, Modifier)
-                WordCard(letter, colors, onHearWord)
-                if (showShapes) ShapesCard(letter)
+    val next: @Composable () -> Unit = { if (onNext != null) PrimaryButton("Trace it", onClick = onNext, icon = ButtonIcons.Next) }
+    BoxWithConstraints(Modifier.fillMaxSize().background(HuroofiTokens.Sky)) {
+        if (useWideLayout(windowWidth.value, windowHeight.value)) {
+            // Wide landscape tablet (`LessonTablet.html`): letter card left at full height, the rest beside it.
+            Column(
+                Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 28.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                PathHeader(PathStep.MEET, "Back to home", onBack)
+                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    LetterCard(letter, colors, LessonSpec.LETTER_WIDE_SP, onHear, onHearLetter, Modifier.weight(1f).fillMaxHeight())
+                    val gap = if (showShapes) 2 else 1
+                    FillColumn(fill = gap, fillMin = 0.dp, modifier = Modifier.width(LessonSpec.SideWidth).fillMaxHeight(), edge = 0.dp) {
+                        WordCard(letter, colors, onHearWord)
+                        if (showShapes) ShapesCard(letter)
+                        Spacer(Modifier)
+                        next()
+                    }
+                }
             }
-            if (onNext != null) PrimaryButton("Trace it", onClick = onNext, icon = ButtonIcons.Next)
+        } else {
+            CappedWidth(HuroofiTokens.Sky) {
+                Column(
+                    Modifier.fillMaxSize().safeDrawingPadding().padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 26.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    PathHeader(PathStep.MEET, "Back to home", onBack)
+                    // The header and "Trace it" stay put; a short window shrinks the letter card, then scrolls.
+                    FillColumn(fill = 0, fillMin = LessonSpec.CardMin, modifier = Modifier.weight(1f)) {
+                        val full = if (showShapes) LessonSpec.LETTER_WITH_SHAPES_SP else LessonSpec.LETTER_SP
+                        LetterCard(letter, colors, full, onHear, onHearLetter, Modifier)
+                        WordCard(letter, colors, onHearWord)
+                        if (showShapes) ShapesCard(letter)
+                    }
+                    next()
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun LetterCard(letter: Letter, colors: StageColors, showShapes: Boolean, onHear: () -> Unit, onHearLetter: () -> Unit, modifier: Modifier) {
+private fun LetterCard(letter: Letter, colors: StageColors, full: Float, onHear: () -> Unit, onHearLetter: () -> Unit, modifier: Modifier) {
     val shape = RoundedCornerShape(LessonSpec.CardCorner)
     val letterWiggle = rememberWiggle()
     Box(
@@ -219,7 +252,6 @@ private fun LetterCard(letter: Letter, colors: StageColors, showShapes: Boolean,
             // A short window shrinks the card (the prototype's `min-height: 0`) and the letter with it:
             // Naskh ink is at most about 1 em tall, so the em is the card's height less a band for the name row.
             val cardHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() }
-            val full = if (showShapes) LessonSpec.LETTER_WITH_SHAPES_SP else LessonSpec.LETTER_SP
             // CenteredLetter ignores the font scale, so 1 sp is 1 dp here.
             val size = minOf(full, (cardHeight - LessonSpec.LetterBand * 2).value).coerceAtLeast(LessonSpec.LETTER_MIN_SP)
             CenteredLetter(letter.letter, Modifier.wiggle(letterWiggle), size = size.sp, color = HuroofiTokens.Navy)
@@ -302,7 +334,7 @@ private fun ShapesCard(letter: Letter) {
                     Column(
                         Modifier
                             .weight(1f)
-                            .height(LessonSpec.ShapeCell)
+                            .heightIn(min = LessonSpec.ShapeCell) // grows with a large text size rather than clipping its label
                             .background(if (alone) LessonSpec.AloneCellColor else LessonSpec.ShapeCellColor, RoundedCornerShape(LessonSpec.ShapeCorner))
                             .clearAndSetSemantics { contentDescription = "${kind.label} shape" },
                         horizontalAlignment = Alignment.CenterHorizontally,

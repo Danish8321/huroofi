@@ -13,6 +13,8 @@ Started 2026-11-19 by the maintainer ("start with the other resolution changes i
 1. **Trace** (`feat/tablet-trace`). The canvas fills the left at full height; the hint, paints, Again and Next stack in a 380 dp column on the right, Again/Next at its bottom (`TraceTablet.html`). The step bar spans the top. Practice uses it too. A large text size scrolls the side column (`FillColumn` with a spacer).
    - Also: once a letter is done, every coin shows its star. A rotation refits the ink and re-checks it, which could leave a stroke just under its share and show its coin behind the "You traced" state.
 2. **Finger paint** (`feat/tablet-paint`). The canvas fills the left at full height; the crayons and wipe, or once done "Paint it again" and the ring, sit centred in a 320 dp column on the right (`ToddlerPaintTablet.html`). The header (Home, prompt, lock) spans the top. `ToddlerScaffold(wide = true)` drops the 480 dp phone column so the next Toddler screens can reuse it.
+3. **Meet** (`feat/tablet-meet`). The letter card fills the left at full height, the letter up to 260 dp; the word card, the shapes card (Early reader) and "Trace it" stack in a 380 dp column on the right, "Trace it" at its bottom (`LessonTablet.html`). A large text size scrolls the column.
+   - Also: a shape cell grows with the text size instead of clipping its label ("End", "Alone" were cut at 200 %, on phones too).
 
 ## Built
 
@@ -24,3 +26,5 @@ Started 2026-11-19 by the maintainer ("start with the other resolution changes i
   - The tablet is back to auto-rotate, 100 % text, Toddler mode and a 60-minute limit (set to Off for the walk).
 - Slice 2, `feat/tablet-paint`, merged to `main`. `check.sh`, `test-fast.sh` and `design.sh` PASS (new reference screen `ToddlerPaintTablet.html`).
   - Emulator, Toddler, Finger paint: the canvas is about 570 × 465 dp beside the crayons; painting ر finished it and the next letter started by itself; ض showed the green frame, stars, Again and the ring beside the canvas. `a11y.sh` PASS (7 targets, min 64 dp). Portrait keeps the phone layout; at 200 % text the prompt grows and everything still fits.
+- Slice 3, `feat/tablet-meet`, merged to `main`. `check.sh`, `test-fast.sh` and `design.sh` PASS (new reference screen `LessonTablet.html`).
+  - Emulator, Early reader, Meet أ: the letter card is about 500 × 470 dp beside the word and shapes cards; `a11y.sh` PASS (5 targets, min 64 dp). Portrait keeps the phone layout. At 200 % text the shape labels show whole and the side column scrolls to "Trace it".
