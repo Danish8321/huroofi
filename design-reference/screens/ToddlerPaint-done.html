@@ -255,6 +255,10 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .paint-again { width: 72px !important; height: 72px !important; color: #B0185A }
 .paint-again svg { width: 30px; height: 30px }
 .paint-done-row .ring-track { stroke: #F2B5CC }
+.paint-wide { flex: 1; display: flex; gap: 28px; min-height: 0 }
+.paint-wide .paint-card { flex: 1 }
+.paint-side { width: 320px; display: flex; flex-direction: column; justify-content: center; gap: 20px }
+.paint-side .paint-done-row { height: auto }
 .demo-hand { pointer-events: none }
 
 /* ---------- learn ---------- */
@@ -531,7 +535,7 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 
 
 
-<div id="screen" class="screen screen-tpaint static-phone"><div class="t-wrap paint-wrap done">
+<div id="screen" class="screen screen-tpaint static-phone"><div class="t-wrap paint-wrap done ">
       <div class="t-top">
   <button type="button" class="t-home" data-go="thome" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M10 20v-5h4v5"></path></svg></button><button type="button" class="sun-btn big paint-say" aria-label="Hear: paint the letter baa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M16 9a4 4 0 0 1 0 6"></path></svg></button>
   <button type="button" class="parent-lock" data-go="gate" aria-label="Grown-ups: open the parent gate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></button></div>

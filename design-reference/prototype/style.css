@@ -243,6 +243,10 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .paint-again { width: 72px !important; height: 72px !important; color: #B0185A }
 .paint-again svg { width: 30px; height: 30px }
 .paint-done-row .ring-track { stroke: #F2B5CC }
+.paint-wide { flex: 1; display: flex; gap: 28px; min-height: 0 }
+.paint-wide .paint-card { flex: 1 }
+.paint-side { width: 320px; display: flex; flex-direction: column; justify-content: center; gap: 20px }
+.paint-side .paint-done-row { height: auto }
 .demo-hand { pointer-events: none }
 
 /* ---------- learn ---------- */
