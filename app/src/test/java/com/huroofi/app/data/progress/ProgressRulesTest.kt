@@ -48,6 +48,7 @@ class ProgressRulesTest {
         assertFalse(limitReached(usageSeconds = 20 * 60 - 1, limitMinutes = 20))
         assertTrue(limitReached(usageSeconds = 20 * 60, limitMinutes = 20))
         assertTrue(limitReached(usageSeconds = 20 * 60 + 5, limitMinutes = 20))
+        assertFalse(limitReached(usageSeconds = 24 * 3600, limitMinutes = DAILY_LIMIT_OFF))
     }
 
     @Test
@@ -58,7 +59,7 @@ class ProgressRulesTest {
 
     @Test
     fun limitIsClampedAndSnappedToStepsOfFive() {
-        assertEquals(5, clampLimitMinutes(0))
+        assertEquals(DAILY_LIMIT_OFF, clampLimitMinutes(DAILY_LIMIT_OFF))
         assertEquals(5, clampLimitMinutes(-10))
         assertEquals(60, clampLimitMinutes(999))
         assertEquals(20, clampLimitMinutes(20))

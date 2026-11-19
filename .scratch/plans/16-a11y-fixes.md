@@ -83,13 +83,19 @@ Slices 5–9 are the review's "Fix next" items that need no design change. Start
    - The screen stays on while a child screen (the play-time routes) is shown; on Rest, the gate and the Parent zone it may sleep.
    - Prototype unchanged: nothing new is drawn.
 
+16. **Rest never cuts a game off; the daily limit can be Off.** Branch `feat/rest-warning`. From the maintainer-decision list; the maintainer said go ahead on 2026-11-20, details left to me.
+   - The warning is the game itself: when a second of play uses up the time, the screen the child is on keeps going. Rest comes when the child moves to any other child screen, or 3 minutes after the time ran out (`GRACE_SECONDS`). A toddler cannot act on a "2 minutes left" sign, so no countdown, picture or new recording.
+   - No grace when the time was already used up: on a restart or after a parent lowers the limit, Rest comes at once, as before.
+   - The stepper goes one step past 60 to Off (stored as 0, `DAILY_LIMIT_OFF`; the old clamp never stored 0). Down from Off is 60. Off reads "No daily limit"; play time is still counted.
+   - The row's caption: "A calm rest screen comes when it is used up and the game ends". Prototype: `parent.js` stepper and caption, and the Rest and Parents rules in `shell.js`.
+
 ## Later
 
-- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12. Item 5 is slice 13; the toddler-layouts item is slice 14; sound safety is slice 15.
+- Fix next: done. Items 7–10 and 14 are slices 5–9; items 12, 13 and 11 are slices 10, 11 and 12. Item 5 is slice 13; the toddler-layouts item is slice 14; sound safety is slice 15; the Rest warning and limit Off are slice 16.
 
 ## Needs the maintainer's decision
 
-Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape layouts (every screen now fits in landscape, slices 13 and 14; this is about dedicated side-by-side designs).
+Easier tracing; tablet landscape layouts (every screen now fits in landscape, slices 13 and 14; this is about dedicated side-by-side designs).
 
 ## Built
 
@@ -198,3 +204,10 @@ Easier tracing; a warning before Rest and a daily limit "off"; tablet landscape 
     - `dumpsys audio`: each clip `requestAudioFocus` with `USAGE_MEDIA/CONTENT_TYPE_SPEECH`, `req=3` (transient, may duck), and `abandonAudioFocus` about 0.3 s later when the silent placeholder ended.
     - `dumpsys window`: `KEEP_SCREEN_ON` on Toddler home, not on Rest.
   - Not verified: a call or another app taking focus mid-clip (the placeholder clips are too short to catch); real recordings. The daily limit ran out again, so the clock was moved a day on, then set back to automatic; media volume restored.
+- Slice 16, `feat/rest-warning`, merged to `main`. `check.sh`, `test-fast.sh` and `design.sh` PASS: `PlayTimeTest` (grace for three minutes, another screen goes to Rest, Off never rests), `ProgressRulesTest` (Off is not clamped, never reached). The unused three-argument `limitReached` and its test are gone; the caller adds the unsaved seconds.
+  - Emulator `huroofi_tablet_small`, Toddler mode. Today's usage read from the app's `progress.preferences_pb` (read only):
+    - Zone: 60 min, "+" gives Off with "No daily limit" and "+" disabled; "−" gives 60 again. `a11y.sh --parent` PASS. At 200 % text the caption wraps to five lines, unclipped; at 100 % two.
+    - Limit lowered to 5 below today's usage: leaving the zone went straight to Rest (no grace).
+    - Time ran out on Toddler home: Rest came with usage at exactly limit + 180 s. Same on Find (25 min limit): Rest at 1500 + 180 s, Find playing until then.
+    - Limit 30, on Find: 20 s past the limit Find was still playing; tapping Home went straight to Rest (usage limit + 25 s).
+  - The tablet is left at 100 % text (it had stayed at 200 % since slice 13) and a 60-minute limit.

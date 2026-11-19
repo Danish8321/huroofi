@@ -11,6 +11,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -29,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.huroofi.app.data.progress.AgeMode
 import com.huroofi.app.data.progress.DEFAULT_LIMIT_MINUTES
+import com.huroofi.app.data.progress.limitReached
 import com.huroofi.app.debug.DEBUG_GALLERY_ROUTE
 import com.huroofi.app.debug.debugDestinations
 import com.huroofi.app.gate.ParentGateScreen
@@ -49,7 +51,6 @@ import com.huroofi.app.parent.ParentZoneRoute
 import com.huroofi.app.parent.RestMove
 import com.huroofi.app.parent.RestRoute
 import com.huroofi.app.parent.UsageMeter
-import com.huroofi.app.parent.limitReached
 import com.huroofi.app.parent.restMove
 import com.huroofi.app.toddler.ToddlerBackHandler
 import com.huroofi.app.toddler.ToddlerHomeRoute
@@ -172,6 +173,8 @@ private fun PlayTimeKeeper(nav: NavHostController, startRoute: String) {
     var pending by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val counting = route in ChildRoutes
+    val currentRoute by rememberUpdatedState(route)
+    var graceRoute by remember { mutableStateOf<String?>(null) }
     // A child watching or listening does not touch the screen; it stays on until Rest or the Parent zone.
     val view = LocalView.current
     DisposableEffect(counting) {
@@ -183,6 +186,9 @@ private fun PlayTimeKeeper(nav: NavHostController, startRoute: String) {
             scope.launch {
                 while (true) {
                     delay(1_000)
+                    val before = stored + meter.pending
+                    // Time ran out during play, not on a restart or a lowered limit: this game may finish.
+                    if (!limitReached(before, limit) && limitReached(before + 1, limit)) graceRoute = currentRoute
                     val save = meter.tick()
                     pending = meter.pending
                     if (save != null) progress.addUsageSeconds(save)
@@ -198,9 +204,11 @@ private fun PlayTimeKeeper(nav: NavHostController, startRoute: String) {
             if (rest > 0) scope.launch { progress.addUsageSeconds(rest) }
         }
     }
-    val reached = limitReached(stored, pending, limit)
-    LaunchedEffect(route, reached) {
-        when (restMove(route, reached)) {
+    val move = restMove(route, stored + pending, limit, graceRoute)
+    LaunchedEffect(route, move) {
+        // Grace is for the screen open when time ran out, not one opened after it.
+        if (route != graceRoute) graceRoute = null
+        when (move) {
             RestMove.ToRest -> nav.navigate(Routes.Rest) {
                 popUpTo(startRoute)
                 launchSingleTop = true
