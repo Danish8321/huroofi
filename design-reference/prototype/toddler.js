@@ -37,19 +37,19 @@ SCREENS.tcards = {
   view: () => {
     const l = L(cardIndex), st = stageOf(l.stage);
     const prev = L(((cardIndex + 26) % 28) + 1), next = L((cardIndex % 28) + 1);
-    return `<div class="t-wrap" style="background:${st.pastel}">
+    const prevBtn = `<button type="button" class="arrow prev" aria-label="Previous picture" style="color:${st.accent_dark}">${ICON.back}</button>`;
+    const nextBtn = `<button type="button" class="arrow next" aria-label="Next picture">${ICON.next}</button>`;
+    const peek = (ls) => `<span class="peek" aria-hidden="true">${ls.map((p) => `<img src="${img(p.picture)}" alt="">`).join('')}</span>`;
+    const wide = S.device === 'tablet';
+    return `<div class="t-wrap ${wide ? 'wide' : ''}" style="background:${st.pastel}">
       ${toddlerTop()}
-      <div class="big-card" style="border-color:${st.border};box-shadow:0 10px 0 ${st.accent_dark}">
+      ${wide ? `<div class="cards-wide"><div class="cards-side">${prevBtn}${peek([prev])}</div>` : ''}<div class="big-card" style="border-color:${st.border};box-shadow:0 10px 0 ${st.accent_dark}">
         <button type="button" class="card-letter" style="background:${st.pastel};color:${st.accent_dark}" aria-label="Letter ${l.name_latin}. Tap to hear">${AR(l.letter)}</button>
         <button type="button" class="card-pic" aria-label="${cap(l.meaning_en)}. Tap to hear the word"><img src="${img(l.picture)}" alt=""></button>
         ${pictureWord(l, 'card-word')}
         <button type="button" class="sun-btn card-sound" aria-label="Hear the word">${ICON.speaker}</button>
       </div>
-      <div class="card-nav">
-        <button type="button" class="arrow prev" aria-label="Previous picture" style="color:${st.accent_dark}">${ICON.back}</button>
-        <span class="peek" aria-hidden="true"><img src="${img(prev.picture)}" alt=""><img src="${img(next.picture)}" alt=""></span>
-        <button type="button" class="arrow next" aria-label="Next picture">${ICON.next}</button>
-      </div></div>`;
+      ${wide ? `<div class="cards-side">${nextBtn}${peek([next])}</div></div>` : `<div class="card-nav">${prevBtn}${peek([prev, next])}${nextBtn}</div>`}</div>`;
   },
   mount: (root) => {
     bindGo(root);

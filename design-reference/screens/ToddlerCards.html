@@ -206,6 +206,9 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .arrow.prev { background: #FFFFFF !important; box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12) }
 .arrow.next { background: var(--primary) !important; box-shadow: 0 6px 0 var(--primary-d); color: #FFFFFF }
 .peek { display: flex; gap: 6px }
+.cards-wide { flex: 1; display: flex; align-items: center; gap: 28px; min-height: 0 }
+.cards-wide .big-card { align-self: stretch }
+.cards-side { display: flex; flex-direction: column; align-items: center; gap: 14px }
 .peek img { width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.8); object-fit: contain; padding: 4px }
 /* find */
 .find-bubble { flex: 1; justify-content: space-between }
@@ -544,7 +547,7 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 
 
 
-<div id="screen" class="screen screen-tcards static-phone"><div class="t-wrap" style="background:#FFEDC4">
+<div id="screen" class="screen screen-tcards static-phone"><div class="t-wrap " style="background:#FFEDC4">
       <div class="t-top">
   <button type="button" class="t-home" data-go="thome" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M10 20v-5h4v5"></path></svg></button>
   <button type="button" class="parent-lock" data-go="gate" aria-label="Grown-ups: open the parent gate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></button></div>
@@ -554,8 +557,4 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
         <span dir="rtl" class="ar word card-word"><span class="first" style="color:#A35400">ب</span>طة</span>
         <button type="button" class="sun-btn card-sound" aria-label="Hear the word"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M16 9a4 4 0 0 1 0 6"></path></svg></button>
       </div>
-      <div class="card-nav">
-        <button type="button" class="arrow prev" aria-label="Previous picture" style="color:#A35400"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
-        <span class="peek" aria-hidden="true"><img src="../../assets/illustrations/png/lion.png" alt=""><img src="../../assets/illustrations/png/apple.png" alt=""></span>
-        <button type="button" class="arrow next" aria-label="Next picture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
-      </div></div></div></body></html>
+      <div class="card-nav"><button type="button" class="arrow prev" aria-label="Previous picture" style="color:#A35400"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button><span class="peek" aria-hidden="true"><img src="../../assets/illustrations/png/lion.png" alt=""><img src="../../assets/illustrations/png/apple.png" alt=""></span><button type="button" class="arrow next" aria-label="Next picture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button></div></div></div></body></html>
