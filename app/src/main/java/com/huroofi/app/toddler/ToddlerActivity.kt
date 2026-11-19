@@ -38,6 +38,9 @@ object ToddlerHomeSpec {
     val TileCorner = 36.dp
     val TileBorder = 5.dp
     val TileShadow = 8.dp
+    /** Wide landscape tablet: the gap between the side-by-side tiles, and how far their art may grow. */
+    val WideGap = 24.dp
+    const val WIDE_ART_SCALE = 1.6f
     val LabelMinWidth = 100.dp
     val GoCircle = 48.dp
     val MascotSize = 96.dp

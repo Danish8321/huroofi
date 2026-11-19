@@ -5,7 +5,7 @@ const toddlerTop = (extra = '') => `<div class="t-top">
 
 SCREENS.thome = {
   title: 'Toddler home',
-  view: () => `<div class="t-wrap">
+  view: () => `<div class="t-wrap ${S.device === 'tablet' ? 'wide' : ''}">
     <button type="button" class="parent-lock corner" data-go="gate" aria-label="Grown-ups: open the parent gate">${ICON.lock}</button>
     <div class="leo-row">
       <img class="leo" src="${img('lion')}" alt="Leo the lion">
@@ -13,7 +13,7 @@ SCREENS.thome = {
         <span class="sun-btn">${ICON.speaker}</span>${AR('ماذا نلعب؟', 'bubble-ar')}
       </button>
     </div>
-    <button type="button" class="tile tile-cards" data-go="tcards" aria-label="Look and listen">
+    ${S.device === 'tablet' ? '<div class="tiles-wide">' : ''}<button type="button" class="tile tile-cards" data-go="tcards" aria-label="Look and listen">
       <span class="tile-art"><span class="mini-card tilt-l"><img src="${img('lion')}" alt=""></span><span class="mini-card tilt-r"><img src="${img('duck')}" alt=""></span></span>
       <span class="tile-side">${AR('اسمع', 'tile-ar')}<span class="tile-go">${ICON.play}</span></span></button>
     <button type="button" class="tile tile-find" data-go="tfind" aria-label="Find it">
@@ -21,7 +21,7 @@ SCREENS.thome = {
       <span class="tile-side">${AR('ابحث', 'tile-ar')}<span class="tile-go">${ICON.play}</span></span></button>
     <button type="button" class="tile tile-paint" data-go="tpaint" aria-label="Paint">
       <span class="tile-art"><span class="mini-paint">${AR('ب')}</span></span>
-      <span class="tile-side">${AR('ارسم', 'tile-ar')}<span class="tile-go">${ICON.play}</span></span></button>
+      <span class="tile-side">${AR('ارسم', 'tile-ar')}<span class="tile-go">${ICON.play}</span></span></button>${S.device === 'tablet' ? '</div>' : ''}
   </div>`,
   mount: (root) => {
     bindGo(root);

@@ -15,6 +15,12 @@ class ScaleDownToFitTest {
     }
 
     @Test
+    fun aRoomySpaceGrowsContentUpToTheCap() {
+        assertEquals(1.6f, fitScale(100, 100, 300, 300, most = 1.6f), 0.0001f)
+        assertEquals(1.2f, fitScale(100, 100, 120, 300, most = 1.6f), 0.0001f)
+    }
+
+    @Test
     fun theTighterSideWins() {
         assertEquals(0.25f, fitScale(400, 200, 100, 100), 0.0001f)
     }
