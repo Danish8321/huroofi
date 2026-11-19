@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import com.huroofi.app.ui.components.windowWidth
+import com.huroofi.app.ui.components.useWideLayout
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -84,6 +87,8 @@ object CardsSpec {
     val NavEdge = 6.dp
     val PrevEdge = Color(0x1F000000)
     val Peek = 44.dp
+    /** Wide landscape tablet: between each arrow and the card. */
+    val WideGap = 28.dp
     val PeekFace = Color(0xCCFFFFFF)
     const val LETTER_SP = 44f
     const val WORD_SP = 64f
@@ -130,9 +135,32 @@ fun LookListenScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
     val current = letters[deck.indexOf(pager.currentPage)]
     val stage = content.stageColors(current)
     val page by animateColorAsState(stage.pastel, label = "page")
-    ToddlerScaffold(background = page) {
-        ToddlerHeader(onHome = onHome, onRequestParentZone = onRequestParentZone)
-        HorizontalPager(state = pager, modifier = Modifier.weight(1f)) { index ->
+    val prev = letters[deck.indexOf(pager.currentPage - 1)]
+    val next = letters[deck.indexOf(pager.currentPage + 1)]
+    val prevButton = @Composable {
+        RoundIconButton(
+            contentDescription = "Previous picture",
+            onClick = { scope.launch { pager.animateScrollToPage(pager.currentPage - 1) } },
+            toddler = true,
+            size = CardsSpec.NavButton,
+            containerColor = HuroofiTokens.Card,
+            shadowColor = CardsSpec.PrevEdge,
+            shadowDepth = CardsSpec.NavEdge,
+        ) { ChevronIcon(stage.accent, pointsRight = false) }
+    }
+    val nextButton = @Composable {
+        RoundIconButton(
+            contentDescription = "Next picture",
+            onClick = { scope.launch { pager.animateScrollToPage(pager.currentPage + 1) } },
+            toddler = true,
+            size = CardsSpec.NavButton,
+            containerColor = HuroofiTokens.Primary,
+            shadowColor = HuroofiTokens.PrimaryShadow,
+            shadowDepth = CardsSpec.NavEdge,
+        ) { ChevronIcon(HuroofiTokens.Card, pointsRight = true) }
+    }
+    val cards = @Composable { modifier: Modifier ->
+        HorizontalPager(state = pager, modifier = modifier) { index ->
             val letter = letters[deck.indexOf(index)]
             LetterCard(
                 letter = letter,
@@ -142,28 +170,32 @@ fun LookListenScreen(onHome: () -> Unit, onRequestParentZone: () -> Unit) {
                 onWordTap = { audio.onPictureTap(letter) },
             )
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            RoundIconButton(
-                contentDescription = "Previous picture",
-                onClick = { scope.launch { pager.animateScrollToPage(pager.currentPage - 1) } },
-                toddler = true,
-                size = CardsSpec.NavButton,
-                containerColor = HuroofiTokens.Card,
-                shadowColor = CardsSpec.PrevEdge,
-                shadowDepth = CardsSpec.NavEdge,
-            ) { ChevronIcon(stage.accent, pointsRight = false) }
-            Peek(
-                listOf(letters[deck.indexOf(pager.currentPage - 1)], letters[deck.indexOf(pager.currentPage + 1)]),
-            )
-            RoundIconButton(
-                contentDescription = "Next picture",
-                onClick = { scope.launch { pager.animateScrollToPage(pager.currentPage + 1) } },
-                toddler = true,
-                size = CardsSpec.NavButton,
-                containerColor = HuroofiTokens.Primary,
-                shadowColor = HuroofiTokens.PrimaryShadow,
-                shadowDepth = CardsSpec.NavEdge,
-            ) { ChevronIcon(HuroofiTokens.Card, pointsRight = true) }
+    }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val wide = useWideLayout(windowWidth.value, windowHeight.value)
+        ToddlerScaffold(background = page, wide = wide) {
+            ToddlerHeader(onHome = onHome, onRequestParentZone = onRequestParentZone)
+            if (wide) {
+                // Wide landscape tablet (`ToddlerCardsTablet.html`): each arrow beside the card, its neighbour under it.
+                Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(CardsSpec.WideGap), verticalAlignment = Alignment.CenterVertically) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        prevButton()
+                        Peek(listOf(prev))
+                    }
+                    cards(Modifier.weight(1f).fillMaxHeight())
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        nextButton()
+                        Peek(listOf(next))
+                    }
+                }
+            } else {
+                cards(Modifier.weight(1f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    prevButton()
+                    Peek(listOf(prev, next))
+                    nextButton()
+                }
+            }
         }
     }
 }
