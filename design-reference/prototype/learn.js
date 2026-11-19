@@ -78,9 +78,10 @@ SCREENS.map = {
       return `<button type="button" class="map-card locked" data-stage="${s.stage}" aria-label="Stage ${s.stage}, ${s.name}, locked">
         <div class="map-row">${pic}${name}<span class="map-badge">${ICON.lock}</span></div></button>`;
     }).join('');
-    return `<div class="learn-wrap scroll">
+    const wide = S.device === 'tablet';
+    return `<div class="learn-wrap scroll ${wide ? 'wide' : ''}">
       <header class="page-head"><h1>Letter map</h1><span>${learned} of 28 letters learned · ${S.unlockAll ? 'start any stage' : 'finish one stage to unlock the next'}</span></header>
-      <div class="map-list"><span class="map-line" aria-hidden="true"></span>${cards}</div>
+      <div class="map-list ${wide ? 'two' : ''}"><span class="map-line" aria-hidden="true"></span>${cards}</div>
       ${bottomNav('map')}</div>`;
   },
   mount: (root) => {
@@ -103,9 +104,9 @@ SCREENS.map = {
 // ---------- Sticker book ----------
 SCREENS.stickers = {
   title: 'Sticker book',
-  view: () => `<div class="learn-wrap scroll">
+  view: () => `<div class="learn-wrap scroll ${S.device === 'tablet' ? 'wide' : ''}">
     <header class="page-head"><h1>Sticker book</h1><span>${S.stickers.size} of 7 stickers · finish a stage to earn one</span></header>
-    <div class="sticker-grid">${STAGES.map((s) => {
+    <div class="sticker-grid ${S.device === 'tablet' ? 'four' : ''}">${STAGES.map((s) => {
       const earned = S.stickers.has(s.stage);
       return earned
         ? `<button type="button" class="sticker-slot" data-stage="${s.stage}" aria-label="${s.name} sticker. Tap to hear its letters">${stickerBadge(s.stage, 112, true)}<b>${s.name}</b></button>`

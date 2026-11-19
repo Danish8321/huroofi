@@ -323,6 +323,11 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
 .map-chip.learning { border: 4px solid var(--primary); color: var(--navy) }
 /* stickers */
 .sticker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding-bottom: 20px }
+.map-list.two { display: grid; grid-template-columns: 1fr 1fr; align-items: start }
+.map-list.two .map-line { display: none }
+.sticker-grid.four { grid-template-columns: repeat(4, 1fr) }
+.sticker-grid.four .sticker-slot:last-child { grid-column: auto; justify-self: stretch; width: auto }
+.learn-wrap.wide .bottom-nav { margin: auto -28px 0 }
 .sticker-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px !important; border-radius: 28px; background: #FFFFFF !important; box-shadow: 0 5px 0 #CFE2F7; font-size: 18px }
 .sticker-slot b { font-weight: 800 }
 .sticker-slot.empty { background: rgba(255, 255, 255, 0.6) !important; box-shadow: none; color: var(--muted); font-weight: 700 }
@@ -561,7 +566,7 @@ body.static .screen.static-tablet { width: 1180px; height: 820px }
     <div id="stage-screens" class="stage-screens">
       <div class="feedback" aria-live="polite"><div id="caption"><span class="cap-label">Sound</span><span class="then">Spoken clips show here (audio comes from the app’s recordings).</span></div><span id="buzz">Buzz</span></div>
       <div id="stage"><div id="device-holder"><div id="device"><div id="screen" class="screen"></div></div></div></div>
-      <p id="device-note" hidden>Toddler home, Look &amp; listen, Toddler Find, Finger paint, Meet, Trace and the Picture game have a tablet layout. Other screens use the phone layout, centred.</p>
+      <p id="device-note" hidden>Toddler home, Letter map, Sticker book, Look &amp; listen, Toddler Find, Finger paint, Meet, Trace and the Picture game have a tablet layout. Other screens use the phone layout, centred.</p>
     </div>
     <div id="ds" hidden></div>
   </main>
@@ -1191,9 +1196,10 @@ SCREENS.map = {
       return `<button type="button" class="map-card locked" data-stage="${s.stage}" aria-label="Stage ${s.stage}, ${s.name}, locked">
         <div class="map-row">${pic}${name}<span class="map-badge">${ICON.lock}</span></div></button>`;
     }).join('');
-    return `<div class="learn-wrap scroll">
+    const wide = S.device === 'tablet';
+    return `<div class="learn-wrap scroll ${wide ? 'wide' : ''}">
       <header class="page-head"><h1>Letter map</h1><span>${learned} of 28 letters learned · ${S.unlockAll ? 'start any stage' : 'finish one stage to unlock the next'}</span></header>
-      <div class="map-list"><span class="map-line" aria-hidden="true"></span>${cards}</div>
+      <div class="map-list ${wide ? 'two' : ''}"><span class="map-line" aria-hidden="true"></span>${cards}</div>
       ${bottomNav('map')}</div>`;
   },
   mount: (root) => {
@@ -1216,9 +1222,9 @@ SCREENS.map = {
 // ---------- Sticker book ----------
 SCREENS.stickers = {
   title: 'Sticker book',
-  view: () => `<div class="learn-wrap scroll">
+  view: () => `<div class="learn-wrap scroll ${S.device === 'tablet' ? 'wide' : ''}">
     <header class="page-head"><h1>Sticker book</h1><span>${S.stickers.size} of 7 stickers · finish a stage to earn one</span></header>
-    <div class="sticker-grid">${STAGES.map((s) => {
+    <div class="sticker-grid ${S.device === 'tablet' ? 'four' : ''}">${STAGES.map((s) => {
       const earned = S.stickers.has(s.stage);
       return earned
         ? `<button type="button" class="sticker-slot" data-stage="${s.stage}" aria-label="${s.name} sticker. Tap to hear its letters">${stickerBadge(s.stage, 112, true)}<b>${s.name}</b></button>`
@@ -1731,8 +1737,8 @@ const NOTES = {
   practice: { file: 'Trace (practice)', from: 'Home or Map while Trace only is on.', rules: ['Same tracing as Trace, without the step bar.', 'Practice never makes a letter learned, never gives a sticker and never unlocks a stage.', 'Next letter goes to the following letter in the alphabet, only when tapped.'] },
   quiz: { file: 'Quiz', from: 'Trace, “Play”.', rules: ['Asks “Which starts with ب?” on open; the bubble asks again.', 'Pictures only. Preschool 3 in a column; Early reader 4 in a 2×2 grid. The right picture never sits in the same place two rounds running.', 'Three rounds, shown as three dots. No star counter.', 'Wrong: soft “boing”, the picture dims, the right one wiggles, and an orange “Almost! Try again” explains what the tapped picture starts with. Unlimited tries.', 'Right: green frame, a star pops, the word appears, praise and vibration. Then “Great job! Next”, only when tapped.', 'The third right answer makes the letter learned. The button then reads “Next letter”, or “Get your sticker” when the stage is complete.', 'Wide landscape tablet (`QuizTablet.html`): all the pictures sit in one row (3 or 4), up to 160 dp, and once solved the word goes under the picture.'] },
   reward: { file: 'Reward', from: 'The game’s last round when it completes a stage.', rules: ['The stage sticker is the hero; tapping it says the stage’s letters. Confetti unless calm motion is on.', 'The four letters with their pictures, then the next stage shown as unlocked.', 'No stars or points: the sticker is the only reward.', '“Go to Carrot Farm” opens the map; the square button opens the sticker book. “Back to map” when nothing new unlocked.'] },
-  map: { file: 'StageMap', from: 'Map tab; Reward.', rules: ['Seven stages in a list. The current stage is open wide with its 4 letters and “Continue with ب”.', 'Finished stages get a green tick; tapping one replays Meet for a random letter of that stage.', 'Locked stages are compact with a lock; tapping one gives a “boing” and a wiggle.', 'With Unlock all on, unfinished stages get a play button instead of a lock.'] },
-  stickers: { file: 'Stickers', from: 'Stickers tab; Reward.', rules: ['One sticker per stage, seven in all.', 'Earned stickers are filled in; tapping one wiggles and says its letters.', 'The rest are gentle empty slots with a question mark, not greyed-out failures.'] },
+  map: { file: 'StageMap', from: 'Map tab; Reward.', rules: ['Seven stages in a list. The current stage is open wide with its 4 letters and “Continue with ب”.', 'Finished stages get a green tick; tapping one replays Meet for a random letter of that stage.', 'Locked stages are compact with a lock; tapping one gives a “boing” and a wiggle.', 'With Unlock all on, unfinished stages get a play button instead of a lock.', 'Wide landscape tablet (`StageMapTablet.html`): the stages sit two to a row, in order left to right, without the dotted line.'] },
+  stickers: { file: 'Stickers', from: 'Stickers tab; Reward.', rules: ['One sticker per stage, seven in all.', 'Earned stickers are filled in; tapping one wiggles and says its letters.', 'The rest are gentle empty slots with a question mark, not greyed-out failures.', 'Wide landscape tablet (`StickersTablet.html`): four stickers to a row, so all seven show at once.'] },
   gate: { file: 'ParentGate', from: 'Every lock, the Parents tab, Back on the preschool home, the lock on Rest.', rules: ['“Back to play” comes first and is the biggest thing on screen.', 'Press and hold the circle for 2 seconds; the ring fills. Letting go resets it.', 'Once unlocked: “Open Parent zone” or “Close Huroofi”.'] },
   zone: { file: 'Parents', from: 'Parent gate only.', rules: ['Your child: stage, a progress bar with learned / learning / to go, and all 28 letters.', 'Learning mode applies when you go back to kid mode.', 'Voice & sounds, Vibration, vowel marks (shown, but locked until the vowelled text is reviewed), daily play time 5–60 min in steps of 5, or Off one step past 60.', 'Lessons: Unlock all and Trace only. Start over asks first, inside the page.', 'No child name, no weekly report, no download button: everything is already on the device.'] },
   rest: { file: 'Rest', from: 'Replaces the child screen once today’s play time is used up.', rules: ['The game in progress is never cut off: Rest comes when the child moves to another screen, or 3 minutes after the time is up at the latest.', 'Calm night colours, Leo resting, “وقت الراحة” is spoken once.', 'No countdown and no red. Only the lock leads anywhere.', 'Raising the limit in the Parent zone sends the child back to play. Trace practice counts as play too.'] },
@@ -1757,7 +1763,9 @@ const STATIC = {
   QuizTablet: () => { S.device = 'tablet'; S.mode = 'reader'; quiz = { i: 2, round: 2, options: [L(4), g2(), L(3), L(11)], slot: 1, solved: true, wrong: null, saved: null }; return ['quiz', { i: 2 }]; },
   Reward: () => { applyPreset('halfway'); S.learned = new Set([1, 2, 3, 4]); S.stickers = new Set([1]); return ['reward', { stage: 1 }]; },
   StageMap: () => { applyPreset('halfway'); S.learned = new Set([1, 2, 3, 4, 5]); S.stickers = new Set([1]); return ['map']; },
+  StageMapTablet: () => { S.device = 'tablet'; applyPreset('halfway'); S.learned = new Set([1, 2, 3, 4, 5]); S.stickers = new Set([1]); return ['map']; },
   Stickers: () => { S.learned = new Set([...Array(8)].map((_, k) => k + 1)); S.stickers = new Set([1, 2]); return ['stickers']; },
+  StickersTablet: () => { S.device = 'tablet'; S.learned = new Set([...Array(8)].map((_, k) => k + 1)); S.stickers = new Set([1, 2]); return ['stickers']; },
   ParentGate: () => { gateOpen = false; return ['gate']; },
   Parents: () => { S.mode = 'preschool'; applyPreset('mid'); return ['zone']; },
   ToddlerHome: () => { S.mode = 'toddler'; return ['thome']; },
@@ -1801,7 +1809,7 @@ function routeParams(id) {
   return {};
 }
 // Screens with their own wide landscape tablet layout; the rest use the phone layout, centred.
-const TABLET_ROUTES = ['thome', 'tcards', 'tfind', 'tpaint', 'lesson', 'trace', 'practice', 'quiz'];
+const TABLET_ROUTES = ['thome', 'map', 'stickers', 'tcards', 'tfind', 'tpaint', 'lesson', 'trace', 'practice', 'quiz'];
 function syncShell(name) {
   document.querySelectorAll('.nav-link').forEach((b) => b.classList.toggle('on', b.dataset.route === name));
   const n = NOTES[name] || NOTES.closed;
