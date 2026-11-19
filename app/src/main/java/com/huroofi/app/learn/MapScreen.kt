@@ -64,6 +64,10 @@ import com.huroofi.app.parent.parentProgress
 import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.ui.components.ButtonKind
 import com.huroofi.app.ui.components.CappedWidth
+import com.huroofi.app.ui.components.windowWidth
+import com.huroofi.app.ui.components.windowHeight
+import com.huroofi.app.ui.components.useWideLayout
+import androidx.compose.foundation.layout.BoxWithConstraints
 import com.huroofi.app.ui.components.LineIcon
 import com.huroofi.app.ui.components.PrimaryButton
 import com.huroofi.app.ui.components.contrastPairs
@@ -176,40 +180,54 @@ fun MapScreen(
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
 ) {
-    CappedWidth(HuroofiTokens.Sky) {
-        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-            val scroll = rememberScrollState()
-            var currentTop by remember { mutableIntStateOf(-1) }
-            // Open at the current stage, with the card above it peeking in.
-            LaunchedEffect(currentTop) { if (currentTop > 0) scroll.scrollTo(currentTop / 2) }
-            Column(
-                Modifier.weight(1f).verticalScroll(scroll).padding(horizontal = 20.dp, vertical = 22.dp),
-                verticalArrangement = Arrangement.spacedBy(MapSpec.Gap),
-            ) {
-                Column {
-                    Text("Letter map", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
-                    Text(mapSubtitle(stages), style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold), color = HuroofiTokens.Muted)
-                }
-                Box {
-                    DottedLine(Modifier.matchParentSize())
-                    Column(verticalArrangement = Arrangement.spacedBy(MapSpec.Gap)) {
-                        for (s in stages) {
-                            MapCard(
-                                s,
-                                traceOnly,
-                                modifier = if (s.state == StageState.CURRENT) {
-                                    Modifier.onGloballyPositioned { currentTop = it.positionInParent().y.toInt() }
-                                } else Modifier,
-                                onPlay = onPlay,
-                                onReplay = { onReplay(s.stage) },
-                                onOpen = { onOpen(s.stage) },
-                                onLocked = onLocked,
-                            )
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        // Wide landscape tablet (`StageMapTablet.html`): the whole width, two stages to a row.
+        val wide = useWideLayout(windowWidth.value, windowHeight.value)
+        CappedWidth(HuroofiTokens.Sky, wide = wide) {
+            Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+                val scroll = rememberScrollState()
+                var currentTop by remember { mutableIntStateOf(-1) }
+                // Open at the current stage, with the card above it peeking in.
+                LaunchedEffect(currentTop) { if (currentTop > 0) scroll.scrollTo(currentTop / 2) }
+                Column(
+                    Modifier.weight(1f).verticalScroll(scroll).padding(horizontal = 20.dp, vertical = 22.dp),
+                    verticalArrangement = Arrangement.spacedBy(MapSpec.Gap),
+                ) {
+                    Column {
+                        Text("Letter map", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
+                        Text(mapSubtitle(stages), style = HuroofiText.body.copy(fontWeight = FontWeight.SemiBold), color = HuroofiTokens.Muted)
+                    }
+                    Box {
+                        // Wide: two stages to a row, left to right; the dotted line only joins a single column.
+                        if (!wide) DottedLine(Modifier.matchParentSize())
+                        Column(verticalArrangement = Arrangement.spacedBy(MapSpec.Gap)) {
+                            for (row in stages.chunked(if (wide) 2 else 1)) {
+                                Row(
+                                    Modifier.fillMaxWidth().then(
+                                        if (row.any { it.state == StageState.CURRENT }) {
+                                            Modifier.onGloballyPositioned { currentTop = it.positionInParent().y.toInt() }
+                                        } else Modifier,
+                                    ),
+                                    horizontalArrangement = Arrangement.spacedBy(MapSpec.Gap),
+                                ) {
+                                    for (s in row) {
+                                        MapCard(
+                                            s,
+                                            traceOnly,
+                                            modifier = Modifier.weight(1f),
+                                            onPlay = onPlay,
+                                            onReplay = { onReplay(s.stage) },
+                                            onOpen = { onOpen(s.stage) },
+                                            onLocked = onLocked,
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+                LearnNav(NavTab.MAP, navTabs, onTab)
             }
-            LearnNav(NavTab.MAP, navTabs, onTab)
         }
     }
 }

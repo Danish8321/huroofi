@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,10 @@ import com.huroofi.app.audio.Clips
 import com.huroofi.app.data.content.Stage
 import com.huroofi.app.toddler.PromptPlayer
 import com.huroofi.app.ui.components.CappedWidth
+import com.huroofi.app.ui.components.windowWidth
+import com.huroofi.app.ui.components.windowHeight
+import com.huroofi.app.ui.components.useWideLayout
+import androidx.compose.foundation.layout.BoxWithConstraints
 import com.huroofi.app.ui.components.rememberWiggle
 import com.huroofi.app.ui.components.wiggle
 import com.huroofi.app.ui.theme.ContrastPair
@@ -49,6 +54,8 @@ object StickerBookSpec {
     /** An empty slot is the card at 60 %, flat. */
     val EmptyCard = Color(0x99FFFFFF)
     val Gap = 14.dp
+    /** Wide landscape tablet: slots to a row, so all seven show at once. */
+    const val WIDE_PER_ROW = 4
     val touchSizes = listOf(NavSpec.Item)
     val textSizes = listOf(StickerSpec.QUESTION_SP)
     val colors = listOf(HuroofiTokens.Sky, HuroofiTokens.Card, HuroofiTokens.Navy, CardEdge) + NavSpec.colors
@@ -63,7 +70,7 @@ object StickerBookSpec {
 /** "2 of 7 stickers · finish a stage to earn one". */
 fun stickerCount(earned: Int, total: Int): String = "$earned of $total stickers · finish a stage to earn one"
 
-/** One slot per stage, in stage order, two per row; an odd last slot sits in the middle. */
+/** One slot per stage, in stage order, two per row (four on a wide tablet); a phone's odd last slot sits in the middle. */
 @Composable
 fun StickerBookScreen(
     stages: List<Stage>,
@@ -72,49 +79,56 @@ fun StickerBookScreen(
     navTabs: List<NavTab>,
     onTab: (NavTab) -> Unit,
 ) {
-    CappedWidth(HuroofiTokens.Sky) {
-        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-            Column(
-                Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 22.dp),
-                verticalArrangement = Arrangement.spacedBy(StickerBookSpec.Gap),
-            ) {
-                Column {
-                    Text("Sticker book", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
-                    Text(stickerCount(earned.size, stages.size), style = HuroofiText.body, color = HuroofiTokens.Muted)
-                }
-                for (row in stages.chunked(2)) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(StickerBookSpec.Gap, Alignment.CenterHorizontally),
-                    ) {
-                        for (stage in row) {
-                            val shape = RoundedCornerShape(StickerBookSpec.CardCorner)
-                            val has = stage.stage in earned
-                            val wiggle = rememberWiggle()
-                            Box(
-                                // A lone last slot keeps half the width, centred.
-                                (if (row.size == 1) Modifier.fillMaxWidth(0.5f).padding(horizontal = StickerBookSpec.Gap / 4) else Modifier.weight(1f))
-                                    .then(if (has) Modifier.dropEdge(StickerBookSpec.CardEdge, 5.dp, shape) else Modifier)
-                                    .clip(shape)
-                                    .background(if (has) HuroofiTokens.Card else StickerBookSpec.EmptyCard)
-                                    .then(
-                                        if (has) {
-                                            Modifier.clickable(role = Role.Button, onClickLabel = "Hear the letters") {
-                                                wiggle.play()
-                                                onSticker(stage)
-                                            }
-                                        } else Modifier,
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 16.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                StickerSlot(stage, earned = has, modifier = Modifier.wiggle(wiggle))
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        // Wide landscape tablet (`StickersTablet.html`): the whole width, four stickers to a row.
+        val wide = useWideLayout(windowWidth.value, windowHeight.value)
+        CappedWidth(HuroofiTokens.Sky, wide = wide) {
+            Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+                Column(
+                    Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 22.dp),
+                    verticalArrangement = Arrangement.spacedBy(StickerBookSpec.Gap),
+                ) {
+                    Column {
+                        Text("Sticker book", style = HuroofiText.screenTitle, color = HuroofiTokens.Navy)
+                        Text(stickerCount(earned.size, stages.size), style = HuroofiText.body, color = HuroofiTokens.Muted)
+                    }
+                    val perRow = if (wide) StickerBookSpec.WIDE_PER_ROW else 2
+                    for (row in stages.chunked(perRow)) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(StickerBookSpec.Gap, Alignment.CenterHorizontally),
+                        ) {
+                            for (stage in row) {
+                                val shape = RoundedCornerShape(StickerBookSpec.CardCorner)
+                                val has = stage.stage in earned
+                                val wiggle = rememberWiggle()
+                                Box(
+                                    // A lone last slot keeps half the width, centred.
+                                    (if (row.size == 1 && !wide) Modifier.fillMaxWidth(0.5f).padding(horizontal = StickerBookSpec.Gap / 4) else Modifier.weight(1f))
+                                        .then(if (has) Modifier.dropEdge(StickerBookSpec.CardEdge, 5.dp, shape) else Modifier)
+                                        .clip(shape)
+                                        .background(if (has) HuroofiTokens.Card else StickerBookSpec.EmptyCard)
+                                        .then(
+                                            if (has) {
+                                                Modifier.clickable(role = Role.Button, onClickLabel = "Hear the letters") {
+                                                    wiggle.play()
+                                                    onSticker(stage)
+                                                }
+                                            } else Modifier,
+                                        )
+                                        .padding(horizontal = 8.dp, vertical = 16.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    StickerSlot(stage, earned = has, modifier = Modifier.wiggle(wiggle))
+                                }
                             }
+                            // A short wide row keeps the grid's column widths, starting at the left.
+                            if (wide && row.size < perRow) Spacer(Modifier.weight((perRow - row.size).toFloat()))
                         }
                     }
                 }
+                LearnNav(NavTab.STICKERS, navTabs, onTab)
             }
-            LearnNav(NavTab.STICKERS, navTabs, onTab)
         }
     }
 }

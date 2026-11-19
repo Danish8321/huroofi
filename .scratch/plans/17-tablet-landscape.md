@@ -18,6 +18,7 @@ Started 2026-11-19 by the maintainer ("start with the other resolution changes i
 4. **Picture game** (`feat/tablet-quiz`). All the pictures sit in one row (3 in Preschool, 4 in Early reader), up to 160 dp; once solved the word goes under the picture (`QuizTablet.html`). Close, dots, question and foot keep their phone order across the full width. `CappedWidth(wide = true)` now drops the 480 dp column for any screen; `ToddlerScaffold` uses it.
 5. **Look & listen** (`feat/tablet-cards`). The card fills the middle at full height; the previous arrow sits on its left and the next arrow on its right, each with its neighbour's picture under it (`ToddlerCardsTablet.html`).
 6. **Toddler home** (`feat/tablet-toddler-home`). Leo and the question on one line across the top; the three tiles stand side by side at full height, picture on top (grown up to 1.6×), word and play circle under it (`ToddlerHomeTablet.html`).
+7. **Letter map and Sticker book** (`feat/tablet-home`). The map's stages sit two to a row, left to right, without the dotted line (`StageMapTablet.html`); the sticker book shows four to a row, so all seven fit (`StickersTablet.html`). The learn Home keeps its column: its path card and button already fill a landscape tablet well.
 
 ## Built
 
@@ -37,3 +38,5 @@ Started 2026-11-19 by the maintainer ("start with the other resolution changes i
   - Emulator, Toddler, Look & listen: the card is about 440 × 300 dp between the arrows; Next went from أسد to بطة and the peeks followed (lion left, apple right). `a11y.sh` PASS (7 targets, min 64 dp). Portrait keeps the phone layout; 200 % text fits.
 - Slice 6, `feat/tablet-toddler-home`, merged to `main`. `check.sh`, `test-fast.sh` (new `fitScale` grow test) and `design.sh` PASS (new reference screen `ToddlerHomeTablet.html`).
   - Emulator, Toddler home: three tiles of about 300 × 450 dp side by side; Find it opened from its tile. `a11y.sh` PASS (5 targets, min 64 dp). Portrait keeps the phone layout; 200 % text fits.
+- Slice 7, `feat/tablet-home`, merged to `main`. `check.sh`, `test-fast.sh` and `design.sh` PASS (new reference screens `StageMapTablet.html`, `StickersTablet.html`).
+  - Emulator, Early reader: the map shows stages 1–4 two to a row with the current card open; the sticker book shows all seven at four to a row; the tab bar spans the width. `a11y.sh` PASS on both (7 and 3 targets, min 64 dp). Portrait keeps the phone layouts; 200 % text scrolls.
